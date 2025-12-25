@@ -50,7 +50,16 @@ const translations = {
       "'Function over Form'",
       "'Speed over Features'"
     ],
-    manifestoStatus: 'Ready_to_Deploy'
+    manifestoStatus: 'Ready_to_Deploy',
+    // Command Palette Translations
+    cmdReady: 'SYSTEM_READY',
+    cmdHelp: 'Type "help" for available commands.',
+    cmdAvailable: 'Available commands: help, clear, theme [blue|red|green|purple], contact, exit',
+    cmdThemeSet: 'Theme set to',
+    cmdInvalidColor: 'Invalid color. Try: blue, red, green, purple',
+    cmdOpenMail: 'Opening mail client...',
+    cmdNotFound: 'Command not found:',
+    cmdPlaceholder: 'Enter command...'
   },
   tr: {
     terminal: 'kullanici@github:~',
@@ -96,7 +105,16 @@ const translations = {
       "'Form yerine Islev'",
       "'Ozellik yerine Hiz'"
     ],
-    manifestoStatus: 'Yayina_Hazir'
+    manifestoStatus: 'Yayina_Hazir',
+    // Command Palette Translations
+    cmdReady: 'SISTEM_HAZIR',
+    cmdHelp: 'Komutlar icin "help" yazin.',
+    cmdAvailable: 'Kullanilabilir komutlar: help, clear, theme [blue|red|green|purple], contact, exit',
+    cmdThemeSet: 'Tema degistirildi:',
+    cmdInvalidColor: 'Gecersiz renk. Deneyin: blue, red, green, purple',
+    cmdOpenMail: 'Mail istemcisi aciliyor...',
+    cmdNotFound: 'Komut bulunamadi:',
+    cmdPlaceholder: 'Komut girin...'
   }
 };
 
@@ -626,16 +644,18 @@ const LogTerminal = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: () =
 };
 
 // --- Command Palette Component ---
-const CommandPalette = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+const CommandPalette = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: () => void, lang: Language }) => {
+  const t = translations[lang];
   const [input, setInput] = useState('');
-  const [history, setHistory] = useState<string[]>(['> SYSTEM_READY', '> Type "help" for available commands.']);
+  const [history, setHistory] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
+      setHistory([`> ${t.cmdReady}`, `> ${t.cmdHelp}`]);
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-  }, [isOpen]);
+  }, [isOpen, lang, t.cmdReady, t.cmdHelp]);
 
   const handleCommand = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -644,7 +664,7 @@ const CommandPalette = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
 
       let response = '';
       if (cmd === 'help') {
-        response = '> Available commands: help, clear, theme [blue|red|green|purple], contact, exit';
+        response = `> ${t.cmdAvailable}`;
       } else if (cmd === 'clear') {
         setHistory([]);
         setInput('');
@@ -659,20 +679,20 @@ const CommandPalette = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
         };
         if (colors[color]) {
           document.documentElement.style.setProperty('--color-primary', colors[color]);
-          response = `> Theme set to ${color.toUpperCase()}`;
+          response = `> ${t.cmdThemeSet} ${color.toUpperCase()}`;
         } else {
-          response = '> Invalid color. Try: blue, red, green, purple';
+          response = `> ${t.cmdInvalidColor}`;
         }
       } else if (cmd === 'contact') {
         window.location.href = 'mailto:contact@cheleby.dev';
-        response = '> Opening mail client...';
+        response = `> ${t.cmdOpenMail}`;
       } else if (cmd === 'exit') {
         onClose();
         return;
       } else if (cmd === '') {
         response = '';
       } else {
-        response = `> Command not found: ${cmd}`;
+        response = `> ${t.cmdNotFound} ${cmd}`;
       }
 
       if (response) newHistory.push(response);
@@ -704,7 +724,7 @@ const CommandPalette = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleCommand}
             className="bg-transparent border-none outline-none text-white font-mono w-full focus:ring-0"
-            placeholder="Enter command..."
+            placeholder={t.cmdPlaceholder}
             autoFocus
           />
         </div>
@@ -784,7 +804,7 @@ const App: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen bg-background-dark cursor-none">
       <CustomCursor />
-      <CommandPalette isOpen={isCmdOpen} onClose={() => setIsCmdOpen(false)} />
+      <CommandPalette isOpen={isCmdOpen} onClose={() => setIsCmdOpen(false)} lang={lang} />
       <Header lang={lang} setLang={setLang} />
 
       <main className="flex-grow flex flex-col w-full">

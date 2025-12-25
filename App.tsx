@@ -21,16 +21,24 @@ const translations = {
     manifestoLink: './manifesto.md',
     changelogLink: './changelog',
     locationUnknown: 'SYSTEM_CORE',
-    indexOf: 'Index Of /Projects',
+    indexOf: 'DIZIN /PROJELER',
     compiling: 'Compiling artifacts...',
-    listing: (count: number) => `Listing ${count} directories, 0 files.`,
+    listing: (count: number) => `${count} dizin, 0 dosya listeleniyor.`,
     recentActivity: 'RECENT_ACTIVITY',
     availableForHire: 'AVAILABLE_FOR_HIRE',
     readmeIntro: 'The web has become too heavy.',
     readmeBody1: 'We are building tools that are lightweight, honest, and raw.',
     readmeBody2: 'Function over form. Transparency over polish.',
     server: 'Server',
-    marquee: '/// BUILDING_THE_FUTURE /// ENGINEERED_FOR_PERFORMANCE /// DIGITAL_CRAFTSMANSHIP /// DEPLOYING_IDEAS_TO_REALITY /// '
+    marquee: '/// BUILDING_THE_FUTURE /// ENGINEERED_FOR_PERFORMANCE /// DIGITAL_CRAFTSMANSHIP /// DEPLOYING_IDEAS_TO_REALITY /// ',
+    // Secure Sector Translations
+    loadMore: '[ LOAD_MORE_ARTIFACTS ]',
+    unlockHint: 'Unlock secure sector...',
+    lockedTitle: 'SECURE_SECTOR_LOCKED',
+    lockedDesc: 'Additional project data is encrypted. Initialize decryption sequence via the left panel control.',
+    sectorUnlocked: 'Sector_Unlocked',
+    items: 'Items',
+    endOfData: '--- End of Sector Data ---'
   },
   tr: {
     terminal: 'kullanici@github:~',
@@ -47,7 +55,7 @@ const translations = {
     manifestoLink: './manifesto.md',
     changelogLink: './degisim_gunlugu',
     locationUnknown: 'SISTEM_CEKIRDEGI',
-    indexOf: 'Dizin /Projeler',
+    indexOf: 'DIZIN /PROJELER',
     compiling: 'Eserler derleniyor...',
     listing: (count: number) => `${count} dizin, 0 dosya listeleniyor.`,
     recentActivity: 'SON_AKTIVITELER',
@@ -56,7 +64,15 @@ const translations = {
     readmeBody1: 'Hafif, durust ve saf araclar insa ediyoruz.',
     readmeBody2: 'Form yerine islev. Cilalamak yerine seffaflik.',
     server: 'Sunucu',
-    marquee: '/// GELECEGI_INSA_EDIYORUZ /// PERFORMANS_MUHENDISLIGI /// DIJITAL_ZANAATKARLIK /// FIKIRLERI_GERCEGE_DONUSTURUYORUZ /// '
+    marquee: '/// GELECEGI_INSA_EDIYORUZ /// PERFORMANS_MUHENDISLIGI /// DIJITAL_ZANAATKARLIK /// FIKIRLERI_GERCEGE_DONUSTURUYORUZ /// ',
+    // Secure Sector Translations
+    loadMore: '[ ARTEFAKTLARI_YUKLE ]',
+    unlockHint: 'Güvenli sektörü aç...',
+    lockedTitle: 'GUVENLI_BOLGE_KILITLI',
+    lockedDesc: 'Ek proje verileri şifrelendi. Sol panelden şifre çözmeyi başlatın.',
+    sectorUnlocked: 'Bolge_Acildi',
+    items: 'Oge',
+    endOfData: '--- Sektor Verisi Sonu ---'
   }
 };
 
@@ -201,7 +217,7 @@ const Sidebar = ({ lang }: { lang: Language }) => (
 );
 
 const ProjectCard: React.FC<{ project: Project }> = ({ project }) => (
-  <a className="group border-b border-r border-border-dark bg-surface-dark p-8 flex flex-col justify-between h-[320px] border-glitch relative overflow-hidden" href="#">
+  <a className="group border-b border-r border-border-dark bg-surface-dark p-8 flex flex-col justify-between h-[320px] border-glitch relative overflow-hidden flex-shrink-0" href={project.url || '#'}>
     {/* Target Lock Corners */}
     <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-primary opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:top-2 group-hover:left-2"></div>
     <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-primary opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:top-2 group-hover:right-2"></div>
@@ -216,7 +232,7 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => (
         <span className="w-2 h-2 bg-primary block"></span> {project.order}_Project
       </div>
       <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-primary transition-colors">{project.name}</h3>
-      <p className="text-gray-400 text-sm leading-relaxed">
+      <p className="text-gray-400 text-sm leading-relaxed line-clamp-3">
         {project.description}
       </p>
     </div>
@@ -595,26 +611,39 @@ const App: React.FC = () => {
   const [lang, setLang] = useState<Language>('en');
   const [isInit, setIsInit] = useState(false);
   const [isLogsOpen, setIsLogsOpen] = useState(false);
-  const [projects, setProjects] = useState<Project[]>(mockProjects['en']); // Start with mock, then fetch
+  const [projects, setProjects] = useState<Project[]>(mockProjects['en']);
+  const [isSectorUnlocked, setIsSectorUnlocked] = useState(false); // New state for Unlock
 
   useEffect(() => {
     const fetchGitHubProjects = async () => {
       try {
         const response = await fetch('https://api.github.com/users/chelebyy/repos?sort=pushed&per_page=100');
-        if (!response.ok) throw new Error('GitHub API Error');
+
+        if (!response.ok) {
+          // Handle rate limit or other errors gracefully by keeping mock data
+          console.warn('GitHub API Request Failed', response.status);
+          return;
+        }
+
         const data = await response.json();
 
+        if (!Array.isArray(data)) {
+          console.warn('GitHub API Response is not an array');
+          return;
+        }
+
         const mappedProjects = data
-          .filter((repo: any) => !repo.fork && repo.description) // Filter forks and empty desc
+          .filter((repo: any) => !repo.fork) // Filter only forks
           .sort((a: any, b: any) => b.stargazers_count - a.stargazers_count) // Sort by stars
-          .slice(0, 6) // Limit to top 6
+          .slice(0, 50) // Fetch plenty of projects for the scrollable list
           .map((repo: any, index: number) => ({
             id: repo.id.toString(),
             name: repo.name,
-            description: repo.description,
+            description: repo.description || 'No description provided.',
             tags: [repo.language, 'GitHub'].filter(Boolean).slice(0, 3),
             stars: repo.stargazers_count >= 1000 ? (repo.stargazers_count / 1000).toFixed(1) + 'k' : repo.stargazers_count.toString(),
-            order: (index + 1).toString().padStart(2, '0')
+            order: (index + 1).toString().padStart(2, '0'),
+            url: repo.html_url
           }));
 
         if (mappedProjects.length > 0) {
@@ -657,7 +686,7 @@ const App: React.FC = () => {
               <div>
                 <h2 className="text-white text-3xl md:text-4xl font-bold tracking-tight mb-2 uppercase">{translations[lang].indexOf}</h2>
                 <p className="text-gray-500 font-mono text-sm">
-                  {translations[lang].listing(mockProjects[lang].length)}
+                  {translations[lang].listing(projects.length)}
                 </p>
               </div>
               <div className="hidden md:block">
@@ -667,11 +696,72 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Projects Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 min-h-[320px]">
-              {projects.map(project => (
-                <ProjectCard key={project.id} project={project} />
-              ))}
+            {/* Split View Container */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 border-b border-border-dark min-h-[600px]">
+
+              {/* Left Column: First 3 Projects */}
+              <div className="flex flex-col border-r border-border-dark">
+                {projects.slice(0, 3).map(project => (
+                  <ProjectCard key={project.id} project={project} />
+                ))}
+
+                {/* Load More Button (Only if locked) */}
+                {!isSectorUnlocked && projects.length > 3 && (
+                  <div className="flex-1 flex items-center justify-center p-8 bg-surface-dark/30 hover:bg-surface-dark/50 transition-colors cursor-pointer group border-t border-border-dark" onClick={() => setIsSectorUnlocked(true)}>
+                    <div className="text-center">
+                      <span className="material-symbols-outlined text-4xl text-gray-700 group-hover:text-primary mb-4 transition-colors">lock_open</span>
+                      <p className="font-mono text-primary text-xs tracking-widest uppercase mb-1">{translations[lang].loadMore}</p>
+                      <p className="text-[10px] text-gray-500 font-mono">{translations[lang].unlockHint}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Fallback space filler if unlocked */}
+                {isSectorUnlocked && (
+                  <div className="flex-1 bg-surface-dark/10 border-t border-border-dark flex items-center justify-center opacity-20">
+                    <span className="material-symbols-outlined text-6xl">grid_view</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Right Column: Secure Sector */}
+              <div className="relative bg-[#030303] flex flex-col">
+                {!isSectorUnlocked ? (
+                  /* Locked State */
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-800 font-mono text-xs gap-4 p-8 text-center select-none">
+                    <div className="w-16 h-16 border border-white/5 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-2xl text-gray-800 animate-pulse">lock</span>
+                    </div>
+                    <div>
+                      <p className="uppercase tracking-widest text-gray-700 mb-2">{translations[lang].lockedTitle}</p>
+                      <p className="text-[10px] text-gray-800 max-w-[200px] mx-auto leading-relaxed opacity-50">
+                        {translations[lang].lockedDesc}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  /* Unlocked State (Scrollable List) */
+                  <div className="absolute inset-0 overflow-y-auto custom-scrollbar">
+                    <div className="p-4 md:p-8 space-y-4">
+                      <div className="flex items-center gap-2 mb-6 border-b border-white/5 pb-4">
+                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                        <h3 className="text-white font-mono text-sm uppercase tracking-widest">{translations[lang].sectorUnlocked} // {projects.slice(3).length} {translations[lang].items}</h3>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-0">
+                        {projects.slice(3).map(project => (
+                          <ProjectCard key={project.id} project={project} />
+                        ))}
+                      </div>
+
+                      <div className="text-center py-8 opacity-30 font-mono text-[10px] uppercase">
+                        {translations[lang].endOfData}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
             </div>
 
             <Readme lang={lang} />
@@ -687,4 +777,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-

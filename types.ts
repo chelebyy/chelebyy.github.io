@@ -8,6 +8,7 @@ export interface Project {
   tags: string[];
   stars: string;
   order: string;
+  url?: string;
 }
 
 export interface ActivityLog {

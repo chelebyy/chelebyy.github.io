@@ -38,7 +38,19 @@ const translations = {
     lockedDesc: 'Additional project data is encrypted. Initialize decryption sequence via the left panel control.',
     sectorUnlocked: 'Sector_Unlocked',
     items: 'Items',
-    endOfData: '--- End of Sector Data ---'
+    endOfData: '--- End of Sector Data ---',
+    // Manifesto Translations
+    manifestoTitle: 'SYSTEM_PROTOCOL_V1',
+    manifestoClass: 'DigitalArtisan',
+    manifestoImplements: 'Creator',
+    manifestoPhilosophy: '// Core Philosophy: Simplicity is usage.',
+    manifestoMethod: 'manifesto',
+    manifestoPrinciples: [
+      "'Minimalism over Decoration'",
+      "'Function over Form'",
+      "'Speed over Features'"
+    ],
+    manifestoStatus: 'Ready_to_Deploy'
   },
   tr: {
     terminal: 'kullanici@github:~',
@@ -72,7 +84,19 @@ const translations = {
     lockedDesc: 'Ek proje verileri şifrelendi. Sol panelden şifre çözmeyi başlatın.',
     sectorUnlocked: 'Bolge_Acildi',
     items: 'Oge',
-    endOfData: '--- Sektor Verisi Sonu ---'
+    endOfData: '--- Sektor Verisi Sonu ---',
+    // Manifesto Translations
+    manifestoTitle: 'SISTEM_PROTOKOLU_V1',
+    manifestoClass: 'DijitalZanaatkar',
+    manifestoImplements: 'Gelistirici',
+    manifestoPhilosophy: '// Temel Felsefe: Sadelik kullanimdir.',
+    manifestoMethod: 'manifesto',
+    manifestoPrinciples: [
+      "'Susleme yerine Minimalizm'",
+      "'Form yerine Islev'",
+      "'Ozellik yerine Hiz'"
+    ],
+    manifestoStatus: 'Yayina_Hazir'
   }
 };
 
@@ -249,37 +273,33 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => (
   </a>
 );
 
-const Readme = ({ lang }: { lang: Language }) => (
-  <div className="border-b border-border-dark p-8 md:p-12">
-    <h2 className="text-white text-xl font-bold mb-6 flex items-center gap-3">
-      <span className="material-symbols-outlined text-primary">description</span>
-      README.md
-    </h2>
-    <div className="bg-[#050505] p-6 rounded-sm border border-border-dark font-mono text-sm leading-relaxed text-gray-400 max-w-3xl overflow-x-auto">
-      <p className="mb-4">
-        <span className="text-gray-600 select-none">01 |</span> <span className="text-primary">/**</span>
-      </p>
-      <p className="mb-1">
-        <span className="text-gray-600 select-none">02 |</span> &nbsp;* {translations[lang].readmeIntro}
-      </p>
-      <p className="mb-1">
-        <span className="text-gray-600 select-none">03 |</span> &nbsp;* {translations[lang].readmeBody1}
-      </p>
-      <p className="mb-1">
-        <span className="text-gray-600 select-none">04 |</span> &nbsp;* {translations[lang].readmeBody2}
-      </p>
-      <p className="mb-1">
-        <span className="text-gray-600 select-none">05 |</span> &nbsp;*
-      </p>
-      <p className="mb-1">
-        <span className="text-gray-600 select-none">06 |</span> &nbsp;* Current Status: <span className="text-green-500">{translations[lang].availableForHire}</span>
-      </p>
-      <p className="mt-4">
-        <span className="text-gray-600 select-none">07 |</span> <span className="text-primary"> */</span>
-      </p>
+const Readme = ({ lang }: { lang: Language }) => {
+  const t = translations[lang];
+  return (
+    <div className="border-b border-border-dark p-8 md:p-12 w-full">
+      <h2 className="text-white text-xl font-bold mb-6 flex items-center gap-3">
+        <span className="material-symbols-outlined text-primary">terminal</span>
+        {t.manifestoTitle}
+      </h2>
+      <div className="bg-[#050505] p-6 rounded-sm border border-border-dark font-mono text-sm leading-relaxed text-gray-400 w-full overflow-x-auto">
+        <div className="flex flex-col gap-1">
+          <p><span className="text-gray-600 select-none">01 |</span> <span className="text-purple-400">class</span> <span className="text-yellow-300">{t.manifestoClass}</span> <span className="text-purple-400">implements</span> <span className="text-yellow-300">{t.manifestoImplements}</span> {'{'}</p>
+          <p><span className="text-gray-600 select-none">02 |</span> &nbsp;&nbsp;<span className="text-gray-500">{t.manifestoPhilosophy}</span></p>
+          <p><span className="text-gray-600 select-none">03 |</span> &nbsp;&nbsp;<span className="text-blue-400">public</span> <span className="text-yellow-300">{t.manifestoMethod}</span>(): <span className="text-blue-400">void</span> {'{'}</p>
+          <p><span className="text-gray-600 select-none">04 |</span> &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-400">const</span> principles = [</p>
+          {t.manifestoPrinciples.map((principle, i) => (
+            <p key={i}><span className="text-gray-600 select-none">{(i + 5).toString().padStart(2, '0')} |</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-green-400">{principle}</span>,</p>
+          ))}
+          <p><span className="text-gray-600 select-none">08 |</span> &nbsp;&nbsp;&nbsp;&nbsp;];</p>
+          <p><span className="text-gray-600 select-none">09 |</span> &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-400">return</span> principles.deploy();</p>
+          <p><span className="text-gray-600 select-none">10 |</span> &nbsp;&nbsp;{'}'}</p>
+          <p><span className="text-gray-600 select-none">11 |</span> {'}'}</p>
+          <p className="mt-2"><span className="text-gray-600 select-none">12 |</span> <span className="text-gray-500">/* Status: <span className="text-green-500 animate-pulse">{t.manifestoStatus}</span> */</span></p>
+        </div>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const ActivityLogList = ({ logs, lang }: { logs: ActivityLog[], lang: Language }) => (
   <div className="p-8 md:p-12">

@@ -138,7 +138,7 @@ const Hero = ({ lang, onInit }: { lang: Language, onInit: () => void }) => (
       </div>
 
       {/* Right Side Visual */}
-      <div className="hidden md:flex flex-1 justify-end items-center mr-8">
+      <div className="hidden md:flex flex-1 justify-end items-center md:translate-x-52">
         <div className="relative w-[400px] h-[300px] border border-dashed border-gray-700 bg-black/50 p-2 group">
           <div className="absolute -top-1 -left-1 w-3 h-3 border-t border-l border-primary"></div>
           <div className="absolute -top-1 -right-1 w-3 h-3 border-t border-r border-primary"></div>

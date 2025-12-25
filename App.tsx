@@ -109,8 +109,8 @@ const Header = ({ lang, setLang }: { lang: Language, setLang: (l: Language) => v
 const Hero = ({ lang, onInit }: { lang: Language, onInit: () => void }) => (
   <section className="border-b border-border-dark bg-surface-dark relative overflow-hidden">
     <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
-    <div className="px-4 md:px-40 py-20 md:py-32 flex flex-col max-w-[1200px] mx-auto relative z-10">
-      <div className="flex flex-col gap-6">
+    <div className="px-4 md:px-12 py-20 md:py-24 flex flex-col md:flex-row max-w-[1440px] mx-auto relative z-10 gap-12 items-center">
+      <div className="flex flex-col gap-6 flex-1">
         <div className="inline-flex items-center gap-2 text-primary font-mono text-sm mb-4">
           <span className="animate-pulse">_</span> {translations[lang].systemReady}
         </div>
@@ -134,6 +134,33 @@ const Hero = ({ lang, onInit }: { lang: Language, onInit: () => void }) => (
           <button className="flex items-center justify-center h-12 px-6 bg-transparent text-white hover:text-primary text-sm font-bold uppercase tracking-widest border border-border-dark hover:border-primary transition-all duration-100 rounded-sm">
             {translations[lang].readLogsBtn}
           </button>
+        </div>
+      </div>
+
+      {/* Right Side Visual */}
+      <div className="hidden md:flex flex-1 justify-end items-center mr-8">
+        <div className="relative w-[400px] h-[300px] border border-dashed border-gray-700 bg-black/50 p-2 group">
+          <div className="absolute -top-1 -left-1 w-3 h-3 border-t border-l border-primary"></div>
+          <div className="absolute -top-1 -right-1 w-3 h-3 border-t border-r border-primary"></div>
+          <div className="absolute -bottom-1 -left-1 w-3 h-3 border-b border-l border-primary"></div>
+          <div className="absolute -bottom-1 -right-1 w-3 h-3 border-b border-r border-primary"></div>
+
+          <div className="w-full h-full bg-cover bg-center grayscale group-hover:grayscale-0 transition-all duration-700 opacity-60 group-hover:opacity-100" style={{ backgroundImage: `url('https://lh3.googleusercontent.com/aida-public/AB6AXuAWTgp3bL6fzwmhtfxGfaIwYAThlSoMPXimutfwgnhJzbE_DxAGOPDI0878aHY7nIFl9Kdkw6H5rq2W8KbqF_qT89h0A9opqt-unsS4-62TgGu_oxsoTj8MUNILYm2rVf70iHZbHjIV3HPc6AWCtjyIKnqmcpIxwUa9BvwrLYqr4NRPceHW4awyvGkUizOXwGT7hWFQCl2ifjqP0b7reG4fiy1HftYlQJ_mO52Z5I3o6pnrW7KWXDyYcF4U7f26eBYlD3sPVHwYKB1W')` }}>
+            <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+              <div className="bg-black/90 px-3 py-1 border border-white/10">
+                <p className="text-[10px] font-mono text-primary mb-0.5">TARGET_ZONE</p>
+                <p className="text-xs font-mono text-white font-bold">{translations[lang].locationUnknown}</p>
+              </div>
+              <div className="flex gap-1">
+                <span className="w-1 h-1 bg-primary rounded-full animate-ping"></span>
+                <span className="w-1 h-1 bg-primary rounded-full"></span>
+                <span className="w-1 h-1 bg-primary rounded-full"></span>
+              </div>
+            </div>
+          </div>
+
+          {/* Scanline Effect */}
+          <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px] pointer-events-none opacity-20"></div>
         </div>
       </div>
     </div>
@@ -165,9 +192,7 @@ const Sidebar = ({ lang }: { lang: Language }) => (
       </nav>
     </div>
     <div className="p-6 mt-auto">
-      <div className="h-32 bg-border-dark/30 w-full rounded-sm flex items-center justify-center border border-dashed border-gray-700 bg-cover bg-center grayscale hover:grayscale-0 transition-all duration-500" style={{ backgroundImage: `url('https://lh3.googleusercontent.com/aida-public/AB6AXuAWTgp3bL6fzwmhtfxGfaIwYAThlSoMPXimutfwgnhJzbE_DxAGOPDI0878aHY7nIFl9Kdkw6H5rq2W8KbqF_qT89h0A9opqt-unsS4-62TgGu_oxsoTj8MUNILYm2rVf70iHZbHjIV3HPc6AWCtjyIKnqmcpIxwUa9BvwrLYqr4NRPceHW4awyvGkUizOXwGT7hWFQCl2ifjqP0b7reG4fiy1HftYlQJ_mO52Z5I3o6pnrW7KWXDyYcF4U7f26eBYlD3sPVHwYKB1W')` }}>
-        <span className="bg-black/80 px-2 py-1 text-[10px] font-mono text-white uppercase">{translations[lang].locationUnknown}</span>
-      </div>
+      {/* Location widget moved to Hero */}
     </div>
   </aside>
 );

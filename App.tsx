@@ -58,8 +58,22 @@ const translations = {
     cmdThemeSet: 'Theme set to',
     cmdInvalidColor: 'Invalid color. Try: blue, red, green, purple',
     cmdOpenMail: 'Opening mail client...',
+    cmdMatrixMsgOn: 'Wake up, Neo...',
+    cmdMatrixMsgOff: 'The Matrix has been disabled. Welcome back to reality.',
+    cmdWhoami: 'root (admin)',
+    cmdSudoDenied: 'PERMISSION DENIED: You didn\'t say the magic word.',
+    cmdSudoGranted: 'Make me a sandwich? Okay. 🥪 (Just kidding, root access granted).',
     cmdNotFound: 'Command not found:',
     cmdPlaceholder: 'Enter command...',
+    // Help Descriptions
+    helpDescTheme: '- Change system theme',
+    helpDescMatrix: '- Toggle The Matrix',
+    helpDescNeofetch: '- Display system info',
+    helpDescClear: '- Clear terminal',
+    helpDescContact: '- Send signal',
+    helpDescWhoami: '- User identity',
+    helpDescSudo: '- Execute as root',
+    helpDescExit: '- Close terminal',
     // Control Panel Translations
     cpTitle: 'SYSTEM_CONTROL_CENTER',
     cpIdentity: 'IDENTITY_MODULE',
@@ -119,8 +133,22 @@ const translations = {
     cmdThemeSet: 'Tema degistirildi:',
     cmdInvalidColor: 'Gecersiz renk. Deneyin: blue, red, green, purple',
     cmdOpenMail: 'Mail istemcisi aciliyor...',
+    cmdMatrixMsgOn: 'Uyan, Neo...',
+    cmdMatrixMsgOff: 'Matrix devre disi birakildi. Gerceklige hos geldin.',
+    cmdWhoami: 'root (yonetici)',
+    cmdSudoDenied: 'ERISIM REDDEDILDI: Sihirli kelimeyi soylemedin.',
+    cmdSudoGranted: 'Bana sandviç hazirla? Tamam. 🥪 (Saka yapiyorum, root erisimi verildi).',
     cmdNotFound: 'Komut bulunamadi:',
     cmdPlaceholder: 'Komut girin...',
+    // Help Descriptions
+    helpDescTheme: '- Sistem temasini degistir',
+    helpDescMatrix: '- Matrix modunu ac/kapat',
+    helpDescNeofetch: '- Sistem bilgisini goster',
+    helpDescClear: '- Terminali temizle',
+    helpDescContact: '- Sinyal gonder',
+    helpDescWhoami: '- Kullanici kimligi',
+    helpDescSudo: '- Root olarak calistir',
+    helpDescExit: '- Terminali kapat',
     // Control Panel Translations
     cpTitle: 'SISTEM_KONTROL_MERKEZI',
     cpIdentity: 'KIMLIK_MODULU',
@@ -866,34 +894,150 @@ const ControlPanel = ({
         </div>
       </div>
     </div>
+
   );
 };
 
-const CommandPalette = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: () => void, lang: Language }) => {
+// --- Matrix Rain Effect ---
+const MatrixRain = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const nums = '0123456789';
+    const alphabet = katakana + latin + nums;
+
+    const fontSize = 16;
+    const columns = canvas.width / fontSize;
+
+    const rainDrops: number[] = [];
+    for (let x = 0; x < columns; x++) {
+      rainDrops[x] = 1;
+    }
+
+    const draw = () => {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#0F0';
+      ctx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < rainDrops.length; i++) {
+        const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+        ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+
+        if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          rainDrops[i] = 0;
+        }
+        rainDrops[i]++;
+      }
+    };
+
+    const interval = setInterval(draw, 30);
+
+    const handleResize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} className="fixed inset-0 z-[10] pointer-events-none opacity-50 mix-blend-screen" />;
+};
+
+const CommandPalette = ({ isOpen, onClose, lang, matrixEnabled, setMatrixEnabled }: { isOpen: boolean, onClose: () => void, lang: Language, matrixEnabled: boolean, setMatrixEnabled: (enabled: boolean) => void }) => {
   const t = translations[lang];
   const [input, setInput] = useState('');
-  const [history, setHistory] = useState<string[]>([]);
+  const [history, setHistory] = useState<React.ReactNode[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
-      setHistory([`> ${t.cmdReady}`, `> ${t.cmdHelp}`]);
+      setHistory([<div key="init1" className="text-gray-500">&gt; {t.cmdReady}</div>, <div key="init2" className="text-gray-500">&gt; {t.cmdHelp}</div>]);
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen, lang, t.cmdReady, t.cmdHelp]);
 
+  // Neofetch ASCII Art
+  const getNeofetch = () => (
+    <div className="text-xs font-mono text-primary leading-tight my-2">
+      <pre>{`
+       /\\        OS: Digital Artifacts OS v1.0
+      /  \\       Host: VITE-REACT-TS-CORE
+     / /\\ \\      Kernel: 5.15.0-generic
+    / /__\\ \\     Uptime: 420 days, 6 hours
+   / /____\\ \\    Packages: 1337 (npm)
+  / /______\\ \\   Shell: zsh 5.8
+ /_/________\\_\\  Resolution: 1920x1080
+                 DE: Cyberpunk
+                 WM: Tiling
+                 Theme: Dark [GTK2/3]
+                 Icons: Material Symbols
+                 Terminal: WebTerm
+                 CPU: Neural Engine X1
+                 GPU: Rendering Unit 04
+      `}</pre>
+    </div>
+  );
+
   const handleCommand = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       const cmd = input.trim().toLowerCase();
-      const newHistory = [...history, `chelebyy@root:~$ ${input}`];
+      const newHistory = [...history, <div key={Date.now() + 'cmd'} className="text-white">{translations['en'].terminal.split(':')[0]}:~$ {input}</div>];
 
-      let response = '';
+      let response: React.ReactNode = '';
+
       if (cmd === 'help') {
-        response = `> ${t.cmdAvailable}`;
+        response = (
+          <div className="text-gray-400">
+            <div>&gt; {t.cmdAvailable}</div>
+            <div className="pl-4 text-primary">theme [color] <span className="text-gray-600">{t.helpDescTheme}</span></div>
+            <div className="pl-4 text-primary">matrix <span className="text-gray-600">{t.helpDescMatrix}</span></div>
+            <div className="pl-4 text-primary">neofetch <span className="text-gray-600">{t.helpDescNeofetch}</span></div>
+            <div className="pl-4 text-primary">clear <span className="text-gray-600">{t.helpDescClear}</span></div>
+            <div className="pl-4 text-primary">contact <span className="text-gray-600">{t.helpDescContact}</span></div>
+            <div className="pl-4 text-primary">whoami <span className="text-gray-600">{t.helpDescWhoami}</span></div>
+            <div className="pl-4 text-primary">sudo [cmd] <span className="text-gray-600">{t.helpDescSudo}</span></div>
+            <div className="pl-4 text-primary">exit <span className="text-gray-600">{t.helpDescExit}</span></div>
+          </div>
+        );
       } else if (cmd === 'clear') {
         setHistory([]);
         setInput('');
         return;
+      } else if (cmd === 'matrix') {
+        if (matrixEnabled) {
+          setMatrixEnabled(false);
+          response = <div className="text-gray-500">{t.cmdMatrixMsgOff}</div>;
+        } else {
+          setMatrixEnabled(true);
+          response = <div className="text-green-500 font-bold glow">{t.cmdMatrixMsgOn}</div>;
+        }
+      } else if (cmd === 'neofetch' || cmd === 'sys') {
+        response = getNeofetch();
+      } else if (cmd === 'whoami') {
+        response = <div className="text-blue-400">{t.cmdWhoami}</div>;
+      } else if (cmd.startsWith('sudo')) {
+        if (cmd.includes('please') || cmd.includes('lütfen') || cmd.includes('lutfen')) {
+          response = <div className="text-yellow-400">{t.cmdSudoGranted}</div>;
+        } else {
+          response = <div className="text-red-500 font-bold blink">{t.cmdSudoDenied}</div>;
+        }
       } else if (cmd.startsWith('theme') || ['blue', 'red', 'green', 'purple'].includes(cmd)) {
         const color = cmd.startsWith('theme') ? cmd.split(' ')[1] : cmd;
         const colors: Record<string, string> = {
@@ -904,23 +1048,23 @@ const CommandPalette = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: (
         };
         if (colors[color]) {
           document.documentElement.style.setProperty('--color-primary', colors[color]);
-          response = `> ${t.cmdThemeSet} ${color.toUpperCase()}`;
+          response = <div className="text-primary">&gt; {t.cmdThemeSet} {color.toUpperCase()}</div>;
         } else {
-          response = `> ${t.cmdInvalidColor}`;
+          response = <div className="text-red-400">&gt; {t.cmdInvalidColor}</div>;
         }
       } else if (cmd === 'contact') {
         window.location.href = 'mailto:contact@cheleby.dev';
-        response = `> ${t.cmdOpenMail}`;
+        response = <div className="text-yellow-400">&gt; {t.cmdOpenMail}</div>;
       } else if (cmd === 'exit') {
         onClose();
         return;
       } else if (cmd === '') {
         response = '';
       } else {
-        response = `> ${t.cmdNotFound} ${cmd}`;
+        response = <div className="text-red-400">&gt; {t.cmdNotFound} {cmd}</div>;
       }
 
-      if (response) newHistory.push(response);
+      if (response) newHistory.push(<div key={Date.now() + 'resp'}>{response}</div>);
       setHistory(newHistory);
       setInput('');
     }
@@ -936,7 +1080,7 @@ const CommandPalette = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: (
         </button>
         <div className="h-64 overflow-y-auto mb-4 font-mono text-sm space-y-1 custom-scrollbar" onClick={() => inputRef.current?.focus()}>
           {history.map((line, i) => (
-            <div key={i} className={`${line.startsWith('>') ? 'text-primary' : 'text-gray-300'}`}>{line}</div>
+            <div key={i}>{line}</div>
           ))}
           <div ref={el => el?.scrollIntoView({ behavior: "smooth" })} />
         </div>
@@ -967,8 +1111,9 @@ const App: React.FC = () => {
   const [isCmdOpen, setIsCmdOpen] = useState(false);
   const [isControlPanelOpen, setIsControlPanelOpen] = useState(false);
   const [crtEnabled, setCrtEnabled] = useState(false);
+  const [matrixEnabled, setMatrixEnabled] = useState(false); // Matrix State
   const [projects, setProjects] = useState<Project[]>(mockProjects['en']);
-  const [userData, setUserData] = useState<any>(null); // Store fetched user data
+  const [userData, setUserData] = useState<any>(null);  // Store fetched user data
 
   // Secure Sector States
   const [isSectorUnlocked, setIsSectorUnlocked] = useState(false);
@@ -1050,13 +1195,28 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const handleOpenCmd = () => setIsCmdOpen(true);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCmdOpen(prev => !prev);
+      }
+    };
+
     window.addEventListener('open-cmd', handleOpenCmd);
-    return () => window.removeEventListener('open-cmd', handleOpenCmd);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('open-cmd', handleOpenCmd);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-background-dark cursor-none relative overflow-hidden">
       <CustomCursor />
+
+      {/* Matrix Rain Effect */}
+      {matrixEnabled && <MatrixRain />}
 
       {/* CRT Effect Overlay */}
       {crtEnabled && (
@@ -1075,7 +1235,7 @@ const App: React.FC = () => {
         user={userData}
       />
 
-      <CommandPalette isOpen={isCmdOpen} onClose={() => setIsCmdOpen(false)} lang={lang} />
+      <CommandPalette isOpen={isCmdOpen} onClose={() => setIsCmdOpen(false)} lang={lang} matrixEnabled={matrixEnabled} setMatrixEnabled={setMatrixEnabled} />
       <Header lang={lang} setLang={setLang} onOpenControlPanel={() => setIsControlPanelOpen(true)} />
 
       <main className="flex-grow flex flex-col w-full">

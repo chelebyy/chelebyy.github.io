@@ -969,7 +969,25 @@ const App: React.FC = () => {
   const [crtEnabled, setCrtEnabled] = useState(false);
   const [projects, setProjects] = useState<Project[]>(mockProjects['en']);
   const [userData, setUserData] = useState<any>(null); // Store fetched user data
+
+  // Secure Sector States
   const [isSectorUnlocked, setIsSectorUnlocked] = useState(false);
+  const [showUnlockInput, setShowUnlockInput] = useState(false);
+  const [unlockInput, setUnlockInput] = useState('');
+  const [unlockError, setUnlockError] = useState(false);
+
+  const handleUnlockSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // THE ANSWER TO LIFE, THE UNIVERSE, AND EVERYTHING
+    if (unlockInput.trim() === '42') {
+      setIsSectorUnlocked(true);
+      setShowUnlockInput(false);
+    } else {
+      setUnlockError(true);
+      setUnlockInput('');
+      setTimeout(() => setUnlockError(false), 800);
+    }
+  };
 
   useEffect(() => {
     const fetchGitHubProjects = async () => {
@@ -1094,14 +1112,40 @@ const App: React.FC = () => {
                   <ProjectCard key={project.id} project={project} />
                 ))}
 
-                {/* Load More Button (Only if locked) */}
+                {/* Load More / Unlock Mechanism */}
                 {!isSectorUnlocked && projects.length > 3 && (
-                  <div className="flex-1 flex items-center justify-center p-8 bg-surface-dark/30 hover:bg-surface-dark/50 transition-colors cursor-pointer group border-t border-border-dark" onClick={() => setIsSectorUnlocked(true)}>
-                    <div className="text-center">
-                      <span className="material-symbols-outlined text-4xl text-gray-700 group-hover:text-primary mb-4 transition-colors">lock_open</span>
-                      <p className="font-mono text-primary text-xs tracking-widest uppercase mb-1">{translations[lang].loadMore}</p>
-                      <p className="text-[10px] text-gray-500 font-mono">{translations[lang].unlockHint}</p>
-                    </div>
+                  <div className={`flex-1 flex items-center justify-center p-8 bg-surface-dark/30 border-t border-border-dark transition-all duration-300 relative overflow-hidden ${showUnlockInput ? 'bg-black' : 'hover:bg-surface-dark/50 cursor-pointer group'}`}
+                    onClick={() => !showUnlockInput && setShowUnlockInput(true)}>
+
+                    {!showUnlockInput ? (
+                      <div className="text-center">
+                        <span className="material-symbols-outlined text-4xl text-gray-700 group-hover:text-primary mb-4 transition-colors">lock_open</span>
+                        <p className="font-mono text-primary text-xs tracking-widest uppercase mb-1">{translations[lang].loadMore}</p>
+                        <p className="text-[10px] text-gray-500 font-mono">{translations[lang].unlockHint}</p>
+                      </div>
+                    ) : (
+                      <form onSubmit={handleUnlockSubmit} className="w-full max-w-[200px] relative z-10">
+                        <label className="block text-[10px] text-primary font-mono mb-2 uppercase tracking-widest text-center animate-pulse">
+                          {unlockError ? 'ACCESS_DENIED' : 'ENTER_PASSCODE'}
+                        </label>
+                        <div className={`flex items-center border-b-2 ${unlockError ? 'border-red-500' : 'border-primary'} bg-black/50`}>
+                          <span className="text-gray-500 pl-2 font-mono">&gt;</span>
+                          <input
+                            type="text"
+                            autoFocus
+                            className="w-full bg-transparent border-none outline-none text-white font-mono text-center p-2 uppercase tracking-widest"
+                            value={unlockInput}
+                            onChange={(e) => setUnlockInput(e.target.value)}
+                            maxLength={10}
+                            onBlur={() => !unlockInput && setShowUnlockInput(false)}
+                          />
+                        </div>
+                        <p className="text-[9px] text-gray-600 mt-2 text-center font-mono">Hint: Check system logs...</p>
+                      </form>
+                    )}
+
+                    {/* Error Flash Overlay */}
+                    {unlockError && <div className="absolute inset-0 bg-red-500/20 animate-pulse pointer-events-none"></div>}
                   </div>
                 )}
 

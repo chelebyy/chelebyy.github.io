@@ -2,6 +2,10 @@
   <h3>DIGITAL_ARTIFACTS_OS // SYSTEM_READY</h3>
   <p>A brutalist, cyberpunk-inspired operating system portfolio interface.</p>
 
+  [![Live Demo](https://img.shields.io/badge/LIVE_SYSTEM_ONLINE-00ff00?style=for-the-badge&logo=github&logoColor=black)](https://chelebyy.github.io)
+  
+  <br />
+
   [![React](https://img.shields.io/badge/React-19.0-blue?style=flat-square&logo=react)](https://react.dev/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
   [![Tailwind CSS](https://img.shields.io/badge/Styled_with-Tailwind-38bdf8?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
@@ -9,6 +13,14 @@
   [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
 </div>
+
+---
+
+## 📸 System Visuals
+
+![System Interface](assets/screenshot.png)
+
+> *Secure Sector Access & Matrix Mode Visualized*
 
 ---
 

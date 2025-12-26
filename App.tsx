@@ -1223,11 +1223,11 @@ const App: React.FC = () => {
 
                 if (event.type === 'ReleaseEvent') {
                   hash = event.payload.release.tag_name;
-                  message = event.payload.release.name || 'New Release Deployed';
+                  message = `[${event.repo.name}] ${event.payload.release.name || 'New Release'}`;
                   url = event.payload.release.html_url;
                 } else {
                   hash = event.payload.ref;
-                  message = `Tag ${event.payload.ref} created`;
+                  message = `[${event.repo.name}] Tag created`;
                   url = `https://github.com/${event.repo.name}/releases/tag/${event.payload.ref}`;
                 }
 
@@ -1254,7 +1254,7 @@ const App: React.FC = () => {
               timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
               type: 'release',
               hash: 'v1.0.0',
-              message: 'Official Launch - Matrix Mode & Secure Sector',
+              message: '[chelebyy.github.io] Official Launch - Matrix Mode & Secure Sector',
               url: 'https://github.com/chelebyy/chelebyy.github.io/releases/tag/v1.0.0'
             }
           ]);

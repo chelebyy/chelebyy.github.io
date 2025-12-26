@@ -144,7 +144,7 @@ const translations = {
     // Command Palette Translations
     cmdReady: 'SISTEM_HAZIR',
     cmdHelp: 'Komutlar icin "help" yazin.',
-    cmdAvailable: 'Kullanilabilir komutlar: help, clear, theme [blue|red|green|purple], contact, exit',
+    cmdAvailable: 'Kullanilabilir komutlar: help, clear, theme [blue|red|green|purple], contact, reboot, exit',
     cmdThemeSet: 'Tema degistirildi:',
     cmdInvalidColor: 'Gecersiz renk. Deneyin: blue, red, green, purple',
     cmdOpenMail: 'Mail istemcisi aciliyor...',
@@ -191,6 +191,162 @@ const translations = {
 };
 
 // --- Helper Components ---
+
+const BootSequence = ({ onComplete }: { onComplete: () => void }) => {
+  const [lines, setLines] = useState<string[]>([]);
+  const [phase, setPhase] = useState<'bios' | 'auth' | 'access' | 'drop'>('bios');
+
+  useEffect(() => {
+    // Phase 1: BIOS / POST
+    const bootText = [
+      "BIOS_MEM_CHECK: 64GB OK",
+      "LOADING_KERNEL_V4.2... OK",
+      "MOUNTING_VIRTUAL_FS... OK",
+      "INIT_GRAPHICS_DRIVER... OK",
+      "ESTABLISHING_SECURE_UPLINK... [CONNECTED]"
+    ];
+
+    let lineIndex = 0;
+    const printInterval = setInterval(() => {
+      setLines(prev => {
+        const newLines = [...prev, bootText[lineIndex]];
+        return newLines.slice(-7);
+      });
+      lineIndex++;
+
+      if (lineIndex === bootText.length) {
+        clearInterval(printInterval);
+        setTimeout(() => setPhase('auth'), 600);
+      }
+    }, 400);
+
+    return () => clearInterval(printInterval);
+  }, []);
+
+  useEffect(() => {
+    if (phase === 'auth') {
+      // Phase 2: Authentication
+      const timer = setTimeout(() => {
+        setPhase('access');
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
+
+    if (phase === 'access') {
+      // Phase 3: Access Granted -> The Drop
+      const timer = setTimeout(() => {
+        setPhase('drop');
+        setTimeout(onComplete, 300); // Sync with CSS ping animation
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [phase, onComplete]);
+
+  return (
+    <div className={`fixed inset-0 z-[9999] bg-black text-green-500 font-mono flex flex-col items-center justify-center transition-all duration-300 ${phase === 'drop' ? 'opacity-0 scale-110' : 'opacity-100'}`}>
+
+      {/* Background Grid */}
+      <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(#0f0 1px, transparent 1px), linear-gradient(90deg, #0f0 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+
+      <div className="max-w-xl w-full p-6 relative z-10">
+
+        {/* Phase 1: BIOS Lines */}
+        {phase === 'bios' && (
+          <div className="space-y-1 font-mono text-left w-full">
+            {lines.map((line, i) => (
+              <div key={i} className="text-sm md:text-base opacity-80">
+                <span className="mr-2 text-green-700">{`>`}</span>
+                {line}
+              </div>
+            ))}
+            <div className="animate-pulse mt-2 ml-4">_</div>
+          </div>
+        )}
+
+        {/* Phase 2: Authentication */}
+        {phase === 'auth' && (
+          <div className="text-center w-full">
+            <div className="text-xl md:text-2xl mb-8 animate-pulse font-bold tracking-widest">AUTHENTICATING_USER...</div>
+            <div className="h-1 w-64 bg-gray-900 mx-auto rounded overflow-hidden relative border border-green-900/30">
+              <div className="absolute inset-0 bg-green-500 animate-[loading_2s_ease-in-out]"></div>
+            </div>
+            <p className="text-[10px] text-green-600/70 mt-4 tracking-[0.2em] animate-pulse">VERIFYING_BIOMETRICS_HASH</p>
+          </div>
+        )}
+
+        {/* Phase 3: Access Granted */}
+        {phase === 'access' && (
+          <div className="text-center relative w-full">
+            <div className="absolute inset-0 bg-green-500/10 blur-2xl animate-pulse"></div>
+            <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter relative z-10 glitch-text" data-text="ACCESS GRANTED">
+              ACCESS GRANTED
+            </h1>
+            <p className="text-green-400 mt-6 tracking-[0.5em] text-xs uppercase animate-bounce">Welcome Back Admin</p>
+          </div>
+        )}
+      </div>
+
+      {/* The Drop: CRT Flash */}
+      {phase === 'drop' && (
+        <div className="absolute inset-0 bg-white animate-[ping_0.1s_ease-out]"></div>
+      )}
+    </div>
+  );
+};
+
+const BootSequenceDeprecated = ({ onComplete }: { onComplete: () => void }) => {
+  const [lines, setLines] = useState<string[]>([]);
+  const [isGlitching, setIsGlitching] = useState(false);
+
+  useEffect(() => {
+    const bootText = [
+      "BIOS_MEM_CHECK: 64GB OK",
+      "LOADING_KERNEL... OK",
+      "MOUNTING_VIRTUAL_FS... OK",
+      "INIT_GRAPHICS_DRIVER... OK",
+      "SYSTEM_READY."
+    ];
+
+    let lineIndex = 0;
+
+    // Line-by-line printing effect
+    const printInterval = setInterval(() => {
+      setLines(prev => [...prev, bootText[lineIndex]]);
+      lineIndex++;
+
+      if (lineIndex === bootText.length) {
+        clearInterval(printInterval);
+
+        // Trigger Glitch and Finish after delay
+        setTimeout(() => {
+          setIsGlitching(true);
+          setTimeout(onComplete, 800); // Wait for glitch
+        }, 800);
+      }
+    }, 600); // Speed of each line
+
+    return () => clearInterval(printInterval);
+  }, [onComplete]);
+
+  return (
+    <div className={`fixed inset-0 z-[9999] bg-black text-green-500 font-mono p-8 md:p-12 flex flex-col justify-end pb-32 transition-opacity duration-500 ${isGlitching ? 'animate-pulse' : ''}`}>
+      <div className="max-w-2xl w-full mx-auto">
+        {lines.map((line, i) => (
+          <div key={i} className="mb-2 text-sm md:text-base">
+            <span className="opacity-70 mr-2">{`>`}</span>
+            {line}
+          </div>
+        ))}
+        <div className="animate-pulse mt-4">_</div>
+      </div>
+
+      {/* CRT Turn-On Flash Effect Overlay (Hidden by default, used for transition) */}
+      {isGlitching && (
+        <div className="absolute inset-0 bg-white opacity-10 animate-[ping_0.2s_ease-in-out_infinite]"></div>
+      )}
+    </div>
+  );
+};
 
 const Header = ({ lang, setLang, onOpenControlPanel }: { lang: Language, setLang: (l: Language) => void, onOpenControlPanel: () => void }) => {
   const [displayText, setDisplayText] = useState('');
@@ -1166,6 +1322,10 @@ const CommandPalette = ({ isOpen, onClose, lang, matrixEnabled, setMatrixEnabled
       } else if (cmd === 'contact') {
         window.location.href = 'mailto:contact@cheleby.dev';
         response = <div className="text-yellow-400">&gt; {t.cmdOpenMail}</div>;
+      } else if (cmd === 'reboot' || cmd === 'restart') {
+        sessionStorage.removeItem('hasBooted');
+        window.location.reload();
+        return;
       } else if (cmd === 'exit') {
         onClose();
         return;
@@ -1217,6 +1377,17 @@ const CommandPalette = ({ isOpen, onClose, lang, matrixEnabled, setMatrixEnabled
 
 const App: React.FC = () => {
   const [lang, setLang] = useState<Language>('en');
+  // System Boot State (Session Storage Check)
+  const [isBooting, setIsBooting] = useState(() => {
+    // Check if we've already booted in this session
+    return !sessionStorage.getItem('hasBooted');
+  });
+
+  const handleBootComplete = () => {
+    setIsBooting(false);
+    sessionStorage.setItem('hasBooted', 'true');
+  };
+
   const [isInit, setIsInit] = useState(false);
   const [isLogsOpen, setIsLogsOpen] = useState(false);
   const [isCmdOpen, setIsCmdOpen] = useState(false);
@@ -1377,6 +1548,7 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background-dark cursor-none relative overflow-hidden">
+      {isBooting && <BootSequence onComplete={handleBootComplete} />}
       <CustomCursor />
 
       {/* Matrix Rain Effect */}

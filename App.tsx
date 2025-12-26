@@ -164,16 +164,43 @@ const Header = ({ lang, setLang, onOpenControlPanel }: { lang: Language, setLang
   const [displayText, setDisplayText] = useState('');
   const fullText = translations[lang].terminal;
 
+  const [time, setTime] = useState(new Date().toLocaleTimeString('en-US', { hour12: false }));
+  const [memState, setMemState] = useState(64);
+  const [cpuState, setCpuState] = useState(12);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
   useEffect(() => {
     let index = 0;
     setDisplayText('');
-    const interval = setInterval(() => {
+    const fullText = translations[lang].terminal;
+
+    const typeInterval = setInterval(() => {
       setDisplayText(fullText.substring(0, index + 1));
       index++;
-      if (index === fullText.length) clearInterval(interval);
+      if (index === fullText.length) clearInterval(typeInterval);
     }, 100);
-    return () => clearInterval(interval);
-  }, [fullText, lang]);
+
+    // Live Clock & Stats Updater
+    const statsInterval = setInterval(() => {
+      setTime(new Date().toLocaleTimeString('en-US', { hour12: false }));
+      // Simulate fluctuation
+      setMemState(prev => Math.min(99, Math.max(10, prev + (Math.random() > 0.5 ? 2 : -2))));
+      setCpuState(prev => Math.min(100, Math.max(2, prev + (Math.random() > 0.5 ? 5 : -3))));
+    }, 1000);
+
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      clearInterval(typeInterval);
+      clearInterval(statsInterval);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [lang]);
 
   return (
     <header className="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-border-dark bg-[#111218]/90 backdrop-blur-sm px-4 py-3 md:px-10">
@@ -207,9 +234,10 @@ const Header = ({ lang, setLang, onOpenControlPanel }: { lang: Language, setLang
           </button>
         </div>
         <div className="flex items-center gap-6 font-mono text-xs text-gray-400">
-          <span>MEM: 64%</span>
-          <span>CPU: 12%</span>
-          <span className="text-green-500">NET: ONLINE</span>
+          <span>{time}</span>
+          <span>MEM: {memState}%</span>
+          <span>CPU: {cpuState}%</span>
+          <span className={isOnline ? "text-green-500" : "text-red-500"}>NET: {isOnline ? 'ONLINE' : 'OFFLINE'}</span>
         </div>
         <button onClick={() => window.dispatchEvent(new CustomEvent('open-cmd'))} className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-sm h-8 px-4 bg-primary hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider transition-colors duration-100">
           <span className="truncate">{translations[lang].connect}</span>

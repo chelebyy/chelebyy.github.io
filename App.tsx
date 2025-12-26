@@ -185,18 +185,7 @@ const translations = {
     statusBlocking: 'ENGELLENIYOR',
     statusLearning: 'OGRENIYOR',
     statusVirtualized: 'SANALLASTIRILDI',
-    // Manifesto Translations
-    manifestoTitle: 'SISTEM_PROTOKOLU_V1',
-    manifestoClass: 'DijitalZanaatkar',
-    manifestoImplements: 'Gelistirici',
-    manifestoPhilosophy: '// Temel Felsefe: Sadelik kullanimdir.',
-    manifestoMethod: 'manifesto',
-    manifestoPrinciples: [
-      "'Susleme yerine Minimalizm'",
-      "'Form yerine Islev'",
-      "'Ozellik yerine Hiz'"
-    ],
-    manifestoStatus: 'Yayina_Hazir',
+
 
   }
 };

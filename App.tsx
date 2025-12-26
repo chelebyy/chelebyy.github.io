@@ -79,7 +79,22 @@ const translations = {
     cpIdentity: 'IDENTITY_MODULE',
     cpSettings: 'SYSTEM_SETTINGS',
     cpCrtEffect: 'CRT_SCANLINE_EFFECT',
-    cpAnimSpeed: 'ANIMATION_SPEED'
+    cpAnimSpeed: 'ANIMATION_SPEED',
+    // System Monitor Translations
+    sysMonitorTitle: 'SYSTEM_MODULES',
+    sysPid: 'PID',
+    sysModuleName: 'MODULE_NAME',
+    sysUsage: 'USAGE',
+    sysStatus: 'STATUS',
+    sysCpuLoad: 'CPU_LOAD: AVERAGE',
+    // Module Statuses
+    statusRunning: 'RUNNING',
+    statusOptimized: 'OPTIMIZED',
+    statusFiltering: 'FILTERING',
+    statusContainerized: 'CONTAINERIZED',
+    statusBlocking: 'BLOCKING',
+    statusLearning: 'LEARNING',
+    statusVirtualized: 'VIRTUALIZED'
   },
   tr: {
     terminal: 'chelebyy@root:~',
@@ -154,7 +169,7 @@ const translations = {
     cpIdentity: 'KIMLIK_MODULU',
     cpSettings: 'SISTEM_AYARLARI',
     cpCrtEffect: 'CRT_TARAMA_EFEKTI',
-    cpAnimSpeed: 'ANIMASYON_HIZI'
+    cpAnimSpeed: 'ANIMASYON_HIZI',
     // System Monitor Translations
     sysMonitorTitle: 'SISTEM_MODULLERI',
     sysPid: 'PID',

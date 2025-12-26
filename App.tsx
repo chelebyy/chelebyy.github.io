@@ -507,13 +507,13 @@ const SystemMonitor = ({ lang }: { lang: Language }) => {
   const t = translations[lang];
   // Initial state for modules with "random" usage
   const [modules, setModules] = useState([
-    { id: 1024, name: 'REACT_CORE_V19.dll', usage: 98, status: 'RUNNING', color: 'text-blue-400' },
-    { id: 2048, name: 'TYPESCRIPT_COMPILER.exe', usage: 90, status: 'OPTIMIZED', color: 'text-blue-500' },
-    { id: 3301, name: 'OPNSENSE_FIREWALL.sys', usage: 85, status: 'FILTERING', color: 'text-orange-400' },
-    { id: 4100, name: 'DOCKER_ENGINE.svc', usage: 92, status: 'CONTAINERIZED', color: 'text-blue-300' },
-    { id: 5021, name: 'ADGUARD_DNS_SINK.net', usage: 88, status: 'BLOCKING', color: 'text-green-400' },
-    { id: 6606, name: 'AI_NEURAL_NET.model', usage: 99, status: 'LEARNING', color: 'text-purple-400' },
-    { id: 7001, name: 'PROXMOX_VE_HOST.iso', usage: 95, status: 'VIRTUALIZED', color: 'text-orange-500' },
+    { id: 1024, name: 'REACT_CORE_V19.dll', usage: 98, statusKey: 'statusRunning', color: 'text-blue-400' },
+    { id: 2048, name: 'TYPESCRIPT_COMPILER.exe', usage: 90, statusKey: 'statusOptimized', color: 'text-blue-500' },
+    { id: 3301, name: 'OPNSENSE_FIREWALL.sys', usage: 85, statusKey: 'statusFiltering', color: 'text-orange-400' },
+    { id: 4100, name: 'DOCKER_ENGINE.svc', usage: 92, statusKey: 'statusContainerized', color: 'text-blue-300' },
+    { id: 5021, name: 'ADGUARD_DNS_SINK.net', usage: 88, statusKey: 'statusBlocking', color: 'text-green-400' },
+    { id: 6606, name: 'AI_NEURAL_NET.model', usage: 99, statusKey: 'statusLearning', color: 'text-purple-400' },
+    { id: 7001, name: 'PROXMOX_VE_HOST.iso', usage: 95, statusKey: 'statusVirtualized', color: 'text-orange-500' },
   ]);
 
   useEffect(() => {
@@ -533,18 +533,18 @@ const SystemMonitor = ({ lang }: { lang: Language }) => {
 
       <h2 className="text-white text-xl font-bold mb-8 flex items-center gap-3 relative z-10">
         <span className="material-symbols-outlined text-primary animate-spin-slow">settings_heart</span>
-        {lang === 'en' ? 'SYSTEM_MODULES' : 'SISTEM_MODULLERI'}
-        <span className="text-xs font-mono text-gray-500 ml-auto hidden md:block">CPU_LOAD: AVERAGE</span>
+        {t.sysMonitorTitle}
+        <span className="text-xs font-mono text-gray-500 ml-auto hidden md:block">{t.sysCpuLoad}</span>
       </h2>
 
       <div className="w-full overflow-x-auto relative z-10">
         <table className="w-full font-mono text-xs md:text-sm text-left border-collapse">
           <thead>
             <tr className="text-gray-500 border-b border-gray-800">
-              <th className="py-2 px-4 uppercase tracking-wider">PID</th>
-              <th className="py-2 px-4 uppercase tracking-wider">Module_Name</th>
-              <th className="py-2 px-4 uppercase tracking-wider w-1/3">Usage</th>
-              <th className="py-2 px-4 uppercase tracking-wider text-right">Status</th>
+              <th className="py-2 px-4 uppercase tracking-wider">{t.sysPid}</th>
+              <th className="py-2 px-4 uppercase tracking-wider">{t.sysModuleName}</th>
+              <th className="py-2 px-4 uppercase tracking-wider w-1/3">{t.sysUsage}</th>
+              <th className="py-2 px-4 uppercase tracking-wider text-right">{t.sysStatus}</th>
             </tr>
           </thead>
           <tbody>
@@ -564,8 +564,8 @@ const SystemMonitor = ({ lang }: { lang: Language }) => {
                   </div>
                 </td>
                 <td className="py-3 px-4 text-right">
-                  <span className={`inline-block px-2 py-0.5 rounded-sm text-[10px] bg-white/5 border border-white/10 ${m.status === 'RUNNING' ? 'text-green-400' : m.status === 'LEARNING' ? 'text-purple-400 animate-pulse' : 'text-primary'}`}>
-                    [{m.status}]
+                  <span className={`inline-block px-2 py-0.5 rounded-sm text-[10px] bg-white/5 border border-white/10 ${m.statusKey === 'statusRunning' ? 'text-green-400' : m.statusKey === 'statusLearning' ? 'text-purple-400 animate-pulse' : 'text-primary'}`}>
+                    [{t[m.statusKey as keyof typeof t]}]
                   </span>
                 </td>
               </tr>

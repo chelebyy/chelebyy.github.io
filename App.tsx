@@ -1134,7 +1134,7 @@ const Footer = ({ lang }: { lang: Language }) => (
 );
 
 // --- Terminal Overlay Component ---
-const TerminalOverlay = ({ onComplete, lang }: { onComplete: () => void, lang: Language }) => {
+const TerminalOverlay = ({ onComplete, lang, initAudio }: { onComplete: () => void, lang: Language, initAudio: () => void }) => {
   const [lines, setLines] = useState<string[]>([]);
   const { playLogWriteSound, playCompletionSound } = useSoundEffects();
 
@@ -1158,6 +1158,7 @@ const TerminalOverlay = ({ onComplete, lang }: { onComplete: () => void, lang: L
   useEffect(() => {
     // Reset lines when language or init restarts (though component unmounts usually)
     setLines([]);
+    initAudio(); // Ensure AudioContext is awake
 
     const sequence = sequences[lang];
     let timeouts: NodeJS.Timeout[] = [];
@@ -1904,6 +1905,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleInit = () => {
+    initAudio(); // Wake up AudioContext on user click
     setIsInit(true);
   };
 
@@ -1960,7 +1962,7 @@ const App: React.FC = () => {
 
       <main className="flex-grow flex flex-col w-full">
         <LogTerminal isOpen={isLogsOpen} onClose={() => setIsLogsOpen(false)} lang={lang} />
-        {isInit && <TerminalOverlay onComplete={onOverlayComplete} lang={lang} />}
+        {isInit && <TerminalOverlay onComplete={onOverlayComplete} lang={lang} initAudio={initAudio} />}
         <Hero lang={lang} onInit={handleInit} onOpenLogs={handleOpenLogs} />
         <Marquee lang={lang} />
 

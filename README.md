@@ -3,13 +3,14 @@
   <p>A brutalist, cyberpunk-inspired operating system portfolio interface.</p>
 
   [![Live Demo](https://img.shields.io/badge/LIVE_SYSTEM_ONLINE-00ff00?style=for-the-badge&logo=github&logoColor=black)](https://chelebyy.github.io)
-  
+  [![CI/CD](https://github.com/chelebyy/chelebyy.github.io/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/chelebyy/chelebyy.github.io/actions)
+
   <br />
 
-  [![React](https://img.shields.io/badge/React-19.0-blue?style=flat-square&logo=react)](https://react.dev/)
+  [![React](https://img.shields.io/badge/React-18.2-blue?style=flat-square&logo=react)](https://react.dev/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-  [![Tailwind CSS](https://img.shields.io/badge/Styled_with-Tailwind-38bdf8?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
   [![Vite](https://img.shields.io/badge/Bundled_with-Vite-646cff?style=flat-square&logo=vite)](https://vitejs.dev/)
+  [![Tests](https://img.shields.io/badge/Tests-Passing-success?style=flat-square&logo=vitest)](https://vitest.dev/)
   [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
 </div>
@@ -59,6 +60,40 @@
 * **📡 Real-Time Data:**
   * **Live Metrics:** Real-time RAM fluctuations, CPU usage simulation, and Network heartbeat.
   * **GitHub Integration:** Fetches *real* commit history, push events, and repositories directly from the GitHub API.
+
+* **🔊 Immersive Sound System:**
+  * Cinematic audio feedback throughout the interface.
+  * Boot sequence sounds, log terminal effects, and hover interactions.
+  * Context-aware audio that enhances the cyberpunk atmosphere.
+
+---
+
+## 🏗️ Architecture & Deployment
+
+This project follows **Clean Architecture** principles and utilizes a modern **CI/CD** pipeline.
+
+### 🔄 Automated CI/CD (GitHub Actions)
+
+Every push to `main` triggers an automated workflow:
+
+1. **Tested:** Runs 25+ Unit Tests & 9 E2E Tests.
+2. **Built:** Compiles the application using Vite.
+3. **Clean Release:** Generates a developer-free `.zip` artifact for end-users.
+4. **Deployed:** Automatically updates GitHub Pages.
+
+### 🧪 System Integrity (Testing)
+
+We prioritize reliability with a comprehensive test suite:
+
+* **Unit Tests (Vitest):** Covers individual components (Header, Sidebar, ProjectCard, etc.).
+* **E2E Tests (Playwright):** Verifies critical user flows (Boot sequence, Matrix Toggle, Navigation).
+
+---
+
+## 🗺️ Cyber Map (Upcoming)
+
+* Animated world map visualization with location markers.
+* Real-time connection visualization effects.
 
 ## 🛠️ Installation & Boot
 

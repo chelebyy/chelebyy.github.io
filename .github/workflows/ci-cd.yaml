@@ -1,0 +1,77 @@
+name: Operational System CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch: # Manuel tetikleme için
+
+# Token izinleri (GitHub Pages için gerekli)
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  # 1. TEST & BUILD AŞAMASI
+  build-and-test:
+    name: 🧪 Test & Build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Kaynak Kodu Çek (Checkout)
+      uses: actions/checkout@v4
+
+    - name: Node.js Kurulumu (v20)
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Bağımlılıkları Yükle
+      run: npm ci
+
+    - name: Type Kontrolü (TypeScript)
+      run: npx tsc --noEmit
+
+    - name: Birim Testleri Çalıştır
+      run: npm test
+
+    - name: Projeyi Derle (Build)
+      run: npm run build
+
+    # Clean Release Stratejisi: Temiz Zip Oluştur
+    - name: Temiz Sürümü Paketle (.zip)
+      run: |
+        cd dist
+        zip -r ../chelebyy-os-clean-build.zip .
+        cd ..
+
+    # Build Dosyalarını Sonraki Aşamaya Taşı
+    - name: Artifact Upload (Pages)
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ./dist
+
+    # Zip Dosyasını İndirilebilir Yap (Actions Sekmesi İçin)
+    - name: Zip Upload (Artifact)
+      uses: actions/upload-artifact@v4
+      with:
+        name: chelebyy-os-clean-build
+        path: chelebyy-os-clean-build.zip
+
+  # 2. DEPLOY AŞAMASI (Sadece main branch için)
+  deploy:
+    name: 🚀 Deploy to GitHub Pages
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

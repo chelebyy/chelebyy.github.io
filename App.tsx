@@ -348,6 +348,205 @@ const BootSequenceDeprecated = ({ onComplete }: { onComplete: () => void }) => {
   );
 };
 
+const CyberTerminal = () => {
+  const [lines, setLines] = useState<string[]>([]);
+  // Web Audio API Context for pure synthesized sound (No external files needed)
+  const audioContextRef = useRef<AudioContext | null>(null);
+
+  useEffect(() => {
+    // Initialize AudioContext
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (AudioContextClass) {
+      audioContextRef.current = new AudioContext();
+    }
+  }, []);
+
+  const playSound = () => {
+    if (!audioContextRef.current) return;
+
+    // Browser Autoplay Policy Check: Context might be suspended until first click
+    if (audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume().catch(() => { });
+      // If resume fails (no interaction yet), we just exit silently. 
+      // The user will hear sounds after they click anywhere on the page once.
+      return;
+    }
+
+    try {
+      const osc = audioContextRef.current.createOscillator();
+      const gainNode = audioContextRef.current.createGain();
+
+      // Cyber/Tron Sound: High pitch sine wave with quick decay
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, audioContextRef.current.currentTime); // Start frequency
+      osc.frequency.exponentialRampToValueAtTime(400, audioContextRef.current.currentTime + 0.15); // Drop frequency (Pew pew effect)
+
+      gainNode.gain.setValueAtTime(0.1, audioContextRef.current.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContextRef.current.currentTime + 0.15);
+
+      osc.connect(gainNode);
+      gainNode.connect(audioContextRef.current.destination);
+
+      osc.start();
+      osc.stop(audioContextRef.current.currentTime + 0.15);
+    } catch (e) {
+      console.error("Audio synth error:", e);
+    }
+  };
+
+  // Simulation of live log feed - TRON THEMED
+  useEffect(() => {
+    const logData = [
+      "Initializing GRID transport...",
+      "Derezzing unauthorized sectors...",
+      "Disk defragmentation: 0% fragmentation",
+      "Light Cycle protocol: READY",
+      "Scanning Identity Disc...",
+      "User: FLYNN [LEGACY_MODE]",
+      "Compiling neon shaders...",
+      "System integrity: 100%",
+      "Loading ISO algorithms...",
+      "Eradicating bugs...",
+    ];
+
+    setLines([...logData, ...logData, ...logData]);
+  }, []);
+
+  return (
+    <div
+      className="hidden 2xl:flex flex-col absolute left-24 top-1/2 -translate-y-1/2 z-20 w-96 h-[450px] items-center justify-center pointer-events-auto terminal-stage"
+      onMouseEnter={playSound} // Trigger Sound on Hover
+    >
+
+      {/* Main Glass Screen - TRON CYAN GLOW */}
+      <div className="terminal-screen w-80 h-full flex flex-col p-4 text-[#00f3ff] font-mono text-xs border border-[#00f3ff]/50 shadow-[0_0_30px_rgba(0,243,255,0.2)]">
+
+        {/* Background Grid */}
+        <div className="terminal-grid opacity-20"></div>
+
+        {/* Header */}
+        <div className="flex justify-between items-center border-b border-[#00f3ff] pb-2 mb-2 z-10">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-[#00f3ff] rounded-full animate-pulse shadow-[0_0_15px_#00f3ff]"></div>
+            <span className="font-bold tracking-widest text-white drop-shadow-[0_0_5px_#00f3ff]">MCP_MASTER_CONTROL</span>
+          </div>
+          <span className="text-[10px] text-[#00f3ff]/70">v.TRON.01</span>
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 flex flex-col gap-4 z-10 overflow-hidden relative">
+
+          {/* 1. System Stats (Tron Colors: Blue/White/Orange) */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-[10px] uppercase text-[#00f3ff]/80">
+              <span>Processing</span>
+              <span className="text-white font-bold">89%</span>
+            </div>
+            <div className="w-full h-1 bg-gray-900 rounded-full overflow-hidden border border-[#00f3ff]/30">
+              <div className="h-full bg-[#00f3ff] w-[89%] shadow-[0_0_10px_#00f3ff]"></div>
+            </div>
+
+            <div className="flex justify-between text-[10px] uppercase text-[#00f3ff]/80">
+              <span>Memory</span>
+              <span className="text-orange-400 font-bold">TERA_FLOPS</span>
+            </div>
+            <div className="w-full h-1 bg-gray-900 rounded-full overflow-hidden border border-orange-400/30">
+              <div className="h-full bg-orange-400 w-[64%] shadow-[0_0_10px_orange]"></div>
+            </div>
+          </div>
+
+          {/* 2. Scrolling Code Block */}
+          <div className="flex-1 border border-[#00f3ff]/30 bg-[#00f3ff]/5 rounded p-2 terminal-code-container relative overflow-hidden">
+            <div className="absolute inset-x-2 animate-[code-scroll_10s_linear_infinite]">
+              {lines.map((line, i) => (
+                <div key={i} className="whitespace-nowrap opacity-80 mb-1 hover:opacity-100 hover:text-white transition-opacity text-[#00f3ff]">
+                  <span className="text-[#00f3ff]/50 mr-2">_</span>
+                  {line}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 3. Active Task - NEW TEXT */}
+          <div className="bg-[#00f3ff]/10 border-l-2 border-[#00f3ff] p-2">
+            <div className="text-[10px] text-[#00f3ff]/70 mb-1">STATUS UPDATE</div>
+            <div className="text-white typing-cursor font-bold tracking-wider drop-shadow-[0_0_8px_#00f3ff]">
+              NEURAL_UPLINK_ACTIVE
+            </div>
+          </div>
+
+        </div>
+
+        {/* Reflection Shine */}
+        <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-white/10 to-transparent pointer-events-none"></div>
+
+      </div>
+
+      {/* Decorative Elements around screen */}
+      <div className="absolute -left-4 top-10 w-0.5 h-32 bg-[#00f3ff] shadow-[0_0_10px_#00f3ff] opacity-80"></div>
+      <div className="absolute -right-4 bottom-10 w-0.5 h-32 bg-orange-400 shadow-[0_0_10px_orange] opacity-80"></div>
+
+    </div>
+  );
+};
+
+const CyberMap = () => {
+  return (
+    <div className="relative w-[450px] h-[320px] terminal-stage flex items-center justify-center">
+      {/* Main Glass Screen - Matches Terminal */}
+      <div className="terminal-screen w-full h-full relative overflow-hidden border border-[#00f3ff]/50 bg-[#00f3ff]/5 shadow-[0_0_30px_rgba(0,243,255,0.15)] rounded-sm group">
+
+        {/* 1. Map Background Image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-40 grayscale group-hover:grayscale-0 transition-all duration-700"
+          style={{ backgroundImage: `url('https://lh3.googleusercontent.com/aida-public/AB6AXuAWTgp3bL6fzwmhtfxGfaIwYAThlSoMPXimutfwgnhJzbE_DxAGOPDI0878aHY7nIFl9Kdkw6H5rq2W8KbqF_qT89h0A9opqt-unsS4-62TgGu_oxsoTj8MUNILYm2rVf70iHZbHjIV3HPc6AWCtjyIKnqmcpIxwUa9BvwrLYqr4NRPceHW4awyvGkUizOXwGT7hWFQCl2ifjqP0b7reG4fiy1HftYlQJ_mO52Z5I3o6pnrW7KWXDyYcF4U7f26eBYlD3sPVHwYKB1W')` }}
+        ></div>
+
+        {/* 2. Grid Overlay */}
+        <div className="absolute inset-0 terminal-grid opacity-30"></div>
+
+        {/* 3. Radar Scan Effect REMOVED by User Request */}
+
+        {/* 4. Active Target Ping (Turkey Location Adjusted) */}
+        {/* Visually calibrated for Turkey on this specific map projection */}
+        <div className="absolute top-[33%] left-[52%]">
+          {/* Ring ripple - Red for alert vibe */}
+          <div className="w-2 h-2 bg-red-500 rounded-full animate-ping absolute opacity-75"></div>
+
+          {/* Core Dot - Alternating Red/White */}
+          <div className="w-2 h-2 rounded-full absolute shadow-[0_0_10px_white] animate-[flash-red-white_1s_infinite]"></div>
+
+          {/* Outer Echo Ring */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 border border-red-500/50 rounded-full animate-ping opacity-20 delay-100"></div>
+        </div>
+
+        {/* 5. HUD Data Overlay */}
+        <div className="absolute top-4 left-4 border-l-2 border-[#00f3ff] pl-2">
+          <div className="text-[10px] text-[#00f3ff] tracking-widest">TARGET_ZONE</div>
+          <div className="text-sm font-bold text-white shadow-[#00f3ff] drop-shadow-[0_0_5px_rgba(0,243,255,0.8)]">SYSTEM_CORE</div>
+        </div>
+
+        <div className="absolute bottom-4 right-4 text-right">
+          <div className="flex gap-1 justify-end mb-1">
+            <span className="w-1 h-3 bg-[#00f3ff] animate-pulse"></span>
+            <span className="w-1 h-3 bg-[#00f3ff] animate-pulse delay-75"></span>
+            <span className="w-1 h-3 bg-[#00f3ff] animate-pulse delay-150"></span>
+          </div>
+          <div className="text-[9px] text-[#00f3ff]/70 font-mono">COORDS: 41.0082° N, 28.9784° E</div>
+        </div>
+
+        {/* Corner Accents */}
+        <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-[#00f3ff]"></div>
+        <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-[#00f3ff]"></div>
+
+      </div>
+
+      {/* Background Glow */}
+      <div className="absolute -z-10 w-full h-full bg-[#00f3ff] opacity-5 blur-[100px]"></div>
+    </div>
+  );
+};
+
 const Header = ({ lang, setLang, onOpenControlPanel }: { lang: Language, setLang: (l: Language) => void, onOpenControlPanel: () => void }) => {
   const [displayText, setDisplayText] = useState('');
   const fullText = translations[lang].terminal;
@@ -442,7 +641,8 @@ const Header = ({ lang, setLang, onOpenControlPanel }: { lang: Language, setLang
 };
 
 const Hero = ({ lang, onInit, onOpenLogs }: { lang: Language, onInit: () => void, onOpenLogs: () => void }) => (
-  <section className="border-b border-border-dark bg-surface-dark relative overflow-hidden">
+  <section className="border-b border-border-dark bg-surface-dark relative overflow-hidden min-h-[600px] flex items-center">
+    <CyberTerminal />
     <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
     <div className="px-4 md:px-12 py-20 md:py-24 flex flex-col md:flex-row max-w-[1440px] mx-auto relative z-10 gap-12 items-center">
       <div className="flex flex-col gap-6 flex-1">
@@ -475,31 +675,9 @@ const Hero = ({ lang, onInit, onOpenLogs }: { lang: Language, onInit: () => void
         </div>
       </div>
 
-      {/* Right Side Visual */}
-      <div className="hidden md:flex flex-1 justify-end items-center md:translate-x-52">
-        <div className="relative w-[400px] h-[300px] border border-dashed border-gray-700 bg-black/50 p-2 group">
-          <div className="absolute -top-1 -left-1 w-3 h-3 border-t border-l border-primary"></div>
-          <div className="absolute -top-1 -right-1 w-3 h-3 border-t border-r border-primary"></div>
-          <div className="absolute -bottom-1 -left-1 w-3 h-3 border-b border-l border-primary"></div>
-          <div className="absolute -bottom-1 -right-1 w-3 h-3 border-b border-r border-primary"></div>
-
-          <div className="w-full h-full bg-cover bg-center grayscale group-hover:grayscale-0 transition-all duration-700 opacity-60 group-hover:opacity-100" style={{ backgroundImage: `url('https://lh3.googleusercontent.com/aida-public/AB6AXuAWTgp3bL6fzwmhtfxGfaIwYAThlSoMPXimutfwgnhJzbE_DxAGOPDI0878aHY7nIFl9Kdkw6H5rq2W8KbqF_qT89h0A9opqt-unsS4-62TgGu_oxsoTj8MUNILYm2rVf70iHZbHjIV3HPc6AWCtjyIKnqmcpIxwUa9BvwrLYqr4NRPceHW4awyvGkUizOXwGT7hWFQCl2ifjqP0b7reG4fiy1HftYlQJ_mO52Z5I3o6pnrW7KWXDyYcF4U7f26eBYlD3sPVHwYKB1W')` }}>
-            <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
-              <div className="bg-black/90 px-3 py-1 border border-white/10">
-                <p className="text-[10px] font-mono text-primary mb-0.5">TARGET_ZONE</p>
-                <p className="text-xs font-mono text-white font-bold">{translations[lang].locationUnknown}</p>
-              </div>
-              <div className="flex gap-1">
-                <span className="w-1 h-1 bg-primary rounded-full animate-ping"></span>
-                <span className="w-1 h-1 bg-primary rounded-full"></span>
-                <span className="w-1 h-1 bg-primary rounded-full"></span>
-              </div>
-            </div>
-          </div>
-
-          {/* Scanline Effect */}
-          <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px] pointer-events-none opacity-20"></div>
-        </div>
+      {/* Right Side Visual - Cyber Map */}
+      <div className="hidden md:flex flex-1 justify-end items-center md:translate-x-[600px] perspective-1000">
+        <CyberMap />
       </div>
     </div>
   </section>

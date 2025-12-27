@@ -131,6 +131,26 @@
             }
         }
 
+        @keyframes scan {
+            0% {
+                top: -10%;
+                opacity: 0;
+            }
+
+            5% {
+                opacity: 1;
+            }
+
+            95% {
+                opacity: 1;
+            }
+
+            100% {
+                top: 110%;
+                opacity: 0;
+            }
+        }
+
         .hover-shake:hover {
             animation: shake 0.5s;
             animation-iteration-count: infinite;
@@ -141,6 +161,128 @@
 
         body {
             background-color: #0a0a0c;
+        }
+    </style>
+    <style>
+        /* Cyber Terminal Animations v1 */
+        :root {
+            --term-glass: rgba(10, 20, 40, 0.6);
+            --term-border: rgba(0, 243, 255, 0.3);
+            --term-glow: #00f3ff;
+            --term-text: #a0e0ff;
+        }
+
+        /* The Floating 3D Movement */
+        @keyframes terminal-float {
+
+            0%,
+            100% {
+                transform: translateY(0) rotateX(10deg) rotateY(-10deg);
+            }
+
+            50% {
+                transform: translateY(-15px) rotateX(15deg) rotateY(-5deg);
+            }
+        }
+
+        /* Scrolling Code Animation */
+        @keyframes code-scroll {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(-50%);
+            }
+        }
+
+        /* Blinking Cursor */
+        @keyframes cursor-blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* Progress Bar Fill */
+        @keyframes progress-fill {
+            0% {
+                width: 0%;
+            }
+
+            100% {
+                width: var(--w);
+            }
+        }
+
+        @keyframes flash-red-white {
+
+            0%,
+            100% {
+                background-color: #ffffff;
+                box-shadow: 0 0 10px #ffffff;
+            }
+
+            50% {
+                background-color: #ff0000;
+                box-shadow: 0 0 15px #ff0000;
+            }
+        }
+
+        /* Container for the 3D Perspective */
+        .terminal-stage {
+            perspective: 1500px;
+            transform-style: preserve-3d;
+        }
+
+        /* The Main Glass Screen */
+        .terminal-screen {
+            background: linear-gradient(135deg, var(--term-glass), rgba(0, 0, 0, 0.8));
+            border: 1px solid var(--term-border);
+            box-shadow:
+                0 0 20px rgba(0, 243, 255, 0.1),
+                inset 0 0 20px rgba(0, 243, 255, 0.05);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 8px;
+            transform-style: preserve-3d;
+            animation: terminal-float 8s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Grid Background Pattern */
+        .terminal-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+        }
+
+        /* Code Block Container */
+        .terminal-code-container {
+            mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+        }
+
+        /* Glowing Header Line */
+        .terminal-header-glow {
+            box-shadow: 0 0 10px var(--term-glow);
+        }
+
+        /* Typing Effect Class */
+        .typing-cursor::after {
+            content: '_';
+            animation: cursor-blink 1s steps(2) infinite;
+            color: var(--term-glow);
         }
     </style>
     <script type="importmap">

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Project, ActivityLog, Language } from './types';
 import { mockProjects, mockLogs } from './services/geminiService';
 
@@ -192,11 +192,191 @@ const translations = {
 
 // --- Helper Components ---
 
-const BootSequence = ({ onComplete }: { onComplete: () => void }) => {
+// --- Sound Effects Hook ---
+const useSoundEffects = () => {
+  const audioContextRef = useRef<AudioContext | null>(null);
+
+  const initAudio = useCallback(() => {
+    if (!audioContextRef.current) {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioContextClass) {
+        audioContextRef.current = new AudioContext();
+      }
+    }
+    if (audioContextRef.current?.state === 'suspended') {
+      audioContextRef.current.resume().catch(() => { });
+    }
+  }, []);
+
+  const playHoverSound = useCallback(() => {
+    initAudio();
+    if (!audioContextRef.current) return;
+
+    try {
+      const osc = audioContextRef.current.createOscillator();
+      const gainNode = audioContextRef.current.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, audioContextRef.current.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(400, audioContextRef.current.currentTime + 0.15);
+
+      gainNode.gain.setValueAtTime(0.05, audioContextRef.current.currentTime); // Reduced volume
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContextRef.current.currentTime + 0.15);
+
+      osc.connect(gainNode);
+      gainNode.connect(audioContextRef.current.destination);
+
+      osc.start();
+      osc.stop(audioContextRef.current.currentTime + 0.15);
+    } catch (e) { }
+  }, [initAudio]);
+
+  const playLogOpenSound = useCallback(() => {
+    initAudio();
+    if (!audioContextRef.current) return;
+
+    try {
+      const t = audioContextRef.current.currentTime;
+      const osc = audioContextRef.current.createOscillator();
+      const gainNode = audioContextRef.current.createGain();
+
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(1200, t);
+      osc.frequency.setValueAtTime(1800, t + 0.05);
+      osc.frequency.setValueAtTime(800, t + 0.1);
+
+      gainNode.gain.setValueAtTime(0.05, t);
+      gainNode.gain.linearRampToValueAtTime(0.05, t + 0.1);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+
+      osc.connect(gainNode);
+      gainNode.connect(audioContextRef.current.destination);
+
+      osc.start();
+      osc.stop(t + 0.2);
+    } catch (e) { }
+  }, [initAudio]);
+
+  const playLogWriteSound = useCallback(() => {
+    initAudio();
+    if (!audioContextRef.current) return;
+
+    if (audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume().catch(() => { });
+    }
+
+    const t = audioContextRef.current.currentTime;
+    const osc = audioContextRef.current.createOscillator();
+    const gainNode = audioContextRef.current.createGain();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(800, t);
+    osc.frequency.exponentialRampToValueAtTime(1200, t + 0.05);
+
+    gainNode.gain.setValueAtTime(0.02, t);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+
+    osc.connect(gainNode);
+    gainNode.connect(audioContextRef.current.destination);
+
+    osc.start(t);
+    osc.stop(t + 0.05);
+  }, [initAudio]);
+
+  const playBootPhaseSound = useCallback((phase: 'bios' | 'auth' | 'access') => {
+    initAudio();
+    if (!audioContextRef.current) return;
+    const t = audioContextRef.current.currentTime;
+
+    if (phase === 'bios') {
+      // Computing / Hard Drive noise
+      const osc = audioContextRef.current.createOscillator();
+      const gain = audioContextRef.current.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(50, t);
+      osc.frequency.linearRampToValueAtTime(60, t + 0.1);
+      osc.frequency.setValueAtTime(50, t + 0.2);
+
+      gain.gain.setValueAtTime(0.02, t);
+      gain.gain.linearRampToValueAtTime(0, t + 0.3);
+
+      osc.connect(gain);
+      gain.connect(audioContextRef.current.destination);
+      osc.start(t);
+      osc.stop(t + 0.3);
+    } else if (phase === 'auth') {
+      // Biometric Scan hum
+      const osc = audioContextRef.current.createOscillator();
+      const gain = audioContextRef.current.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(200, t);
+      osc.frequency.exponentialRampToValueAtTime(800, t + 1);
+
+      gain.gain.setValueAtTime(0.05, t);
+      gain.gain.linearRampToValueAtTime(0, t + 1);
+
+      osc.connect(gain);
+      gain.connect(audioContextRef.current.destination);
+      osc.start(t);
+      osc.stop(t + 1);
+    } else if (phase === 'access') {
+      // Success Chime (Cyberpunk Chord)
+      [440, 554, 659, 880].forEach((freq, i) => {
+        const osc = audioContextRef.current!.createOscillator();
+        const gain = audioContextRef.current!.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, t);
+
+        gain.gain.setValueAtTime(0, t + (i * 0.05));
+        gain.gain.linearRampToValueAtTime(0.1, t + (i * 0.05) + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.8 + (i * 0.05));
+
+        osc.connect(gain);
+        gain.connect(audioContextRef.current!.destination);
+        osc.start(t + (i * 0.05));
+        osc.stop(t + 1.5);
+      });
+    }
+  }, [initAudio]);
+
+  const playCompletionSound = useCallback(() => {
+    initAudio();
+    if (!audioContextRef.current) return;
+    const t = audioContextRef.current.currentTime;
+
+    // Short rising "bleep-bloop" completion sound
+    const frequencies = [600, 800, 1000];
+    frequencies.forEach((freq, i) => {
+      const osc = audioContextRef.current!.createOscillator();
+      const gain = audioContextRef.current!.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t + (i * 0.08));
+
+      gain.gain.setValueAtTime(0, t + (i * 0.08));
+      gain.gain.linearRampToValueAtTime(0.08, t + (i * 0.08) + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + (i * 0.08) + 0.12);
+
+      osc.connect(gain);
+      gain.connect(audioContextRef.current!.destination);
+      osc.start(t + (i * 0.08));
+      osc.stop(t + (i * 0.08) + 0.15);
+    });
+  }, [initAudio]);
+
+  return { playHoverSound, playLogOpenSound, playLogWriteSound, playBootPhaseSound, playCompletionSound };
+};
+
+const BootSequence = ({ onComplete, playPhaseSound }: { onComplete: () => void, playPhaseSound: (phase: 'bios' | 'auth' | 'access') => void }) => {
   const [lines, setLines] = useState<string[]>([]);
-  const [phase, setPhase] = useState<'bios' | 'auth' | 'access' | 'drop'>('bios');
+  const [phase, setPhase] = useState<'start' | 'bios' | 'auth' | 'access' | 'drop'>('start');
+
+  const handleStart = () => {
+    setPhase('bios');
+  };
 
   useEffect(() => {
+    if (phase !== 'bios') return;
+
     // Phase 1: BIOS / POST
     const bootText = [
       "BIOS_MEM_CHECK: 64GB OK",
@@ -206,12 +386,16 @@ const BootSequence = ({ onComplete }: { onComplete: () => void }) => {
       "ESTABLISHING_SECURE_UPLINK... [CONNECTED]"
     ];
 
+    // Play initial sound - NOW triggered by user click
+    playPhaseSound('bios');
+
     let lineIndex = 0;
     const printInterval = setInterval(() => {
       setLines(prev => {
         const newLines = [...prev, bootText[lineIndex]];
         return newLines.slice(-7);
       });
+
       lineIndex++;
 
       if (lineIndex === bootText.length) {
@@ -221,10 +405,11 @@ const BootSequence = ({ onComplete }: { onComplete: () => void }) => {
     }, 400);
 
     return () => clearInterval(printInterval);
-  }, []);
+  }, [phase, playPhaseSound]);
 
   useEffect(() => {
     if (phase === 'auth') {
+      playPhaseSound('auth');
       // Phase 2: Authentication
       const timer = setTimeout(() => {
         setPhase('access');
@@ -233,6 +418,7 @@ const BootSequence = ({ onComplete }: { onComplete: () => void }) => {
     }
 
     if (phase === 'access') {
+      playPhaseSound('access');
       // Phase 3: Access Granted -> The Drop
       const timer = setTimeout(() => {
         setPhase('drop');
@@ -240,7 +426,8 @@ const BootSequence = ({ onComplete }: { onComplete: () => void }) => {
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [phase, onComplete]);
+  }, [phase, onComplete, playPhaseSound]);
+
 
   return (
     <div className={`fixed inset-0 z-[9999] bg-black text-green-500 font-mono flex flex-col items-center justify-center transition-all duration-300 ${phase === 'drop' ? 'opacity-0 scale-110' : 'opacity-100'}`}>
@@ -249,6 +436,20 @@ const BootSequence = ({ onComplete }: { onComplete: () => void }) => {
       <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(#0f0 1px, transparent 1px), linear-gradient(90deg, #0f0 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
 
       <div className="max-w-xl w-full p-6 relative z-10">
+
+        {/* Phase 0: Start Screen */}
+        {phase === 'start' && (
+          <div className="text-center">
+            <div className="text-xs text-green-700 mb-4 tracking-widest uppercase">// System Ready</div>
+            <button
+              onClick={handleStart}
+              className="px-8 py-4 border border-green-500/50 bg-green-500/10 text-green-500 font-mono tracking-widest uppercase hover:bg-green-500/20 hover:border-green-500 transition-all duration-300 animate-pulse cursor-pointer"
+            >
+              [ INITIALIZE SYSTEM ]
+            </button>
+            <div className="text-[10px] text-green-900 mt-4">Click to begin boot sequence</div>
+          </div>
+        )}
 
         {/* Phase 1: BIOS Lines */}
         {phase === 'bios' && (
@@ -350,49 +551,8 @@ const BootSequenceDeprecated = ({ onComplete }: { onComplete: () => void }) => {
 
 const CyberTerminal = () => {
   const [lines, setLines] = useState<string[]>([]);
-  // Web Audio API Context for pure synthesized sound (No external files needed)
-  const audioContextRef = useRef<AudioContext | null>(null);
-
-  useEffect(() => {
-    // Initialize AudioContext
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    if (AudioContextClass) {
-      audioContextRef.current = new AudioContext();
-    }
-  }, []);
-
-  const playSound = () => {
-    if (!audioContextRef.current) return;
-
-    // Browser Autoplay Policy Check: Context might be suspended until first click
-    if (audioContextRef.current.state === 'suspended') {
-      audioContextRef.current.resume().catch(() => { });
-      // If resume fails (no interaction yet), we just exit silently. 
-      // The user will hear sounds after they click anywhere on the page once.
-      return;
-    }
-
-    try {
-      const osc = audioContextRef.current.createOscillator();
-      const gainNode = audioContextRef.current.createGain();
-
-      // Cyber/Tron Sound: High pitch sine wave with quick decay
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(800, audioContextRef.current.currentTime); // Start frequency
-      osc.frequency.exponentialRampToValueAtTime(400, audioContextRef.current.currentTime + 0.15); // Drop frequency (Pew pew effect)
-
-      gainNode.gain.setValueAtTime(0.1, audioContextRef.current.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContextRef.current.currentTime + 0.15);
-
-      osc.connect(gainNode);
-      gainNode.connect(audioContextRef.current.destination);
-
-      osc.start();
-      osc.stop(audioContextRef.current.currentTime + 0.15);
-    } catch (e) {
-      console.error("Audio synth error:", e);
-    }
-  };
+  // Use shared sound hook
+  const { playHoverSound } = useSoundEffects();
 
   // Simulation of live log feed - TRON THEMED
   useEffect(() => {
@@ -415,7 +575,7 @@ const CyberTerminal = () => {
   return (
     <div
       className="hidden 2xl:flex flex-col absolute left-24 top-1/2 -translate-y-1/2 z-20 w-96 h-[450px] items-center justify-center pointer-events-auto terminal-stage"
-      onMouseEnter={playSound} // Trigger Sound on Hover
+      onMouseEnter={playHoverSound} // Trigger Sound on Hover
     >
 
       {/* Main Glass Screen - TRON CYAN GLOW */}
@@ -652,7 +812,7 @@ const Hero = ({ lang, onInit, onOpenLogs }: { lang: Language, onInit: () => void
         <h1 className="text-white text-5xl md:text-7xl font-black leading-[0.9] tracking-[-0.04em] uppercase">
           <span className="block hover-shake inline-block cursor-none">{translations[lang].heroLine1}</span><br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500 hover:text-primary transition-colors duration-100 cursor-none hover-shake inline-block">{translations[lang].heroLine2}</span><br />
-          <span className="pl-8 md:pl-20 block text-primary">{translations[lang].heroLine3}</span>
+          <span className="pl-8 md:pl-46 block text-primary">{translations[lang].heroLine3}</span>
         </h1>
         <div className="mt-8 max-w-2xl border-l-2 border-primary pl-6 py-2">
           <p className="text-gray-300 text-lg md:text-xl font-normal leading-relaxed font-mono whitespace-pre-line">
@@ -676,7 +836,7 @@ const Hero = ({ lang, onInit, onOpenLogs }: { lang: Language, onInit: () => void
       </div>
 
       {/* Right Side Visual - Cyber Map */}
-      <div className="hidden md:flex flex-1 justify-end items-center md:translate-x-[600px] perspective-1000">
+      <div className="hidden md:flex flex-1 justify-end items-center md:translate-x-[400px] perspective-1000">
         <CyberMap />
       </div>
     </div>
@@ -975,18 +1135,19 @@ const Footer = ({ lang }: { lang: Language }) => (
 // --- Terminal Overlay Component ---
 const TerminalOverlay = ({ onComplete, lang }: { onComplete: () => void, lang: Language }) => {
   const [lines, setLines] = useState<string[]>([]);
+  const { playLogWriteSound, playCompletionSound } = useSoundEffects();
 
   const sequences = {
     en: [
       { text: '> INITIALIZING_KERNEL...', delay: 100 },
-      { text: '> LOADING_MODULES [REACT, TS, VITE]...', delay: 600 },
+      { text: '> LOADING_MODULES [REACT, TS, VITE,C#,JS,HTML,CSS]...', delay: 600 },
       { text: '> ESTABLISHING_SECURE_UPLINK...', delay: 1200 },
       { text: '> COMPILING_DIGITAL_ARTIFACTS...', delay: 1800 },
       { text: '> ACCESS_GRANTED.', delay: 2400 }
     ],
     tr: [
       { text: '> CEKIRDEK_BASLATILIYOR...', delay: 100 },
-      { text: '> MODULLER_YUKLENIYOR [REACT, TS, VITE]...', delay: 600 },
+      { text: '> MODULLER_YUKLENIYOR [REACT, TS, VITE,C#,JS,HTML,CSS]...', delay: 600 },
       { text: '> GUVENLI_BAGLANTI_KURULUYOR...', delay: 1200 },
       { text: '> DIJITAL_ESERLER_DERLENIYOR...', delay: 1800 },
       { text: '> ERISIM_IZNI_VERILDI.', delay: 2400 }
@@ -999,9 +1160,18 @@ const TerminalOverlay = ({ onComplete, lang }: { onComplete: () => void, lang: L
 
     const sequence = sequences[lang];
     let timeouts: NodeJS.Timeout[] = [];
+    const lastIndex = sequence.length - 1;
 
-    sequence.forEach(({ text, delay }) => {
+    sequence.forEach(({ text, delay }, index) => {
       const timeout = setTimeout(() => {
+        // Play sound for each line
+        if (index === lastIndex) {
+          // Last line (ACCESS_GRANTED) - play completion sound
+          playCompletionSound();
+        } else {
+          // Regular lines - play typing sound
+          playLogWriteSound();
+        }
         setLines(prev => [...prev, text]);
       }, delay);
       timeouts.push(timeout);
@@ -1011,7 +1181,7 @@ const TerminalOverlay = ({ onComplete, lang }: { onComplete: () => void, lang: L
     timeouts.push(finishTimeout);
 
     return () => timeouts.forEach(clearTimeout);
-  }, [onComplete, lang]);
+  }, [onComplete, lang, playLogWriteSound, playCompletionSound]);
 
   return (
     <div className="fixed inset-0 z-[100] bg-[#0a0a0c] text-primary font-mono text-sm p-4 md:p-10 flex flex-col justify-end pb-20">
@@ -1084,6 +1254,7 @@ const CustomCursor = () => {
 const LogTerminal = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: () => void, lang: Language }) => {
   const [logs, setLogs] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { playLogWriteSound } = useSoundEffects();
 
   useEffect(() => {
     if (!isOpen) {
@@ -1182,7 +1353,10 @@ const LogTerminal = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: () =
       ]
     };
 
+    /* Hook moved to top level */
+
     const interval = setInterval(() => {
+      playLogWriteSound();
       const randomLog = possibleLogs[lang][Math.floor(Math.random() * possibleLogs[lang].length)];
       const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
       setLogs(prev => [...prev.slice(-100), `[${timestamp}] ${randomLog}`]);
@@ -1343,6 +1517,8 @@ const ControlPanel = ({
   );
 };
 
+// (Moved to top)
+
 // --- Matrix Rain Effect ---
 const MatrixRain = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -1426,7 +1602,7 @@ const CommandPalette = ({ isOpen, onClose, lang, matrixEnabled, setMatrixEnabled
       /  \\       Host: VITE-REACT-TS-CORE
      / /\\ \\      Kernel: 5.15.0-generic
     / /__\\ \\     Uptime: 420 days, 6 hours
-   / /____\\ \\    Packages: 1337 (npm)
+   / /______\\ \\    Packages: 1337 (npm)
   / /______\\ \\   Shell: zsh 5.8
  /_/________\\_\\  Resolution: 1920x1080
                  DE: Cyberpunk
@@ -1555,6 +1731,10 @@ const CommandPalette = ({ isOpen, onClose, lang, matrixEnabled, setMatrixEnabled
 
 const App: React.FC = () => {
   const [lang, setLang] = useState<Language>('en');
+
+  // Sound Hook
+  const { playLogOpenSound, playBootPhaseSound } = useSoundEffects();
+
   // System Boot State (Session Storage Check)
   const [isBooting, setIsBooting] = useState(() => {
     // Check if we've already booted in this session
@@ -1598,39 +1778,71 @@ const App: React.FC = () => {
     }
   };
 
+  const handleOpenLogs = () => {
+    playLogOpenSound();
+    setIsLogsOpen(true);
+  };
+
+
   useEffect(() => {
     const fetchGitHubProjects = async () => {
+      // Check cache first
+      const cachedData = localStorage.getItem('github_cache');
+      const cacheTimestamp = localStorage.getItem('github_cache_time');
+      const CACHE_DURATION = 1000 * 60 * 10; // 10 minutes
+
+      if (cachedData && cacheTimestamp) {
+        const cacheAge = Date.now() - parseInt(cacheTimestamp);
+        if (cacheAge < CACHE_DURATION) {
+          try {
+            const { userData: cachedUser, projects: cachedProjects, logs: cachedLogs } = JSON.parse(cachedData);
+            if (cachedUser) setUserData(cachedUser);
+            if (cachedProjects?.length > 0) setProjects(cachedProjects);
+            if (cachedLogs?.length > 0) setActivityLogs(cachedLogs);
+            return; // Use cache, skip API calls
+          } catch { /* Invalid cache, continue to fetch */ }
+        }
+      }
+
       try {
-        // Fetch user data
-        const userRes = await fetch('https://api.github.com/users/chelebyy');
-        if (userRes.ok) {
-          const user = await userRes.json();
-          setUserData(user);
-        }
+        let fetchedUser = null;
+        let fetchedProjects: Project[] = [];
+        let fetchedLogs: ActivityLog[] = [];
 
-        // Fetch Repos
-        const response = await fetch('https://api.github.com/users/chelebyy/repos?sort=pushed&per_page=100');
-        if (response.ok) {
-          const data = await response.json();
-          if (Array.isArray(data)) {
-            const mappedProjects = data
-              .filter((repo: any) => !repo.fork)
-              .sort((a: any, b: any) => b.stargazers_count - a.stargazers_count)
-              .slice(0, 50)
-              .map((repo: any, index: number) => ({
-                id: repo.id.toString(),
-                name: repo.name,
-                description: repo.description || 'No description provided.',
-                tags: [repo.language, 'GitHub'].filter(Boolean).slice(0, 3),
-                stars: repo.stargazers_count >= 1000 ? (repo.stargazers_count / 1000).toFixed(1) + 'k' : repo.stargazers_count.toString(),
-                order: (index + 1).toString().padStart(2, '0'),
-                url: repo.html_url
-              }));
-            if (mappedProjects.length > 0) setProjects(mappedProjects);
+        // Fetch user data (silently fail)
+        try {
+          const userRes = await fetch('https://api.github.com/users/chelebyy');
+          if (userRes.ok) {
+            fetchedUser = await userRes.json();
+            setUserData(fetchedUser);
           }
-        }
+        } catch { /* Silent fail */ }
 
-        // Fetch Events (Activity Log)
+        // Fetch Repos (silently fail)
+        try {
+          const response = await fetch('https://api.github.com/users/chelebyy/repos?sort=pushed&per_page=100');
+          if (response.ok) {
+            const data = await response.json();
+            if (Array.isArray(data)) {
+              fetchedProjects = data
+                .filter((repo: any) => !repo.fork)
+                .sort((a: any, b: any) => b.stargazers_count - a.stargazers_count)
+                .slice(0, 50)
+                .map((repo: any, index: number) => ({
+                  id: repo.id.toString(),
+                  name: repo.name,
+                  description: repo.description || 'No description provided.',
+                  tags: [repo.language, 'GitHub'].filter(Boolean).slice(0, 3),
+                  stars: repo.stargazers_count >= 1000 ? (repo.stargazers_count / 1000).toFixed(1) + 'k' : repo.stargazers_count.toString(),
+                  order: (index + 1).toString().padStart(2, '0'),
+                  url: repo.html_url
+                }));
+              if (fetchedProjects.length > 0) setProjects(fetchedProjects);
+            }
+          }
+        } catch { /* Silent fail */ }
+
+        // Fetch Events (Activity Log) - silently fail
         try {
           const eventsRes = await fetch('https://api.github.com/users/chelebyy/events');
 
@@ -1644,7 +1856,7 @@ const App: React.FC = () => {
             );
 
             if (releaseEvents.length > 0) {
-              const mappedLogs: ActivityLog[] = releaseEvents.slice(0, 10).map((event: any) => {
+              fetchedLogs = releaseEvents.slice(0, 10).map((event: any) => {
                 let message = '';
                 let type: any = 'release';
                 let hash = '';
@@ -1668,29 +1880,22 @@ const App: React.FC = () => {
                   url
                 };
               });
-              setActivityLogs(mappedLogs);
-            } else {
-              // No recent releases found in API, fallback to manual v1.0.0 entry
-              throw new Error("No releases found");
+              setActivityLogs(fetchedLogs);
             }
-          } else {
-            throw new Error("API Error");
           }
-        } catch (error) {
-          // Fallback for Rate Limit or Empty Data
-          setActivityLogs([
-            {
-              timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
-              type: 'release',
-              hash: 'v1.0.0',
-              message: '[chelebyy.github.io] Official Launch - Matrix Mode & Secure Sector',
-              url: 'https://github.com/chelebyy/chelebyy.github.io/releases/tag/v1.0.0'
-            }
-          ]);
-        }
+        } catch { /* Silent fail */ }
 
-      } catch (error) {
-        console.error('Failed to fetch GitHub data.', error);
+        // Save to cache
+        if (fetchedUser || fetchedProjects.length > 0 || fetchedLogs.length > 0) {
+          localStorage.setItem('github_cache', JSON.stringify({
+            userData: fetchedUser,
+            projects: fetchedProjects,
+            logs: fetchedLogs
+          }));
+          localStorage.setItem('github_cache_time', Date.now().toString());
+        }
+      } catch {
+        // Outer silent fallback
       }
     };
 
@@ -1726,7 +1931,7 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background-dark cursor-none relative overflow-hidden">
-      {isBooting && <BootSequence onComplete={handleBootComplete} />}
+      {isBooting && <BootSequence onComplete={handleBootComplete} playPhaseSound={playBootPhaseSound} />}
       <CustomCursor />
 
       {/* Matrix Rain Effect */}
@@ -1755,7 +1960,7 @@ const App: React.FC = () => {
       <main className="flex-grow flex flex-col w-full">
         <LogTerminal isOpen={isLogsOpen} onClose={() => setIsLogsOpen(false)} lang={lang} />
         {isInit && <TerminalOverlay onComplete={onOverlayComplete} lang={lang} />}
-        <Hero lang={lang} onInit={handleInit} onOpenLogs={() => setIsLogsOpen(true)} />
+        <Hero lang={lang} onInit={handleInit} onOpenLogs={handleOpenLogs} />
         <Marquee lang={lang} />
 
         <div className="flex flex-col md:flex-row max-w-[1440px] mx-auto w-full border-x border-border-dark flex-grow">

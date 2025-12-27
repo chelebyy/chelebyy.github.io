@@ -363,14 +363,15 @@ const useSoundEffects = () => {
     });
   }, [initAudio]);
 
-  return { playHoverSound, playLogOpenSound, playLogWriteSound, playBootPhaseSound, playCompletionSound };
+  return { playHoverSound, playLogOpenSound, playLogWriteSound, playBootPhaseSound, playCompletionSound, initAudio };
 };
 
-const BootSequence = ({ onComplete, playPhaseSound }: { onComplete: () => void, playPhaseSound: (phase: 'bios' | 'auth' | 'access') => void }) => {
+const BootSequence = ({ onComplete, playPhaseSound, initAudio }: { onComplete: () => void, playPhaseSound: (phase: 'bios' | 'auth' | 'access') => void, initAudio: () => void }) => {
   const [lines, setLines] = useState<string[]>([]);
   const [phase, setPhase] = useState<'start' | 'bios' | 'auth' | 'access' | 'drop'>('start');
 
   const handleStart = () => {
+    initAudio(); // Explicitly wake up AudioContext on click
     setPhase('bios');
   };
 
@@ -1733,7 +1734,7 @@ const App: React.FC = () => {
   const [lang, setLang] = useState<Language>('en');
 
   // Sound Hook
-  const { playLogOpenSound, playBootPhaseSound } = useSoundEffects();
+  const { playLogOpenSound, playBootPhaseSound, initAudio } = useSoundEffects();
 
   // System Boot State (Session Storage Check)
   const [isBooting, setIsBooting] = useState(() => {
@@ -1931,7 +1932,7 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background-dark cursor-none relative overflow-hidden">
-      {isBooting && <BootSequence onComplete={handleBootComplete} playPhaseSound={playBootPhaseSound} />}
+      {isBooting && <BootSequence onComplete={handleBootComplete} playPhaseSound={playBootPhaseSound} initAudio={initAudio} />}
       <CustomCursor />
 
       {/* Matrix Rain Effect */}

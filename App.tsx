@@ -1279,7 +1279,7 @@ const LogTerminal = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: () =
         "> DEPLOYING_NANOBOTS_TO_DOM...",
         "> 0 Errors, 0 Warnings found.",
         "> EXECUTING_ORDER_66... [SKIPPING]",
-        "> SEARCHING_FOR_MEANING_OF_LIFE... 42",
+        "> SEARCHING_FOR_MEANING_OF_LIFE... <span class='gs-secret'>1905</span>",
         "> UPLOADING_CONSCIOUSNESS... [|||.......] 23%",
         "> ERROR: COFFEE_LEVEL_CRITICAL",
         "> BYPASSING_FIREWALL... ACCESS_GRANTED",
@@ -1307,7 +1307,10 @@ const LogTerminal = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: () =
         "> GENERATING_PROCEDURAL_TERRAIN...",
         "> LOADING_DAEMON_PROCESSES...",
         "> VERIFYING_CHECKSUMS... MATCH",
-        "> PROTOCOL_OMEGA_ACTIVATED"
+        "> PROTOCOL_OMEGA_ACTIVATED",
+        "> SEARCHING_FOR_MEANING_OF_LIFE... <span class='gs-secret'>1905</span>",
+        "> GALATASARAY_PROTOCOL_INITIALIZED... <span class='gs-secret'>1905</span>",
+        "> SECRET_KEY_FOUND... <span class='gs-secret'>1905</span>"
       ],
       tr: [
         "> SISTEM_BUTUNLUK_KONTROLU... TAMAM",
@@ -1323,7 +1326,7 @@ const LogTerminal = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: () =
         "> DOM_NANOBOTLARI_DAGITILIYOR...",
         "> 0 Hata, 0 Uyari bulundu.",
         "> EMIR_66_UYGULANIYOR... [ATLANIYOR]",
-        "> HAYATIN_ANLAMI_ARANIYOR... 42",
+        "> HAYATIN_ANLAMI_ARANIYOR... <span class='gs-secret'>1905</span>",
         "> BILINC_YUKLENIYOR... [|||.......] %23",
         "> HATA: KAHVE_SEVIYESI_KRITIK",
         "> GUVENLIK_DUVARI_ASILIYOR... ERISIM_VERILDI",
@@ -1351,7 +1354,10 @@ const LogTerminal = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: () =
         "> YORDAMSAL_ARAZI_OLUSTURULUYOR...",
         "> IBLIS_SURECLERI_YUKLENIYOR...",
         "> DOGRULAMA_TOPLAMLARI... ESLESTI",
-        "> PROTOKOL_OMEGA_AKTIF"
+        "> PROTOKOL_OMEGA_AKTIF",
+        "> HAYATIN_ANLAMI_ARANIYOR... <span class='gs-secret'>1905</span>",
+        "> GALATASARAY_PROTOKOLU_BASLATILDI... <span class='gs-secret'>1905</span>",
+        "> GIZLI_ANAHTAR_BULUNDU... <span class='gs-secret'>1905</span>"
       ]
     };
 
@@ -1397,8 +1403,7 @@ const LogTerminal = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: () =
           {/* Logs Output */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-2 text-green-500/80 font-mono">
             {logs.map((log, i) => (
-              <div key={i} className="border-l-2 border-green-900/30 pl-2 hover:border-green-500 transition-colors">
-                {log}
+              <div key={i} className="border-l-2 border-green-900/30 pl-2 hover:border-green-500 transition-colors" dangerouslySetInnerHTML={{ __html: log }}>
               </div>
             ))}
             <div className="animate-pulse">_</div>
@@ -1770,7 +1775,7 @@ const App: React.FC = () => {
   const handleUnlockSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // THE ANSWER TO LIFE, THE UNIVERSE, AND EVERYTHING
-    if (unlockInput.trim() === '42') {
+    if (unlockInput.trim() === '1905') {
       setIsSectorUnlocked(true);
       setShowUnlockInput(false);
     } else {

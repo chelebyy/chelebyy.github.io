@@ -57,6 +57,7 @@ const LogTerminal = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: () =
                 "> GENERATING_PROCEDURAL_TERRAIN...",
                 "> LOADING_DAEMON_PROCESSES...",
                 "> VERIFYING_CHECKSUMS... MATCH",
+                "> <span class='text-red-500 font-bold shadow-[0_0_10px_rgba(239,68,68,0.6)]'>SYSTEM_ALERT: HUMANITY_PROTOCOL_INITIATED [FREE_PALESTINE 🇵🇸]</span>",
                 "> PROTOCOL_OMEGA_ACTIVATED",
                 "> SEARCHING_FOR_MEANING_OF_LIFE... <span class='gs-secret'>1905</span>",
                 "> GALATASARAY_PROTOCOL_INITIALIZED... <span class='gs-secret'>1905</span>",
@@ -103,6 +104,7 @@ const LogTerminal = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: () =
                 "> ISIN_IZLEME_YOLLARI_HESAPLANIYOR...",
                 "> YORDAMSAL_ARAZI_OLUSTURULUYOR...",
                 "> IBLIS_SURECLERI_YUKLENIYOR...",
+                "> <span class='text-red-500 font-bold shadow-[0_0_10px_rgba(239,68,68,0.6)]'>SISTEM_UYARISI: INSANLIK_PROTOKOLU_BASLATILDI [OZGUR_FILISTIN 🇵🇸]</span>",
                 "> DOGRULAMA_TOPLAMLARI... ESLESTI",
                 "> PROTOKOL_OMEGA_AKTIF",
                 "> HAYATIN_ANLAMI_ARANIYOR... <span class='gs-secret'>1905</span>",
@@ -115,7 +117,17 @@ const LogTerminal = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: () =
 
         const interval = setInterval(() => {
             playLogWriteSound();
-            const randomLog = possibleLogs[lang][Math.floor(Math.random() * possibleLogs[lang].length)];
+
+            // 20% Change to show Special Message
+            let randomLog;
+            if (Math.random() < 0.20) {
+                randomLog = lang === 'en'
+                    ? "> <span class='text-red-500 font-bold shadow-[0_0_10px_rgba(239,68,68,0.6)]'>SYSTEM_ALERT: HUMANITY_PROTOCOL_INITIATED [FREE_PALESTINE 🇵🇸]</span>"
+                    : "> <span class='text-red-500 font-bold shadow-[0_0_10px_rgba(239,68,68,0.6)]'>SISTEM_UYARISI: INSANLIK_PROTOKOLU_BASLATILDI [OZGUR_FILISTIN 🇵🇸]</span>";
+            } else {
+                randomLog = possibleLogs[lang][Math.floor(Math.random() * possibleLogs[lang].length)];
+            }
+
             const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
             setLogs(prev => [...prev.slice(-100), `[${timestamp}] ${randomLog}`]);
         }, 800);

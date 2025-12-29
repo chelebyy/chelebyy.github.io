@@ -15,7 +15,7 @@ const Hero: React.FC<HeroProps> = ({ lang, onInit, onOpenLogs }) => (
         <CyberTerminal />
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
         <div className="px-6 md:px-12 py-12 md:py-24 flex flex-col md:flex-row max-w-[1440px] mx-auto relative z-10 gap-12 items-center w-full">
-            <div className="flex flex-col gap-6 flex-1 w-full">
+            <div className="flex flex-col gap-6 flex-1 w-full md:ml-[350px]">
                 <div className="inline-flex items-center gap-2 text-primary font-mono text-sm mb-2 md:mb-4">
                     <span className="animate-pulse">_</span> {translations[lang].systemReady}
                 </div>
@@ -46,7 +46,7 @@ const Hero: React.FC<HeroProps> = ({ lang, onInit, onOpenLogs }) => (
             </div>
 
             {/* Right Side Visual - Cyber Map */}
-            <div className="hidden md:flex flex-1 justify-end items-center md:translate-x-[400px] perspective-1000">
+            <div className="hidden md:flex flex-1 justify-end items-center md:translate-x-[200px] perspective-1000">
                 <CyberMap />
             </div>
         </div>

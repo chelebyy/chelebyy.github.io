@@ -2,6 +2,12 @@
   <h3>DIGITAL_ARTIFACTS_OS // SYSTEM_READY</h3>
   <p>A brutalist, cyberpunk-inspired operating system portfolio interface.</p>
 
+  <!-- Dil Seçimi (Language Switcher) -->
+  <a href="README.md"><img src="https://img.shields.io/badge/Lang-English-blue?style=for-the-badge&logo=google-translate&labelColor=333" alt="English"></a>
+  <a href="README.TR.md"><img src="https://img.shields.io/badge/Lang-Turkish-gray?style=for-the-badge&logo=google-translate&labelColor=333" alt="Turkish"></a>
+
+  <br /><br />
+
   [![Live Demo](https://img.shields.io/badge/LIVE_SYSTEM_ONLINE-00ff00?style=for-the-badge&logo=github&logoColor=black)](https://chelebyy.github.io)
   [![CI/CD](https://github.com/chelebyy/chelebyy.github.io/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/chelebyy/chelebyy.github.io/actions)
 

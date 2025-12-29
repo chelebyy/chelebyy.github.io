@@ -118,9 +118,9 @@ const LogTerminal = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: () =
         const interval = setInterval(() => {
             playLogWriteSound();
 
-            // 20% Change to show Special Message
+            // 8% Change to show Special Message (Balanced)
             let randomLog;
-            if (Math.random() < 0.20) {
+            if (Math.random() < 0.08) {
                 randomLog = lang === 'en'
                     ? "> <span class='text-red-500 font-bold shadow-[0_0_10px_rgba(239,68,68,0.6)]'>SYSTEM_ALERT: HUMANITY_PROTOCOL_INITIATED [FREE_PALESTINE 🇵🇸]</span>"
                     : "> <span class='text-red-500 font-bold shadow-[0_0_10px_rgba(239,68,68,0.6)]'>SISTEM_UYARISI: INSANLIK_PROTOKOLU_BASLATILDI [OZGUR_FILISTIN 🇵🇸]</span>";

@@ -19,7 +19,7 @@
 
 ## 📸 System Visuals
 
-![System Interface](assets/screenshot.png)
+![System Interface](chelebyy.gif)
 
 > *Secure Sector Access & Matrix Mode Visualized*
 

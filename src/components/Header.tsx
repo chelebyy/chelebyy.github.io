@@ -50,22 +50,22 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang, onOpenControlPanel }) =>
     }, [lang]);
 
     return (
-        <header className="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-border-dark bg-[#111218]/90 backdrop-blur-sm px-4 py-3 md:px-10">
+        <header className="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-border-dark bg-[#111218]/90 backdrop-blur-sm px-4 py-3 md:px-6 lg:px-10">
             <div
                 onClick={onOpenControlPanel}
-                className="flex items-center gap-4 text-white cursor-pointer group select-none"
+                className="flex items-center gap-2 md:gap-4 text-white cursor-pointer group select-none"
                 title="Open System Control"
             >
                 <div className="size-5 text-primary group-hover:text-white transition-colors">
                     <span className="material-symbols-outlined text-[20px] leading-none">terminal</span>
                 </div>
-                <h2 className="text-white text-base md:text-lg font-bold leading-tight tracking-[-0.015em] font-mono group-hover:text-primary transition-colors">
+                <h2 className="text-white text-sm md:text-base lg:text-lg font-bold leading-tight tracking-[-0.015em] font-mono group-hover:text-primary transition-colors">
                     {displayText}
                     <span className="animate-pulse">_</span>
                 </h2>
             </div>
-            <div className="hidden md:flex flex-1 justify-end gap-8 items-center">
-                <div className="flex items-center gap-6 font-mono text-xs text-gray-400 border border-border-dark px-3 py-1 rounded-sm">
+            <div className="hidden md:flex flex-1 justify-end gap-4 lg:gap-8 items-center">
+                <div className="flex items-center gap-3 lg:gap-6 font-mono text-xs text-gray-400 border border-border-dark px-3 py-1 rounded-sm">
                     <button
                         onClick={() => setLang('en')}
                         className={`${lang === 'en' ? 'text-primary font-bold' : 'text-gray-600'} hover:text-white transition-colors`}
@@ -80,7 +80,7 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang, onOpenControlPanel }) =>
                         TR
                     </button>
                 </div>
-                <div className="flex items-center gap-6 font-mono text-xs text-gray-400">
+                <div className="flex items-center gap-3 lg:gap-6 font-mono text-xs text-gray-400">
                     <span>{time}</span>
                     <span>MEM: {memState}%</span>
                     <span>CPU: {cpuState}%</span>

@@ -19,8 +19,8 @@ test.describe('Boot Sequence & Navigation', () => {
         // Intermediate boot phases are timer-driven and intentionally short-lived.
         // Their transitions are covered deterministically by BootSequence.test.tsx;
         // this browser test verifies the durable user outcome.
-        await expect(page.getByText('chelebyy@root:~')).toBeVisible({ timeout: 15000 });
-        await expect(initButton).not.toBeVisible();
+        await expect(page.getByTestId('boot-sequence')).toHaveCount(0, { timeout: 15000 });
+        await expect(page.getByText('chelebyy@root:~')).toBeVisible();
         await expect(page.getByRole('button', { name: 'EN' })).toBeVisible();
         await expect(page.getByRole('button', { name: 'CONNECT' })).toBeVisible();
     });

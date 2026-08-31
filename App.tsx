@@ -1,5 +1,5 @@
 import React, { useState, Suspense, lazy, useEffect } from 'react';
-import { Language, Project, GitHubUser } from './src/types';
+import { Language, Project } from './src/types';
 import { translations } from './src/constants/translations';
 import { useSoundEffects } from './src/hooks/useSoundEffects';
 import { useGitHubData } from './src/hooks/useGitHubData';

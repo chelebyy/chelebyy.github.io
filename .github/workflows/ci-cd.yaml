@@ -102,6 +102,16 @@ jobs:
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - name: Build site
         run: npm run build
+      - name: Package clean release
+        run: |
+          cd dist
+          zip -r ../chelebyy-os-clean-build.zip .
+      - name: Upload clean release
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: chelebyy-os-clean-build
+          path: chelebyy-os-clean-build.zip
+          retention-days: 30
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:

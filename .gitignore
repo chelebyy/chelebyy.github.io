@@ -10,6 +10,9 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+coverage
+playwright-report
+test-results
 *.local
 
 # Editor directories and files
@@ -26,8 +29,7 @@ dist-ssr
 # Documentation & AI
 GEMINI.md
 GIT_GUIDE.md
-
+.serena/
 
 # Private Strategy
 # ROADMAP_PRIVATE.md
-

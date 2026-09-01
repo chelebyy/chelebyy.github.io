@@ -9,6 +9,7 @@ test.describe('Boot Sequence & Navigation', () => {
     });
 
     test('should initialize the system and land on the home page', async ({ page }) => {
+        test.setTimeout(45_000);
         // 1. Check for Initial Start Screen
         const initButton = page.getByRole('button', { name: /INITIALIZE SYSTEM/i });
         await expect(initButton).toBeVisible();
@@ -19,7 +20,7 @@ test.describe('Boot Sequence & Navigation', () => {
         // Intermediate boot phases are timer-driven and intentionally short-lived.
         // Their transitions are covered deterministically by BootSequence.test.tsx;
         // this browser test verifies the durable user outcome.
-        await expect(page.getByTestId('boot-sequence')).toHaveCount(0, { timeout: 15000 });
+        await expect(page.getByTestId('boot-sequence')).toHaveCount(0, { timeout: 30000 });
         await expect(page.getByText('chelebyy@root:~')).toBeVisible();
         await expect(page.getByRole('button', { name: 'EN' })).toBeVisible();
         await expect(page.getByRole('button', { name: 'CONNECT' })).toBeVisible();

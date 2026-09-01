@@ -56,9 +56,9 @@ jobs:
           echo "reason=$reason" >> "$GITHUB_OUTPUT"
           echo "::notice title=Dependabot patch policy::$reason"
 
-      - name: Enable squash auto-merge
+      - name: Enable merge-commit auto-merge
         if: steps.policy.outputs.eligible == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
-        run: gh pr merge --auto --squash "$PR_URL"
+        run: gh pr merge --auto --merge "$PR_URL"

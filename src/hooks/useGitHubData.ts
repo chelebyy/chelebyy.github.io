@@ -88,10 +88,10 @@ export const useGitHubData = (initialProjects: Project[]): UseGitHubDataResult =
 
                         if (releaseEvents.length > 0) {
                             fetchedLogs = releaseEvents.slice(0, 10).map((event: GitHubEvent) => {
-                                let message = '';
+                                let message: string;
                                 const type = 'release';
-                                let hash = '';
-                                let url = '';
+                                let hash: string;
+                                let url: string;
 
                                 if (event.type === 'ReleaseEvent' && event.payload.release) {
                                     hash = event.payload.release.tag_name;

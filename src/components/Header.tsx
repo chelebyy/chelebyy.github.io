@@ -8,25 +8,30 @@ interface HeaderProps {
     onOpenControlPanel: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ lang, setLang, onOpenControlPanel }) => {
+const TerminalText: React.FC<{ text: string }> = ({ text }) => {
     const [displayText, setDisplayText] = useState('');
 
+    useEffect(() => {
+        let index = 0;
+        const typeInterval = setInterval(() => {
+            setDisplayText(text.substring(0, index + 1));
+            index++;
+            if (index === text.length) clearInterval(typeInterval);
+        }, 100);
+
+        return () => clearInterval(typeInterval);
+    }, [text]);
+
+    return <>{displayText}</>;
+};
+
+const Header: React.FC<HeaderProps> = ({ lang, setLang, onOpenControlPanel }) => {
     const [time, setTime] = useState(new Date().toLocaleTimeString('en-US', { hour12: false }));
     const [memState, setMemState] = useState(64);
     const [cpuState, setCpuState] = useState(12);
     const [isOnline, setIsOnline] = useState(navigator.onLine);
 
     useEffect(() => {
-        let index = 0;
-        setDisplayText('');
-        const fullText = translations[lang].terminal;
-
-        const typeInterval = setInterval(() => {
-            setDisplayText(fullText.substring(0, index + 1));
-            index++;
-            if (index === fullText.length) clearInterval(typeInterval);
-        }, 100);
-
         // Live Clock & Stats Updater
         const statsInterval = setInterval(() => {
             setTime(new Date().toLocaleTimeString('en-US', { hour12: false }));
@@ -42,12 +47,11 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang, onOpenControlPanel }) =>
         window.addEventListener('offline', handleOffline);
 
         return () => {
-            clearInterval(typeInterval);
             clearInterval(statsInterval);
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
         };
-    }, [lang]);
+    }, []);
 
     return (
         <header className="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-border-dark bg-[#111218]/90 backdrop-blur-sm px-4 py-3 md:px-6 lg:px-10">
@@ -60,7 +64,7 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang, onOpenControlPanel }) =>
                     <span className="material-symbols-outlined text-[20px] leading-none">terminal</span>
                 </div>
                 <h2 className="text-white text-sm md:text-base lg:text-lg font-bold leading-tight tracking-[-0.015em] font-mono group-hover:text-primary transition-colors">
-                    {displayText}
+                    <TerminalText key={lang} text={translations[lang].terminal} />
                     <span className="animate-pulse">_</span>
                 </h2>
             </div>

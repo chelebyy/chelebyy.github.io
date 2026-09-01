@@ -51,7 +51,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, lang, 
             const cmd = input.trim().toLowerCase();
             const newHistory = [...history, <div key={Date.now() + 'cmd'} className="text-white">{translations['en'].terminal.split(':')[0]}:~$ {input}</div>];
 
-            let response: React.ReactNode = '';
+            let response: React.ReactNode;
 
             if (cmd === 'help') {
                 response = (

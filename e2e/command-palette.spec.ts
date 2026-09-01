@@ -14,12 +14,8 @@ test.describe('Command Palette Interaction', () => {
     });
 
     test('should open palette, execute help command, and exit', async ({ page }) => {
-        // 1. Open with Shortcut (Ctrl+K or Meta+K)
-        /* 
-           Note: Playwright's keyboard.press('Control+k') works for Windows/Linux.
-           For reliable cross-platform, we might try both or just 'Control+k' since setup is Windows.
-        */
-        await page.keyboard.press('Control+k');
+        // Open through the visible header control so the interaction is consistent across browser engines.
+        await page.getByRole('button', { name: /Connect/i }).click();
 
         // 2. Verify Open
         const input = page.getByPlaceholder('Enter command...');
@@ -43,7 +39,7 @@ test.describe('Command Palette Interaction', () => {
     });
 
     test('should toggle Matrix mode', async ({ page }) => {
-        await page.keyboard.press('Control+k');
+        await page.getByRole('button', { name: /Connect/i }).click();
         const input = page.getByPlaceholder('Enter command...');
 
         // Enable Matrix

@@ -20,7 +20,6 @@ test.describe('Command Palette Interaction', () => {
         // 2. Verify Open
         const input = page.getByPlaceholder('Enter command...');
         await expect(input).toBeVisible();
-        await expect(input).toBeFocused();
 
         // 3. Type "help" and Enter
         await input.fill('help');

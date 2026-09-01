@@ -14,7 +14,7 @@
     "test:e2e": "playwright test"
   },
   "engines": {
-    "node": ">=22 <25"
+    "node": "^22.13.0 || >=24 <25"
   },
   "dependencies": {
     "react": "^19.2.3",

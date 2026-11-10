@@ -106,18 +106,13 @@ const Hero: React.FC<HeroProps> = (props) => {
                         <span className="text-primary">$</span> {t.systemReady}
                     </p>
 
-                    <h1 className="text-5xl font-bold leading-[0.95] tracking-[-0.045em] text-white sm:text-6xl xl:text-[84px]">
-                        <span className="hover-shake block w-fit">{t.heroLine1}</span>
-                        <span className="hover-shake block w-fit text-gray-500">{t.heroLine2}</span>
-                        <span className="caret block w-fit text-primary">
-                            <span className="mr-3 font-mono text-[0.6em] align-middle text-gray-600">&gt;</span>
-                            {t.heroLine3}
-                        </span>
+                    <h1 className="max-w-2xl border-l-2 border-primary pl-5 text-2xl font-semibold leading-snug tracking-tight text-white md:pl-7 md:text-4xl md:leading-tight">
+                        {t.heroSub.split('\n').map((line, index, lines) => (
+                            <span key={index} className={`block ${index > 0 ? 'mt-2 text-gray-400' : ''} ${index === lines.length - 1 ? 'caret' : ''}`}>
+                                {line}
+                            </span>
+                        ))}
                     </h1>
-
-                    <p className="max-w-xl whitespace-pre-line border-l border-primary/60 pl-5 font-mono text-sm leading-7 text-gray-400 md:text-[15px]">
-                        {t.heroSub}
-                    </p>
 
                     <div className="flex flex-col gap-3 font-mono text-sm sm:flex-row">
                         <button

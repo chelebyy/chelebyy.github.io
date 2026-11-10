@@ -13,14 +13,14 @@ describe('BootSequence Component', () => {
     });
 
     it('starts on its own, without a button to click', () => {
-        render(<BootSequence onComplete={vi.fn()} repoCount={7} />);
+        render(<BootSequence onComplete={vi.fn()} repos={{ status: 'ready', count: 7 }} />);
         expect(screen.queryByRole('button')).not.toBeInTheDocument();
         expect(screen.getByText('ssh guest@cheleby.me')).toBeInTheDocument();
     });
 
     it('types its lines and hands over to the site within two seconds', () => {
         const onComplete = vi.fn();
-        render(<BootSequence onComplete={onComplete} repoCount={7} />);
+        render(<BootSequence onComplete={onComplete} repos={{ status: 'ready', count: 7 }} />);
 
         act(() => {
             vi.advanceTimersByTime(BOOT_LINE_DELAYS[BOOT_LINE_DELAYS.length - 1]);
@@ -37,7 +37,7 @@ describe('BootSequence Component', () => {
     });
 
     it('says it is still fetching while the repository count is unknown', () => {
-        render(<BootSequence onComplete={vi.fn()} repoCount={null} />);
+        render(<BootSequence onComplete={vi.fn()} repos={{ status: 'loading', count: 0 }} />);
         act(() => {
             vi.advanceTimersByTime(BOOT_LINE_DELAYS[3]);
         });
@@ -46,7 +46,7 @@ describe('BootSequence Component', () => {
 
     it('can be skipped with a key press and completes only once', () => {
         const onComplete = vi.fn();
-        render(<BootSequence onComplete={onComplete} repoCount={7} />);
+        render(<BootSequence onComplete={onComplete} repos={{ status: 'ready', count: 7 }} />);
 
         fireEvent.keyDown(window, { key: 'Enter' });
         act(() => {
@@ -56,6 +56,31 @@ describe('BootSequence Component', () => {
 
         act(() => {
             vi.advanceTimersByTime(BOOT_DONE_AT);
+        });
+        expect(onComplete).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not claim zero repositories when GitHub fails', () => {
+        render(<BootSequence onComplete={vi.fn()} repos={{ status: 'error', count: 0 }} />);
+        act(() => {
+            vi.advanceTimersByTime(BOOT_LINE_DELAYS[3]);
+        });
+        expect(screen.queryByText(/0 repositories found/)).not.toBeInTheDocument();
+        expect(screen.getByText('github.com did not answer')).toBeInTheDocument();
+    });
+
+    it('finishes its fade before handing over when skipped', () => {
+        const onComplete = vi.fn();
+        render(<BootSequence onComplete={onComplete} repos={{ status: 'ready', count: 7 }} />);
+        fireEvent.keyDown(window, { key: 'Enter' });
+        const fadeMs = parseFloat(getComputedStyle(screen.getByTestId('boot-sequence')).transitionDuration) * 1000;
+        expect(fadeMs).toBeGreaterThan(0);
+        act(() => {
+            vi.advanceTimersByTime(fadeMs - 1);
+        });
+        expect(onComplete).not.toHaveBeenCalled();
+        act(() => {
+            vi.advanceTimersByTime(1);
         });
         expect(onComplete).toHaveBeenCalledTimes(1);
     });

@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { BOOT_DONE_AT, BOOT_FADE_AT, BOOT_LINE_DELAYS } from '../constants/boot';
+import { GitHubDataStatus } from '../hooks/useGitHubData';
 
 interface BootSequenceProps {
     onComplete: () => void;
-    /** Number of visible repositories, or null while they are still loading. */
-    repoCount: number | null;
+    /** Loading state and number of visible repositories. */
+    repos: { status: GitHubDataStatus; count: number };
 }
 
 const SKIP_FADE_MS = 200;
@@ -13,15 +14,16 @@ const SKIP_FADE_MS = 200;
  * Short, automatic intro: a few real-looking shell lines, then the site.
  * Runs without a click, can be skipped with any key, click or touch.
  */
-const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repoCount }) => {
+const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repos }) => {
     const [visible, setVisible] = useState(1);
-    const [fading, setFading] = useState(false);
+    const [fadeMs, setFadeMs] = useState<number | null>(null);
     const finished = useRef(false);
 
     const finish = useCallback((delay: number) => {
         if (finished.current) return;
         finished.current = true;
-        setFading(true);
+        // The fade lasts exactly as long as the wait, so the intro never disappears mid-fade.
+        setFadeMs(delay);
         window.setTimeout(onComplete, delay);
     }, [onComplete]);
 
@@ -46,7 +48,11 @@ const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repoCount }) =>
         { text: 'ssh guest@cheleby.me', command: true },
         { text: 'connected.' },
         { text: 'gh repo list chelebyy --public', command: true },
-        { text: repoCount === null ? 'fetching repositories…' : `${repoCount} repositories found` },
+        {
+            text: repos.status === 'ready'
+                ? `${repos.count} repositories found`
+                : repos.status === 'error' ? 'github.com did not answer' : 'fetching repositories…',
+        },
         { text: 'open ./open-source', command: true },
     ];
 
@@ -54,7 +60,8 @@ const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repoCount }) =>
         <div
             data-testid="boot-sequence"
             aria-hidden="true"
-            className={`fixed inset-0 z-[9999] flex items-center justify-center bg-background-dark font-mono transition-opacity duration-300 ${fading ? 'opacity-0' : 'opacity-100'}`}
+            className={`fixed inset-0 z-[9999] flex items-center justify-center bg-background-dark font-mono transition-opacity ease-out ${fadeMs === null ? 'opacity-100' : 'opacity-0'}`}
+            style={{ transitionDuration: `${(fadeMs ?? BOOT_DONE_AT - BOOT_FADE_AT) / 1000}s` }}
         >
             <div className="w-full max-w-xl space-y-1.5 px-6 text-sm md:text-base">
                 {lines.slice(0, visible).map((line, index) => (

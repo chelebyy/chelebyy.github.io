@@ -131,7 +131,7 @@ const App: React.FC = () => {
 
   return (
     <div className="relative flex min-h-screen flex-col bg-background-dark">
-      {isBooting && <BootSequence onComplete={handleBootComplete} repoCount={status === 'loading' ? null : projects.length} />}
+      {isBooting && <BootSequence onComplete={handleBootComplete} repos={{ status, count: projects.length }} />}
       <CustomCursor />
 
       <Suspense fallback={null}>

@@ -79,4 +79,20 @@ describe('ControlPanel Component', () => {
         fireEvent.click(closeButton);
         expect(mockOnClose).toHaveBeenCalled();
     });
+
+    it('closes when Escape is pressed', () => {
+        const onClose = vi.fn();
+        render(
+            <ControlPanel
+                isOpen={true}
+                onClose={onClose}
+                lang="en"
+                crtEnabled={false}
+                setCrtEnabled={mockSetCrtEnabled}
+                user={mockUser}
+            />
+        );
+        fireEvent.keyDown(window, { key: 'Escape' });
+        expect(onClose).toHaveBeenCalledTimes(1);
+    });
 });

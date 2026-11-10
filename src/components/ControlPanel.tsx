@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Language, GitHubUser } from '../types';
 import { translations } from '../constants/translations';
 
@@ -20,6 +20,15 @@ const ControlPanel = ({
     user
 }: ControlPanelProps) => {
     const t = translations[lang];
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const onKey = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [isOpen, onClose]);
 
     if (!isOpen) return null;
 

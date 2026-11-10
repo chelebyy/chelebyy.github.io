@@ -142,6 +142,7 @@ const App: React.FC = () => {
           crtEnabled={crtEnabled}
           setCrtEnabled={setCrtEnabled}
           user={user}
+          escapeEnabled={!isCmdOpen}
         />
         <CommandPalette
           isOpen={isCmdOpen}

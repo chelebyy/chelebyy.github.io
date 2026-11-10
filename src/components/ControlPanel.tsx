@@ -9,6 +9,8 @@ interface ControlPanelProps {
     crtEnabled: boolean;
     setCrtEnabled: (enabled: boolean) => void;
     user: GitHubUser | null;
+    /** False while another overlay (the terminal) sits on top and owns the Escape key. */
+    escapeEnabled?: boolean;
 }
 
 const ControlPanel = ({
@@ -17,18 +19,19 @@ const ControlPanel = ({
     lang,
     crtEnabled,
     setCrtEnabled,
-    user
+    user,
+    escapeEnabled = true
 }: ControlPanelProps) => {
     const t = translations[lang];
 
     useEffect(() => {
-        if (!isOpen) return;
+        if (!isOpen || !escapeEnabled) return;
         const onKey = (event: KeyboardEvent) => {
             if (event.key === 'Escape') onClose();
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-    }, [isOpen, onClose]);
+    }, [isOpen, onClose, escapeEnabled]);
 
     if (!isOpen) return null;
 

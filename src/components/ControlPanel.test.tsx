@@ -95,4 +95,21 @@ describe('ControlPanel Component', () => {
         fireEvent.keyDown(window, { key: 'Escape' });
         expect(onClose).toHaveBeenCalledTimes(1);
     });
+
+    it('leaves Escape to an overlay opened on top of it', () => {
+        const onClose = vi.fn();
+        render(
+            <ControlPanel
+                isOpen={true}
+                onClose={onClose}
+                lang="en"
+                crtEnabled={false}
+                setCrtEnabled={mockSetCrtEnabled}
+                user={mockUser}
+                escapeEnabled={false}
+            />
+        );
+        fireEvent.keyDown(window, { key: 'Escape' });
+        expect(onClose).not.toHaveBeenCalled();
+    });
 });

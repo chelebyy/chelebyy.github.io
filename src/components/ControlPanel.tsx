@@ -35,11 +35,11 @@ const ControlPanel = ({
                 {/* Header */}
                 <div className="flex justify-between items-center mb-8 relative z-10 border-b border-white/5 pb-4">
                     <h2 className="text-white font-bold font-mono tracking-widest uppercase flex items-center gap-2">
-                        <span className="material-symbols-outlined text-primary">admin_panel_settings</span>
+                        <span aria-hidden="true" className="text-primary">&gt;_</span>
                         {t.cpTitle}
                     </h2>
-                    <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
-                        <span className="material-symbols-outlined">close</span>
+                    <button type="button" onClick={onClose} aria-label="Close" className="font-mono text-xs text-gray-500 hover:text-white transition-colors">
+                        [esc]
                     </button>
                 </div>
 
@@ -64,13 +64,11 @@ const ControlPanel = ({
                             <p className="text-gray-400 text-xs font-mono mb-2">{user?.bio || 'Full Stack Developer'}</p>
 
                             <div className="flex gap-4 text-xs font-mono text-gray-500">
-                                <span className="flex items-center gap-1">
-                                    <span className="material-symbols-outlined text-[14px]">folder</span>
-                                    {user?.public_repos || '0'}
+                                <span>
+                                    <span className="text-primary">{t.nfRepos}</span> {user?.public_repos || '0'}
                                 </span>
-                                <span className="flex items-center gap-1">
-                                    <span className="material-symbols-outlined text-[14px]">group</span>
-                                    {user?.followers || '0'}
+                                <span>
+                                    <span className="text-primary">{t.cpFollowers}</span> {user?.followers || '0'}
                                 </span>
                             </div>
                         </div>

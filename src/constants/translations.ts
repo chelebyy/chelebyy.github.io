@@ -93,6 +93,7 @@ export const translations = {
         cpCrtEffect: 'CRT_SCANLINE_EFFECT',
         cpCursor: 'CUSTOM_CURSOR',
         cpSound: 'SOUND_EFFECTS',
+        cpFollowers: 'followers',
     },
     tr: {
         terminal: 'chelebyy',
@@ -180,6 +181,7 @@ export const translations = {
         cpCrtEffect: 'CRT_TARAMA_EFEKTİ',
         cpCursor: 'ÖZEL_İMLEÇ',
         cpSound: 'SES_EFEKTLERİ',
+        cpFollowers: 'takipçi',
     }
 };
 

@@ -1,119 +1,84 @@
 import React from 'react';
 import { Language } from '../types';
 import { translations } from '../constants/translations';
+import { languageColor } from '../lib/format';
 
 interface SidebarProps {
     lang: Language;
+    languages: Array<{ language: string; count: number }>;
+    total: number;
+    selectedLanguage: string | null;
+    onSelectLanguage: (language: string | null) => void;
+    activityCount: number;
+    secretUnlocked: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ lang }) => {
-    const scrollToSection = (id: string, e: React.MouseEvent) => {
-        e.preventDefault();
-        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-    };
+const scrollTo = (id: string) => (event: React.MouseEvent) => {
+    event.preventDefault();
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+const Branch: React.FC<{ last?: boolean; children: React.ReactNode }> = ({ last, children }) => (
+    <li className="relative pl-5">
+        <span aria-hidden="true" className={`absolute left-0 top-0 w-px bg-gray-800 ${last ? 'h-3.5' : 'h-full'}`} />
+        <span aria-hidden="true" className="absolute left-0 top-3.5 h-px w-3.5 bg-gray-800" />
+        {children}
+    </li>
+);
+
+const Sidebar: React.FC<SidebarProps> = ({ lang, languages, total, selectedLanguage, onSelectLanguage, activityCount, secretUnlocked }) => {
+    const t = translations[lang];
+    const item = (active: boolean) =>
+        `flex w-full items-center justify-between gap-2 px-2 py-0.5 text-left transition-colors ${active ? 'bg-primary/15 text-white' : 'text-gray-500 hover:bg-white/5 hover:text-gray-200'}`;
 
     return (
-        <aside className="hidden md:flex flex-col w-64 border-r border-border-dark bg-[#0c0c0e] sticky top-[65px] h-[calc(100vh-65px)] font-mono text-sm leading-6 select-none overflow-y-auto custom-scrollbar">
-            <div className="p-6">
-                <h3 className="text-gray-500 text-[10px] mb-4 uppercase tracking-widest pl-2 border-l border-primary/50">{translations[lang].directory} ~/root</h3>
-
-                {/* Tree Structure */}
-                <div className="flex flex-col text-gray-400">
-
-                    {/* Projects Directory */}
-                    <div className="relative pl-4">
-                        {/* Branch line */}
-                        <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-800"></div>
-
-                        <div className="relative group">
-                            <div className="absolute left-[-16px] top-3 w-4 h-px bg-gray-800"></div>
-                            <a
-                                href="#projects-section"
-                                onClick={(e) => scrollToSection('projects-section', e)}
-                                className="flex items-center gap-2 hover:text-white hover:bg-white/5 py-1 px-2 rounded-sm transition-colors"
-                            >
-                                <span className="material-symbols-outlined text-[16px] text-blue-400 group-hover:text-blue-300">folder</span>
-                                <span className="group-hover:translate-x-1 transition-transform">{translations[lang].projectsLink.replace('./', '')}</span>
-                            </a>
-                        </div>
-                    </div>
-
-                    {/* System Directory */}
-                    <div className="relative pl-4 pt-1">
-                        <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-800"></div>
-
-                        <div className="relative group">
-                            <div className="absolute left-[-16px] top-3 w-4 h-px bg-gray-800"></div>
-                            <div className="flex items-center gap-2 py-1 px-2 text-gray-500">
-                                <span className="material-symbols-outlined text-[16px]">folder_open</span>
-                                <span>system</span>
-                            </div>
-                        </div>
-
-                        {/* Sub-item: Manifesto */}
-                        <div className="relative pl-6 group">
-                            <div className="absolute left-[-8px] top-0 bottom-1/2 w-px bg-gray-800"></div>
-                            <div className="absolute left-[-8px] top-3 w-4 h-px bg-gray-800"></div>
-
-                            <a
-                                href="#manifesto-section"
-                                onClick={(e) => scrollToSection('manifesto-section', e)}
-                                className="flex items-center gap-2 hover:text-white hover:bg-white/5 py-1 px-2 rounded-sm transition-colors"
-                            >
-                                <span className="material-symbols-outlined text-[16px] text-purple-400 group-hover:text-purple-300">settings_heart</span>
-                                <span className="group-hover:translate-x-1 transition-transform text-xs">
-                                    {lang === 'en' ? 'modules.sys' : 'moduller.sys'}
-                                </span>
-                            </a>
-                        </div>
-                    </div>
-
-                    {/* Logs Directory */}
-                    <div className="relative pl-4 pt-1">
-                        <div className="absolute left-0 top-0 bottom-1/2 w-px bg-gray-800"></div>
-
-                        <div className="relative group">
-                            <div className="absolute left-[-16px] top-3 w-4 h-px bg-gray-800"></div>
-                            <div className="flex items-center gap-2 py-1 px-2 text-gray-500">
-                                <span className="material-symbols-outlined text-[16px]">folder_open</span>
-                                <span>var/log</span>
-                            </div>
-                        </div>
-
-                        {/* Sub-item: Changelog */}
-                        <div className="relative pl-6 group">
-                            <div className="absolute left-[-8px] top-0 bottom-1/2 w-px bg-gray-800"></div>
-                            <div className="absolute left-[-8px] top-3 w-4 h-px bg-gray-800"></div>
-
-                            <a
-                                href="#activity-section"
-                                onClick={(e) => scrollToSection('activity-section', e)}
-                                className="flex items-center gap-2 hover:text-white hover:bg-white/5 py-1 px-2 rounded-sm transition-colors"
-                            >
-                                <span className="material-symbols-outlined text-[16px] text-gray-500 group-hover:text-gray-300">terminal</span>
-                                <span className="group-hover:translate-x-1 transition-transform">sys.log</span>
-                            </a>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            {/* Footer System Stats */}
-            <div className="mt-auto p-6 border-t border-border-dark bg-[#0a0a0c]">
-                <div className="flex flex-col gap-2 font-mono text-[10px] text-gray-600">
-                    <div className="flex justify-between">
-                        <span>/dev/disk1</span>
-                        <span className="text-green-500">MOUNTED</span>
-                    </div>
-                    <div className="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
-                        <div className="w-[45%] h-full bg-primary/50"></div>
-                    </div>
-                    <div className="flex justify-between mt-1">
-                        <span>UPTIME</span>
-                        <span>04:20:01</span>
-                    </div>
-                </div>
+        <aside className="hidden w-64 shrink-0 border-r border-border-dark bg-[#0c0c0e] md:block">
+            <div className="sticky top-12 max-h-[calc(100vh-3rem)] overflow-y-auto p-6 font-mono text-[13px] leading-7">
+                <p className="mb-4 border-l border-primary/60 pl-2 text-[10px] uppercase tracking-[0.2em] text-gray-600">
+                    {t.directory} ~/
+                </p>
+                <ul>
+                    <Branch>
+                        <a href="#projects-section" onClick={scrollTo('projects-section')} className="text-gray-200 hover:text-primary">
+                            {t.projectsDir}/
+                        </a>
+                        <ul aria-label={t.languageFilter}>
+                            <Branch last={languages.length === 0}>
+                                <button type="button" aria-pressed={selectedLanguage === null} onClick={() => onSelectLanguage(null)} className={item(selectedLanguage === null)}>
+                                    <span>{t.allLanguages}</span>
+                                    <span className="text-[11px] text-gray-600">{total}</span>
+                                </button>
+                            </Branch>
+                            {languages.map((entry, index) => (
+                                <Branch key={entry.language} last={index === languages.length - 1}>
+                                    <button
+                                        type="button"
+                                        aria-pressed={selectedLanguage === entry.language}
+                                        onClick={() => onSelectLanguage(entry.language)}
+                                        className={item(selectedLanguage === entry.language)}
+                                    >
+                                        <span className="flex min-w-0 items-center gap-2">
+                                            <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: languageColor(entry.language) }} />
+                                            <span className="truncate lowercase">{entry.language}</span>
+                                        </span>
+                                        <span className="text-[11px] text-gray-600">{entry.count}</span>
+                                    </button>
+                                </Branch>
+                            ))}
+                        </ul>
+                    </Branch>
+                    <Branch>
+                        <a href="#activity-section" onClick={scrollTo('activity-section')} className="flex justify-between text-gray-200 hover:text-primary">
+                            <span>{t.activityDir}.log</span>
+                            <span className="text-[11px] text-gray-600">{activityCount}</span>
+                        </a>
+                    </Branch>
+                    <Branch last>
+                        <a href="#secret-section" onClick={scrollTo('secret-section')} className={secretUnlocked ? 'gs-secret' : 'text-gray-700 hover:text-gray-400'}>
+                            {t.secretName}
+                        </a>
+                    </Branch>
+                </ul>
             </div>
         </aside>
     );

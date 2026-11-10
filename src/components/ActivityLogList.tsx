@@ -1,40 +1,57 @@
 import React from 'react';
-import { Language, ActivityLog } from '../types';
+import { ActivityLog, Language } from '../types';
 import { translations } from '../constants/translations';
+import { shortDate } from '../lib/format';
 
 interface ActivityLogListProps {
     logs: ActivityLog[];
     lang: Language;
 }
 
-const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, lang }) => (
-    <div id="activity-section" className="p-8 md:p-12">
-        <h2 className="text-white text-xl font-bold mb-6 flex items-center gap-3">
-            <span className="material-symbols-outlined text-primary">history</span>
-            {translations[lang].recentActivity}
-        </h2>
-        <ul className="space-y-0">
-            {logs.map((log, idx) => (
-                <li key={idx} className="block group">
-                    <a href={log.url} target="_blank" rel="noopener noreferrer" className={`flex flex-col md:flex-row md:items-center gap-4 py-4 border-b border-dashed border-gray-800 text-sm hover:bg-white/5 px-2 -mx-2 transition-colors rounded-sm ${log.url ? 'cursor-pointer' : ''}`}>
-                        <span className="font-mono text-gray-500 text-xs min-w-[120px]">{log.timestamp}</span>
-                        {log.hash && (
-                            <span className="font-bold text-white text-primary group-hover:text-primary whitespace-nowrap">
-                                {log.type} {log.hash}
-                            </span>
-                        )}
-                        {!log.hash && (
-                            <span className="font-bold text-white text-primary group-hover:text-primary whitespace-nowrap uppercase">
-                                {log.type}
-                            </span>
-                        )}
-                        <span className="text-gray-400 truncate">{log.message}</span>
-                        {log.url && <span className="hidden group-hover:inline-block material-symbols-outlined text-xs text-gray-600 ml-auto">open_in_new</span>}
-                    </a>
-                </li>
-            ))}
-        </ul>
-    </div>
-);
+const typeColor: Record<ActivityLog['type'], string> = {
+    release: 'text-[#28c840]',
+    tag: 'text-[#febc2e]',
+    push: 'text-primary',
+    create: 'text-[#a97bff]',
+    merge: 'text-[#a97bff]',
+};
+
+const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, lang }) => {
+    const t = translations[lang];
+
+    return (
+        <section id="activity-section" aria-labelledby="activity-title" className="scroll-mt-12 px-6 py-12 md:px-10">
+            <p className="mb-2 font-mono text-xs text-gray-600">
+                <span className="text-primary">$</span> {t.recentActivity}
+            </p>
+            <h2 id="activity-title" className="mb-6 text-2xl font-bold tracking-tight text-white">{t.activityDir}.log</h2>
+
+            {logs.length === 0 ? (
+                <p className="font-mono text-xs text-gray-600">{t.noActivity}</p>
+            ) : (
+                <ol className="font-mono text-[13px]">
+                    {logs.map(log => (
+                        <li key={log.id}>
+                            <a
+                                href={log.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group grid grid-cols-[6.5rem_4.5rem_minmax(0,1fr)] items-baseline gap-3 border-b border-dashed border-gray-800/80 py-2.5 transition-colors hover:bg-white/[0.03] md:grid-cols-[7rem_5rem_minmax(0,16rem)_minmax(0,1fr)]"
+                            >
+                                <time dateTime={log.timestamp} className="text-gray-600">{shortDate(log.timestamp)}</time>
+                                <span className={typeColor[log.type]}>{t.activityType[log.type]}</span>
+                                <span className="truncate text-gray-200 group-hover:text-white">{log.repo.split('/')[1] ?? log.repo}</span>
+                                <span className="col-span-3 truncate text-gray-500 md:col-span-1">
+                                    {log.ref && log.type !== 'push' && log.type !== 'create' ? <span className="text-gray-400">{log.ref} </span> : null}
+                                    {log.type === 'release' && log.message !== log.ref ? log.message : log.type === 'push' && log.ref ? `→ ${log.ref}` : ''}
+                                </span>
+                            </a>
+                        </li>
+                    ))}
+                </ol>
+            )}
+        </section>
+    );
+};
 
 export default ActivityLogList;

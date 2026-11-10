@@ -1,28 +1,25 @@
 import { test, expect } from '@playwright/test';
+import { stubGitHub } from './github-stub';
 
 test.describe('Boot Sequence & Navigation', () => {
     test.beforeEach(async ({ page }) => {
-        // Clear session storage to force boot sequence
-        await page.goto('/');
-        await page.evaluate(() => sessionStorage.clear());
-        await page.reload();
+        await stubGitHub(page);
+        await page.addInitScript(() => localStorage.setItem('cheleby:lang', 'en'));
     });
 
     test('should initialize the system and land on the home page', async ({ page }) => {
         test.setTimeout(45_000);
-        // 1. Check for Initial Start Screen
+        await page.goto('/');
+
         const initButton = page.getByRole('button', { name: /INITIALIZE SYSTEM/i });
         await expect(initButton).toBeVisible();
-
-        // 2. Start Boot
         await initButton.click();
 
-        // Intermediate boot phases are timer-driven and intentionally short-lived.
-        // Their transitions are covered deterministically by BootSequence.test.tsx;
+        // Intermediate boot phases are timer-driven and covered by BootSequence.test.tsx;
         // this browser test verifies the durable user outcome.
         await expect(page.getByTestId('boot-sequence')).toHaveCount(0, { timeout: 30000 });
-        await expect(page.getByText('chelebyy@root:~')).toBeVisible();
-        await expect(page.getByRole('button', { name: 'EN' })).toBeVisible();
-        await expect(page.getByRole('button', { name: 'CONNECT' })).toBeVisible();
+        await expect(page.getByText('chelebyy@cheleby.me')).toBeVisible();
+        await expect(page.getByRole('button', { name: 'en', exact: true })).toBeVisible();
+        await expect(page.getByRole('button', { name: /terminal/i })).toBeVisible();
     });
 });

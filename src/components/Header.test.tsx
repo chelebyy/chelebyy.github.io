@@ -1,69 +1,44 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import Header from './Header';
 import { translations } from '../constants/translations';
 
+const setup = (lang: 'en' | 'tr' = 'en') => {
+    const props = {
+        setLang: vi.fn(),
+        onOpenControlPanel: vi.fn(),
+        onOpenTerminal: vi.fn(),
+    };
+    render(<Header lang={lang} {...props} />);
+    return props;
+};
+
 describe('Header Component', () => {
-    const mockSetLang = vi.fn();
-    const mockOnOpenControlPanel = vi.fn();
-
-    beforeEach(() => {
-        vi.useFakeTimers();
-    });
-
-    afterEach(() => {
-        vi.useRealTimers();
-    });
-
-    it('renders correctly with English translations', () => {
-        render(<Header lang="en" setLang={mockSetLang} onOpenControlPanel={mockOnOpenControlPanel} />);
-
-        // Advance time to allow typing effect to complete
-        act(() => {
-            vi.advanceTimersByTime(3000);
-        });
-
-        // Check for terminal user text (typed out)
-        expect(screen.getByText(translations.en.terminal)).toBeInTheDocument();
-
-        // Check for connect button text
-        expect(screen.getByText(translations.en.connect)).toBeInTheDocument();
-    });
-
-    it('renders correctly with Turkish translations', () => {
-        render(<Header lang="tr" setLang={mockSetLang} onOpenControlPanel={mockOnOpenControlPanel} />);
-
-        act(() => {
-            vi.advanceTimersByTime(3000);
-        });
-
-        // Check for terminal user text
+    it('shows the prompt in the selected language', () => {
+        setup('tr');
         expect(screen.getByText(translations.tr.terminal)).toBeInTheDocument();
-
-        // Check for connect button text
-        expect(screen.getByText(translations.tr.connect)).toBeInTheDocument();
+        expect(screen.getByText(translations.tr.path)).toBeInTheDocument();
     });
 
-    it('calls setLang when language buttons are clicked', () => {
-        render(<Header lang="en" setLang={mockSetLang} onOpenControlPanel={mockOnOpenControlPanel} />);
-
-        // Find buttons by text 'TR'
-        // Since there are mobile and desktop versions, we might find multiple.
-        // Use getAllByText and pick the visible one or just interact with the first one.
-        const trButtons = screen.getAllByText('TR');
-        fireEvent.click(trButtons[0]);
-
-        expect(mockSetLang).toHaveBeenCalledWith('tr');
+    it('marks the active language and switches language on click', () => {
+        const { setLang } = setup('en');
+        expect(screen.getByRole('button', { name: 'en' })).toHaveAttribute('aria-pressed', 'true');
+        fireEvent.click(screen.getByRole('button', { name: 'tr' }));
+        expect(setLang).toHaveBeenCalledWith('tr');
     });
 
-    it('calls onOpenControlPanel when control panel is clicked', () => {
-        render(<Header lang="en" setLang={mockSetLang} onOpenControlPanel={mockOnOpenControlPanel} />);
+    it('opens the control panel from the prompt and the terminal from its button', () => {
+        const { onOpenControlPanel, onOpenTerminal } = setup();
+        fireEvent.click(screen.getByTitle('System control'));
+        expect(onOpenControlPanel).toHaveBeenCalled();
+        fireEvent.click(screen.getByRole('button', { name: /terminal/i }));
+        expect(onOpenTerminal).toHaveBeenCalled();
+    });
 
-        // The button has a material symbol 'terminal' and title 'Open System Control'
-        const controlPanelTrigger = screen.getByTitle('Open System Control');
-
-        fireEvent.click(controlPanelTrigger);
-
-        expect(mockOnOpenControlPanel).toHaveBeenCalled();
+    it('links to the GitHub profile in a new tab', () => {
+        setup();
+        const link = screen.getByRole('link', { name: 'GitHub' });
+        expect(link).toHaveAttribute('href', 'https://github.com/chelebyy');
+        expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'));
     });
 });

@@ -1,39 +1,44 @@
 import React, { useState, useEffect } from 'react';
 
+const finePointer = () => typeof window.matchMedia === 'function' && window.matchMedia('(pointer: fine)').matches;
+
+/** Crosshair cursor for mouse users. Touch devices keep their native behaviour. */
 const CustomCursor = () => {
-    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [enabled] = useState(finePointer);
+    const [position, setPosition] = useState({ x: -100, y: -100 });
     const [isHovering, setIsHovering] = useState(false);
     const [isClicking, setIsClicking] = useState(false);
 
     useEffect(() => {
-        const updatePosition = (e: MouseEvent) => {
+        if (!enabled) return;
+        const root = document.documentElement;
+        root.classList.add('custom-cursor');
+
+        const handleMove = (e: MouseEvent) => {
             setPosition({ x: e.clientX, y: e.clientY });
+            const target = e.target as HTMLElement | null;
+            setIsHovering(!!target?.closest?.('button, a, input, label, [role="button"]'));
         };
-
-        const updateHoverState = (e: MouseEvent) => {
-            const target = e.target as HTMLElement;
-            const clickable = target.closest('button, a, input, [role="button"]');
-            setIsHovering(!!clickable);
-        };
-
         const handleMouseDown = () => setIsClicking(true);
         const handleMouseUp = () => setIsClicking(false);
 
-        window.addEventListener('mousemove', updatePosition);
-        window.addEventListener('mousemove', updateHoverState);
+        window.addEventListener('mousemove', handleMove);
         window.addEventListener('mousedown', handleMouseDown);
         window.addEventListener('mouseup', handleMouseUp);
 
         return () => {
-            window.removeEventListener('mousemove', updatePosition);
-            window.removeEventListener('mousemove', updateHoverState);
+            root.classList.remove('custom-cursor');
+            window.removeEventListener('mousemove', handleMove);
             window.removeEventListener('mousedown', handleMouseDown);
             window.removeEventListener('mouseup', handleMouseUp);
         };
-    }, []);
+    }, [enabled]);
+
+    if (!enabled) return null;
 
     return (
         <div
+            aria-hidden="true"
             className="fixed pointer-events-none z-[9999] mix-blend-difference"
             style={{
                 left: position.x,

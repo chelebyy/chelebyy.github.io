@@ -1,104 +1,74 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Language } from '../types';
 import { translations } from '../constants/translations';
+import { siteConfig } from '../config/site';
+import GitHubMark from './GitHubMark';
 
 interface HeaderProps {
     lang: Language;
     setLang: (l: Language) => void;
     onOpenControlPanel: () => void;
+    onOpenTerminal: () => void;
 }
 
-const TerminalText: React.FC<{ text: string }> = ({ text }) => {
-    const [displayText, setDisplayText] = useState('');
 
-    useEffect(() => {
-        let index = 0;
-        const typeInterval = setInterval(() => {
-            setDisplayText(text.substring(0, index + 1));
-            index++;
-            if (index === text.length) clearInterval(typeInterval);
-        }, 100);
-
-        return () => clearInterval(typeInterval);
-    }, [text]);
-
-    return <>{displayText}</>;
-};
-
-const Header: React.FC<HeaderProps> = ({ lang, setLang, onOpenControlPanel }) => {
-    const [time, setTime] = useState(new Date().toLocaleTimeString('en-US', { hour12: false }));
-    const [memState, setMemState] = useState(64);
-    const [cpuState, setCpuState] = useState(12);
-    const [isOnline, setIsOnline] = useState(navigator.onLine);
-
-    useEffect(() => {
-        // Live Clock & Stats Updater
-        const statsInterval = setInterval(() => {
-            setTime(new Date().toLocaleTimeString('en-US', { hour12: false }));
-            // Simulate fluctuation
-            setMemState(prev => Math.min(99, Math.max(10, prev + (Math.random() > 0.5 ? 2 : -2))));
-            setCpuState(prev => Math.min(100, Math.max(2, prev + (Math.random() > 0.5 ? 5 : -3))));
-        }, 1000);
-
-        const handleOnline = () => setIsOnline(true);
-        const handleOffline = () => setIsOnline(false);
-
-        window.addEventListener('online', handleOnline);
-        window.addEventListener('offline', handleOffline);
-
-        return () => {
-            clearInterval(statsInterval);
-            window.removeEventListener('online', handleOnline);
-            window.removeEventListener('offline', handleOffline);
-        };
-    }, []);
+const Header: React.FC<HeaderProps> = ({ lang, setLang, onOpenControlPanel, onOpenTerminal }) => {
+    const t = translations[lang];
 
     return (
-        <header className="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-border-dark bg-[#111218]/90 backdrop-blur-sm px-4 py-3 md:px-6 lg:px-10">
-            <div
-                onClick={onOpenControlPanel}
-                className="flex items-center gap-2 md:gap-4 text-white cursor-pointer group select-none"
-                title="Open System Control"
-            >
-                <div className="size-5 text-primary group-hover:text-white transition-colors">
-                    <span className="material-symbols-outlined text-[20px] leading-none">terminal</span>
-                </div>
-                <h2 className="text-white text-sm md:text-base lg:text-lg font-bold leading-tight tracking-[-0.015em] font-mono group-hover:text-primary transition-colors">
-                    <TerminalText key={lang} text={translations[lang].terminal} />
-                    <span className="animate-pulse">_</span>
-                </h2>
-            </div>
-            <div className="hidden md:flex flex-1 justify-end gap-4 lg:gap-8 items-center">
-                <div className="flex items-center gap-3 lg:gap-6 font-mono text-xs text-gray-400 border border-border-dark px-3 py-1 rounded-sm">
-                    <button
-                        onClick={() => setLang('en')}
-                        className={`${lang === 'en' ? 'text-primary font-bold' : 'text-gray-600'} hover:text-white transition-colors`}
-                    >
-                        EN
-                    </button>
-                    <span className="text-gray-800">/</span>
-                    <button
-                        onClick={() => setLang('tr')}
-                        className={`${lang === 'tr' ? 'text-primary font-bold' : 'text-gray-600'} hover:text-white transition-colors`}
-                    >
-                        TR
-                    </button>
-                </div>
-                <div className="flex items-center gap-3 lg:gap-6 font-mono text-xs text-gray-400">
-                    <span>{time}</span>
-                    <span>MEM: {memState}%</span>
-                    <span>CPU: {cpuState}%</span>
-                    <span className={isOnline ? "text-green-500" : "text-red-500"}>NET: {isOnline ? 'ONLINE' : 'OFFLINE'}</span>
-                </div>
-                <button onClick={() => window.dispatchEvent(new CustomEvent('open-cmd'))} className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-sm h-8 px-4 bg-primary hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider transition-colors duration-100">
-                    <span className="truncate">{translations[lang].connect}</span>
+        <header className="sticky top-0 z-50 border-b border-border-dark bg-background-dark/85 backdrop-blur-md">
+            <div className="mx-auto flex h-12 max-w-[1440px] items-center gap-4 px-4 font-mono text-xs md:px-6">
+                <button
+                    type="button"
+                    onClick={onOpenControlPanel}
+                    title="System control"
+                    className="group flex min-w-0 items-center gap-3 text-left"
+                >
+                    <span aria-hidden="true" className="flex gap-1.5">
+                        <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]/80 transition-colors group-hover:bg-[#ff5f57]" />
+                        <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]/80 transition-colors group-hover:bg-[#febc2e]" />
+                        <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]/80 transition-colors group-hover:bg-[#28c840]" />
+                    </span>
+                    <span className="truncate text-gray-300">
+                        <span className="text-primary">{t.terminal}</span>
+                        <span className="text-gray-600">:</span>
+                        <span className="text-gray-400">{t.path}</span>
+                        <span className="text-gray-600">$</span>
+                    </span>
                 </button>
-            </div>
-            <div className="md:hidden flex items-center gap-4 text-white">
-                <button onClick={() => setLang(lang === 'en' ? 'tr' : 'en')} className="font-mono text-xs border border-border-dark px-2 py-1">
-                    {lang.toUpperCase()}
-                </button>
-                <span className="material-symbols-outlined">menu</span>
+
+                <nav className="ml-auto flex items-center gap-2 md:gap-3">
+                    <div className="flex items-center border border-border-dark" role="group" aria-label="Language">
+                        {(['en', 'tr'] as const).map(code => (
+                            <button
+                                key={code}
+                                type="button"
+                                onClick={() => setLang(code)}
+                                aria-pressed={lang === code}
+                                className={`px-2.5 py-1 uppercase transition-colors ${lang === code ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-white'}`}
+                            >
+                                {code}
+                            </button>
+                        ))}
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onOpenTerminal}
+                        className="hidden items-center gap-2 border border-border-dark px-2.5 py-1 text-gray-300 transition-colors hover:border-primary hover:text-white sm:flex"
+                    >
+                        <span>&gt;_ {t.openTerminal}</span>
+                        <kbd className="text-[10px] text-gray-600">Ctrl K</kbd>
+                    </button>
+                    <a
+                        href={`https://github.com/${siteConfig.githubUser}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="GitHub"
+                        className="flex h-7 w-7 items-center justify-center border border-border-dark text-gray-400 transition-colors hover:border-primary hover:text-white"
+                    >
+                        <GitHubMark />
+                    </a>
+                </nav>
             </div>
         </header>
     );

@@ -157,7 +157,7 @@ const LogTerminal = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: () =
                             <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                             <span className="text-white font-bold">SYSTEM_LOGS</span>
                         </div>
-                        <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors cursor-none">
+                        <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
                             [X]
                         </button>
                     </div>

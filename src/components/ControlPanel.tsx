@@ -8,7 +8,7 @@ interface ControlPanelProps {
     lang: Language;
     crtEnabled: boolean;
     setCrtEnabled: (enabled: boolean) => void;
-    user: GitHubUser;
+    user: GitHubUser | null;
 }
 
 const ControlPanel = ({

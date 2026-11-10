@@ -1,21 +1,17 @@
 import { test, expect } from '@playwright/test';
+import { skipBoot, stubGitHub } from './github-stub';
 
 test.describe('Command Palette Interaction', () => {
     test.beforeEach(async ({ page }) => {
-        // Bypass Boot Sequence logic if possible, or just wait through it.
-        // Setting sessionStorage 'hasBooted' to 'true' should skip boot in App.tsx
+        await stubGitHub(page);
+        await skipBoot(page);
         await page.goto('/');
-        await page.evaluate(() => sessionStorage.setItem('hasBooted', 'true'));
-        await page.reload();
-
-        // Ensure we are on the main dashboard
-        // Wait for the Connect button or the Header terminal text
-        await expect(page.getByRole('button', { name: /Connect/i })).toBeVisible();
+        await expect(page.getByRole('button', { name: /terminal/i })).toBeVisible();
     });
 
     test('should open palette, execute help command, and exit', async ({ page }) => {
         // Open through the visible header control so the interaction is consistent across browser engines.
-        await page.getByRole('button', { name: /Connect/i }).click();
+        await page.getByRole('button', { name: /terminal/i }).click();
 
         // 2. Verify Open
         const input = page.getByPlaceholder('Enter command...');
@@ -38,7 +34,7 @@ test.describe('Command Palette Interaction', () => {
     });
 
     test('should toggle Matrix mode', async ({ page }) => {
-        await page.getByRole('button', { name: /Connect/i }).click();
+        await page.getByRole('button', { name: /terminal/i }).click();
         const input = page.getByPlaceholder('Enter command...');
 
         // Enable Matrix

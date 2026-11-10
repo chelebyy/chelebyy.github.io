@@ -58,7 +58,6 @@ export const translations = {
         // Footer
         footerBuilt: 'built in the open with React, Vite and Tailwind',
         footerSource: 'source',
-        marquee: (names: string[]) => names.length ? names.join(' /// ') + ' /// ' : 'OPEN_SOURCE /// TOOLS /// SYSTEMS /// EXPERIMENTS /// ',
         // Command Palette
         cmdReady: 'SYSTEM_READY',
         cmdHelp: 'Type "help" for available commands.',
@@ -149,7 +148,6 @@ export const translations = {
         },
         footerBuilt: 'React, Vite ve Tailwind ile açık kaynak olarak yapıldı',
         footerSource: 'kaynak',
-        marquee: (names: string[]) => names.length ? names.join(' /// ') + ' /// ' : 'AÇIK_KAYNAK /// ARAÇLAR /// SİSTEMLER /// DENEYLER /// ',
         cmdReady: 'SİSTEM_HAZIR',
         cmdHelp: 'Komutlar için "help" yazın.',
         cmdAvailable: 'Kullanılabilir komutlar:',

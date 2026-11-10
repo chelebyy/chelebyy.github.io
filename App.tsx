@@ -10,7 +10,6 @@ import BootSequence from './src/components/BootSequence';
 import CustomCursor from './src/components/CustomCursor';
 import Header from './src/components/Header';
 import Hero from './src/components/Hero';
-import Marquee from './src/components/Marquee';
 import Sidebar from './src/components/Sidebar';
 import ProjectList from './src/components/ProjectList';
 import SecretSector from './src/components/SecretSector';
@@ -184,7 +183,6 @@ const App: React.FC = () => {
           onInit={handleInit}
           onOpenLogs={handleOpenLogs}
         />
-        <Marquee lang={lang} names={projects.map(project => project.name)} />
 
         <div className="mx-auto flex w-full max-w-[1440px] flex-grow flex-col border-x border-border-dark md:flex-row">
           <Sidebar

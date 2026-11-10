@@ -4,7 +4,7 @@ export const translations = {
         path: '~/open-source',
         openTerminal: 'terminal',
         systemReady: 'whoami',
-        heroSub: 'Use it as you wish — but you\'re on your own if it crashes. 💥\nEverything I cook ends up here. 🧑‍🍳 Burnt ones included.',
+        heroSub: 'Use it as you wish — but you\'re on your own if it crashes.\nEverything I cook ends up here. Burnt ones included.',
         initBtn: './explore_projects',
         readLogsBtn: 'tail -f sys.log',
         // Neofetch panel
@@ -100,7 +100,7 @@ export const translations = {
         path: '~/acik-kaynak',
         openTerminal: 'terminal',
         systemReady: 'whoami',
-        heroSub: 'İstediğin gibi kullan — ama çökerse başının çaresine bakarsın. 💥\nPişirdiğim her şey burada. 🧑‍🍳 Yanıkları dahil.',
+        heroSub: 'İstediğin gibi kullan — ama çökerse başının çaresine bakarsın.\nPişirdiğim her şey burada. Yanıkları dahil.',
         initBtn: './projeleri_gez',
         readLogsBtn: 'tail -f sys.log',
         nfRepos: 'depolar',

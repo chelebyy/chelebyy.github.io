@@ -1,25 +1,43 @@
 import { test, expect } from '@playwright/test';
 import { stubGitHub } from './github-stub';
 
-test.describe('Boot Sequence & Navigation', () => {
+test.describe('Intro & Navigation', () => {
     test.beforeEach(async ({ page }) => {
         await stubGitHub(page);
         await page.addInitScript(() => localStorage.setItem('cheleby:lang', 'en'));
     });
 
-    test('should initialize the system and land on the home page', async ({ page }) => {
-        test.setTimeout(45_000);
+    test('plays a short intro without a click and lands on the home page', async ({ page }) => {
         await page.goto('/');
 
-        const initButton = page.getByRole('button', { name: /INITIALIZE SYSTEM/i });
-        await expect(initButton).toBeVisible();
-        await initButton.click();
+        const intro = page.getByTestId('boot-sequence');
+        await expect(intro).toBeVisible();
+        await expect(intro.getByText('ssh guest@cheleby.me')).toBeVisible();
 
-        // Intermediate boot phases are timer-driven and covered by BootSequence.test.tsx;
-        // this browser test verifies the durable user outcome.
-        await expect(page.getByTestId('boot-sequence')).toHaveCount(0, { timeout: 30000 });
+        // The intro hands over to the site on its own in under two seconds.
+        await expect(intro).toHaveCount(0, { timeout: 3000 });
         await expect(page.getByTitle('System control')).toContainText('chelebyy:~/open-source$');
         await expect(page.getByRole('button', { name: 'en', exact: true })).toBeVisible();
         await expect(page.getByRole('button', { name: /terminal/i })).toBeVisible();
+    });
+
+    test('can be skipped with a key press and does not replay in the same session', async ({ page }) => {
+        await page.goto('/');
+        const intro = page.getByTestId('boot-sequence');
+        await expect(intro).toBeVisible();
+
+        await page.keyboard.press('Space');
+        await expect(intro).toHaveCount(0, { timeout: 1000 });
+
+        await page.reload();
+        await expect(page.getByTitle('System control')).toBeVisible();
+        await expect(intro).toHaveCount(0);
+    });
+
+    test('is not shown to visitors who prefer reduced motion', async ({ page }) => {
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await page.goto('/');
+        await expect(page.getByTitle('System control')).toBeVisible();
+        await expect(page.getByTestId('boot-sequence')).toHaveCount(0);
     });
 });

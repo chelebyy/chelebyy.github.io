@@ -1,140 +1,70 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { BOOT_DONE_AT, BOOT_FADE_AT, BOOT_LINE_DELAYS } from '../constants/boot';
 
 interface BootSequenceProps {
     onComplete: () => void;
-    playPhaseSound: (phase: 'bios' | 'auth' | 'access') => void;
-    initAudio: () => void;
+    /** Number of visible repositories, or null while they are still loading. */
+    repoCount: number | null;
 }
 
-const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, playPhaseSound, initAudio }) => {
-    const [lines, setLines] = useState<string[]>([]);
-    const [phase, setPhase] = useState<'start' | 'bios' | 'auth' | 'access' | 'drop'>('start');
+const SKIP_FADE_MS = 200;
 
-    const handleStart = () => {
-        initAudio(); // Explicitly wake up AudioContext on click
-        setPhase('bios');
-    };
+/**
+ * Short, automatic intro: a few real-looking shell lines, then the site.
+ * Runs without a click, can be skipped with any key, click or touch.
+ */
+const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repoCount }) => {
+    const [visible, setVisible] = useState(1);
+    const [fading, setFading] = useState(false);
+    const finished = useRef(false);
 
-    useEffect(() => {
-        if (phase !== 'bios') return;
-
-        // Phase 1: BIOS / POST
-        const bootText = [
-            "BIOS_MEM_CHECK: 64GB OK",
-            "LOADING_KERNEL_V4.2... OK",
-            "MOUNTING_VIRTUAL_FS... OK",
-            "INIT_GRAPHICS_DRIVER... OK",
-            "ESTABLISHING_SECURE_UPLINK... [CONNECTED]"
-        ];
-
-        // Play initial sound - NOW triggered by user click
-        playPhaseSound('bios');
-
-        let lineIndex = 0;
-        const printInterval = setInterval(() => {
-            setLines(prev => {
-                const newLines = [...prev, bootText[lineIndex]];
-                return newLines.slice(-7);
-            });
-
-            lineIndex++;
-
-            if (lineIndex === bootText.length) {
-                clearInterval(printInterval);
-                setTimeout(() => setPhase('auth'), 600);
-            }
-        }, 400);
-
-        return () => clearInterval(printInterval);
-    }, [phase, playPhaseSound]);
+    const finish = useCallback((delay: number) => {
+        if (finished.current) return;
+        finished.current = true;
+        setFading(true);
+        window.setTimeout(onComplete, delay);
+    }, [onComplete]);
 
     useEffect(() => {
-        if (phase === 'auth') {
-            playPhaseSound('auth');
-            // Phase 2: Authentication
-            const timer = setTimeout(() => {
-                setPhase('access');
-            }, 2500);
-            return () => clearTimeout(timer);
-        }
+        const timers = BOOT_LINE_DELAYS.slice(1).map((delay, index) =>
+            window.setTimeout(() => setVisible(index + 2), delay));
+        timers.push(window.setTimeout(() => finish(BOOT_DONE_AT - BOOT_FADE_AT), BOOT_FADE_AT));
+        return () => timers.forEach(window.clearTimeout);
+    }, [finish]);
 
-        if (phase === 'access') {
-            playPhaseSound('access');
-            // Phase 3: Access Granted -> The Drop
-            const timer = setTimeout(() => {
-                setPhase('drop');
-                setTimeout(onComplete, 300); // Sync with CSS ping animation
-            }, 1000);
-            return () => clearTimeout(timer);
-        }
-    }, [phase, onComplete, playPhaseSound]);
+    useEffect(() => {
+        const skip = () => finish(SKIP_FADE_MS);
+        window.addEventListener('keydown', skip);
+        window.addEventListener('pointerdown', skip);
+        return () => {
+            window.removeEventListener('keydown', skip);
+            window.removeEventListener('pointerdown', skip);
+        };
+    }, [finish]);
 
+    const lines: Array<{ text: string; command?: boolean }> = [
+        { text: 'ssh guest@cheleby.me', command: true },
+        { text: 'connected.' },
+        { text: 'gh repo list chelebyy --public', command: true },
+        { text: repoCount === null ? 'fetching repositories…' : `${repoCount} repositories found` },
+        { text: 'open ./open-source', command: true },
+    ];
 
     return (
         <div
             data-testid="boot-sequence"
-            className={`fixed inset-0 z-[9999] bg-black text-green-500 font-mono flex flex-col items-center justify-center transition-all duration-300 ${phase === 'drop' ? 'opacity-0 scale-110' : 'opacity-100'}`}
+            aria-hidden="true"
+            className={`fixed inset-0 z-[9999] flex items-center justify-center bg-background-dark font-mono transition-opacity duration-300 ${fading ? 'opacity-0' : 'opacity-100'}`}
         >
-
-            {/* Background Grid */}
-            <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(#0f0 1px, transparent 1px), linear-gradient(90deg, #0f0 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-
-            <div className="max-w-xl w-full p-6 relative z-10">
-
-                {/* Phase 0: Start Screen */}
-                {phase === 'start' && (
-                    <div className="text-center">
-                        <div className="text-xs text-green-700 mb-4 tracking-widest uppercase">// System Ready</div>
-                        <button
-                            onClick={handleStart}
-                            className="px-8 py-4 border border-green-500/50 bg-green-500/10 text-green-500 font-mono tracking-widest uppercase hover:bg-green-500/20 hover:border-green-500 transition-all duration-300 animate-pulse cursor-pointer"
-                        >
-                            [ INITIALIZE SYSTEM ]
-                        </button>
-                        <div className="text-[10px] text-green-900 mt-4">Click to begin boot sequence</div>
-                    </div>
-                )}
-
-                {/* Phase 1: BIOS Lines */}
-                {phase === 'bios' && (
-                    <div className="space-y-1 font-mono text-left w-full">
-                        {lines.map((line, i) => (
-                            <div key={i} className="text-sm md:text-base opacity-80">
-                                <span className="mr-2 text-green-700">{`>`}</span>
-                                {line}
-                            </div>
-                        ))}
-                        <div className="animate-pulse mt-2 ml-4">_</div>
-                    </div>
-                )}
-
-                {/* Phase 2: Authentication */}
-                {phase === 'auth' && (
-                    <div className="text-center w-full">
-                        <div className="text-xl md:text-2xl mb-8 animate-pulse font-bold tracking-widest">AUTHENTICATING_USER...</div>
-                        <div className="h-1 w-64 bg-gray-900 mx-auto rounded overflow-hidden relative border border-green-900/30">
-                            <div className="absolute inset-0 bg-green-500 animate-[loading_2s_ease-in-out]"></div>
-                        </div>
-                        <p className="text-[10px] text-green-600/70 mt-4 tracking-[0.2em] animate-pulse">VERIFYING_BIOMETRICS_HASH</p>
-                    </div>
-                )}
-
-                {/* Phase 3: Access Granted */}
-                {phase === 'access' && (
-                    <div className="text-center relative w-full">
-                        <div className="absolute inset-0 bg-green-500/10 blur-2xl animate-pulse"></div>
-                        <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter relative z-10 glitch-text" data-text="ACCESS GRANTED">
-                            ACCESS GRANTED
-                        </h1>
-                        <p className="text-green-400 mt-6 tracking-[0.5em] text-xs uppercase animate-bounce">Welcome Back Admin</p>
-                    </div>
-                )}
+            <div className="w-full max-w-xl space-y-1.5 px-6 text-sm md:text-base">
+                {lines.slice(0, visible).map((line, index) => (
+                    <p key={index} className={`${line.command ? 'text-gray-200' : 'text-gray-500'} ${index === visible - 1 ? 'caret' : ''}`}>
+                        {line.command && <span className="mr-2 text-primary">$</span>}
+                        {line.text}
+                    </p>
+                ))}
             </div>
-
-            {/* The Drop: CRT Flash */}
-            {phase === 'drop' && (
-                <div className="absolute inset-0 bg-white animate-[ping_0.1s_ease-out]"></div>
-            )}
+            <p className="absolute bottom-8 font-mono text-[11px] text-gray-700">press any key to skip</p>
         </div>
     );
 };

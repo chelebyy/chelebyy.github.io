@@ -1,93 +1,62 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import BootSequence from './BootSequence';
+import { BOOT_DONE_AT, BOOT_LINE_DELAYS } from '../constants/boot';
 
 describe('BootSequence Component', () => {
-    const mockOnComplete = vi.fn();
-    const mockPlayPhaseSound = vi.fn();
-    const mockInitAudio = vi.fn();
-
     beforeEach(() => {
         vi.useFakeTimers();
-        vi.clearAllMocks();
     });
 
     afterEach(() => {
         vi.useRealTimers();
     });
 
-    it('renders start screen initially', () => {
-        render(
-            <BootSequence
-                onComplete={mockOnComplete}
-                playPhaseSound={mockPlayPhaseSound}
-                initAudio={mockInitAudio}
-            />
-        );
-        expect(screen.getByText('[ INITIALIZE SYSTEM ]')).toBeInTheDocument();
+    it('starts on its own, without a button to click', () => {
+        render(<BootSequence onComplete={vi.fn()} repoCount={7} />);
+        expect(screen.queryByRole('button')).not.toBeInTheDocument();
+        expect(screen.getByText('ssh guest@cheleby.me')).toBeInTheDocument();
     });
 
-    it('starts boot sequence on click', () => {
-        render(
-            <BootSequence
-                onComplete={mockOnComplete}
-                playPhaseSound={mockPlayPhaseSound}
-                initAudio={mockInitAudio}
-            />
-        );
+    it('types its lines and hands over to the site within two seconds', () => {
+        const onComplete = vi.fn();
+        render(<BootSequence onComplete={onComplete} repoCount={7} />);
 
-        const startButton = screen.getByText('[ INITIALIZE SYSTEM ]');
-        fireEvent.click(startButton);
+        act(() => {
+            vi.advanceTimersByTime(BOOT_LINE_DELAYS[BOOT_LINE_DELAYS.length - 1]);
+        });
+        expect(screen.getByText('7 repositories found')).toBeInTheDocument();
+        expect(screen.getByText('open ./open-source')).toBeInTheDocument();
+        expect(onComplete).not.toHaveBeenCalled();
 
-        // Should call initAudio
-        expect(mockInitAudio).toHaveBeenCalled();
-
-        // Should enter BIOS phase
-        // Initial playPhaseSound for bios
-        expect(mockPlayPhaseSound).toHaveBeenCalledWith('bios');
+        act(() => {
+            vi.advanceTimersByTime(BOOT_DONE_AT);
+        });
+        expect(onComplete).toHaveBeenCalledTimes(1);
+        expect(BOOT_DONE_AT).toBeLessThanOrEqual(2000);
     });
 
-    it('transitions through phases and completes', () => {
-        render(
-            <BootSequence
-                onComplete={mockOnComplete}
-                playPhaseSound={mockPlayPhaseSound}
-                initAudio={mockInitAudio}
-            />
-        );
-
-        // Start
-        fireEvent.click(screen.getByText('[ INITIALIZE SYSTEM ]'));
-
-        // Fast forward through BIOS (lines printing)
-        // 5 lines * 400ms = 2000ms + buffer
+    it('says it is still fetching while the repository count is unknown', () => {
+        render(<BootSequence onComplete={vi.fn()} repoCount={null} />);
         act(() => {
-            vi.advanceTimersByTime(3000);
+            vi.advanceTimersByTime(BOOT_LINE_DELAYS[3]);
         });
+        expect(screen.getByText('fetching repositories…')).toBeInTheDocument();
+    });
 
-        // Should be in auth phase
-        // Bios finishes, waits 600ms, sets phase to auth
+    it('can be skipped with a key press and completes only once', () => {
+        const onComplete = vi.fn();
+        render(<BootSequence onComplete={onComplete} repoCount={7} />);
+
+        fireEvent.keyDown(window, { key: 'Enter' });
         act(() => {
-            vi.advanceTimersByTime(1000);
+            vi.advanceTimersByTime(300);
         });
+        expect(onComplete).toHaveBeenCalledTimes(1);
 
-        expect(screen.getByText('AUTHENTICATING_USER...')).toBeInTheDocument();
-        expect(mockPlayPhaseSound).toHaveBeenCalledWith('auth');
-
-        // Fast forward auth phase (2500ms)
         act(() => {
-            vi.advanceTimersByTime(3000);
+            vi.advanceTimersByTime(BOOT_DONE_AT);
         });
-
-        // Should be in access phase
-        expect(screen.getByText('ACCESS GRANTED')).toBeInTheDocument();
-        expect(mockPlayPhaseSound).toHaveBeenCalledWith('access');
-
-        // Fast forward access phase (1000ms wait -> drop phase -> 300ms wait -> onComplete)
-        act(() => {
-            vi.advanceTimersByTime(2000);
-        });
-
-        expect(mockOnComplete).toHaveBeenCalled();
+        expect(onComplete).toHaveBeenCalledTimes(1);
     });
 });

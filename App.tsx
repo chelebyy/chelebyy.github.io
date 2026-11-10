@@ -44,13 +44,17 @@ const App: React.FC = () => {
     document.documentElement.lang = lang;
   }, [lang]);
 
-  const { playLogOpenSound, playBootPhaseSound, initAudio } = useSoundEffects();
+  const { playLogOpenSound, initAudio } = useSoundEffects();
 
-  const [isBooting, setIsBooting] = useState(() => !sessionStorage.getItem('hasBooted'));
-  const handleBootComplete = () => {
+  // The intro runs once per session and never for visitors who prefer reduced motion.
+  const [isBooting, setIsBooting] = useState(() => {
+    if (sessionStorage.getItem('hasBooted')) return false;
+    return !(typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  });
+  const handleBootComplete = useCallback(() => {
     setIsBooting(false);
     sessionStorage.setItem('hasBooted', 'true');
-  };
+  }, []);
 
   const [isInit, setIsInit] = useState(false);
   const [isLogsOpen, setIsLogsOpen] = useState(false);
@@ -127,7 +131,7 @@ const App: React.FC = () => {
 
   return (
     <div className="relative flex min-h-screen flex-col bg-background-dark">
-      {isBooting && <BootSequence onComplete={handleBootComplete} playPhaseSound={playBootPhaseSound} initAudio={initAudio} />}
+      {isBooting && <BootSequence onComplete={handleBootComplete} repoCount={status === 'loading' ? null : projects.length} />}
       <CustomCursor />
 
       <Suspense fallback={null}>

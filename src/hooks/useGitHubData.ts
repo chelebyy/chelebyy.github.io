@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityLog, GitHubUser, Project } from '../types';
 import { siteConfig as defaultConfig, SiteConfig } from '../config/site';
-import { eventsToActivity, filterActivity, filterProjects, pickUser, reposToProjects } from '../lib/github';
+import { collapseActivity, eventsToActivity, filterActivity, filterProjects, pickUser, reposToProjects } from '../lib/github';
 
 export const CACHE_KEY = 'cheleby:github:v2';
 const LEGACY_CACHE_KEYS = ['github_cache', 'github_cache_time'];
@@ -65,7 +65,8 @@ export const useGitHubData = (config: SiteConfig = defaultConfig): GitHubData =>
     });
 
     useEffect(() => {
-        if (raw.status === 'ready') return;
+        // Only the initial load and an explicit retry() fetch; an error must not trigger another round.
+        if (raw.status !== 'loading') return;
         const controller = new AbortController();
         const user = encodeURIComponent(config.githubUser);
         const base = `https://api.github.com/users/${user}`;
@@ -87,7 +88,7 @@ export const useGitHubData = (config: SiteConfig = defaultConfig): GitHubData =>
                 savedAt: Date.now(),
                 user: userResult.status === 'fulfilled' ? pickUser(userResult.value) : null,
                 projects: reposToProjects(reposResult.value),
-                activity: eventsResult.status === 'fulfilled' ? eventsToActivity(eventsResult.value, 40) : [],
+                activity: eventsResult.status === 'fulfilled' ? eventsToActivity(eventsResult.value) : [],
             };
             // Cache only complete results so one failed request does not hide activity for the whole TTL.
             if (userResult.status === 'fulfilled' && eventsResult.status === 'fulfilled') writeCache(data);
@@ -104,7 +105,7 @@ export const useGitHubData = (config: SiteConfig = defaultConfig): GitHubData =>
 
     return useMemo(() => {
         const projects = raw.data ? filterProjects(raw.data.projects, config) : [];
-        const activity = raw.data ? filterActivity(raw.data.activity, raw.data.projects, config).slice(0, 12) : [];
+        const activity = raw.data ? collapseActivity(filterActivity(raw.data.activity, raw.data.projects, config), 12) : [];
         return {
             status: raw.status,
             user: raw.data?.user ?? null,

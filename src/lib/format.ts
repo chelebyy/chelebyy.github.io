@@ -21,6 +21,13 @@ export const timeAgo = (iso: string | number, lang: Language, now = Date.now()):
     return formatter.format(0, 'minute');
 };
 
+/**
+ * Case folding for search that works the same in English and Turkish UIs:
+ * I/ı/İ/i all fold to "i", so "api" finds "API" and "işlem" finds "İŞLEM".
+ */
+export const searchFold = (value: string): string =>
+    value.replace(/[Iıİ]/g, 'i').toLowerCase().replace(/i̇/g, 'i');
+
 /** ISO date as YYYY-MM-DD, the way `git log --date=short` prints it. */
 export const shortDate = (iso: string): string => {
     const date = new Date(iso);

@@ -117,20 +117,25 @@ export const eventToActivity = (event: GitHubEvent): ActivityLog | null => {
     }
 };
 
-/** Consecutive pushes (or merges) to the same repository collapse into one line. */
-export const eventsToActivity = (events: unknown, limit = 12): ActivityLog[] => {
+/** Maps every supported event, newest first. Visibility rules and display limits are applied later. */
+export const eventsToActivity = (events: unknown): ActivityLog[] => {
     if (!Array.isArray(events)) return [];
-    const logs: ActivityLog[] = [];
-    const sorted = [...(events as GitHubEvent[])].sort((a, b) => Date.parse(b?.created_at) - Date.parse(a?.created_at));
-    for (const event of sorted) {
-        const log = event && typeof event === 'object' ? eventToActivity(event) : null;
-        if (!log) continue;
-        const previous = logs[logs.length - 1];
+    return (events as GitHubEvent[])
+        .map(event => (event && typeof event === 'object' ? eventToActivity(event) : null))
+        .filter((log): log is ActivityLog => log !== null)
+        .sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp));
+};
+
+/** Consecutive pushes (or merges) to the same repository collapse into one line; run after filtering. */
+export const collapseActivity = (logs: ActivityLog[], limit = 12): ActivityLog[] => {
+    const result: ActivityLog[] = [];
+    for (const log of logs) {
+        const previous = result[result.length - 1];
         if ((log.type === 'push' || log.type === 'merge') && previous?.type === log.type && previous.repo === log.repo) continue;
-        logs.push(log);
-        if (logs.length >= limit) break;
+        result.push(log);
+        if (result.length >= limit) break;
     }
-    return logs;
+    return result;
 };
 
 export const pickUser = (user: unknown): GitHubUser | null => {

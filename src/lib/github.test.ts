@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+    collapseActivity,
     eventsToActivity,
     filterActivity,
     filterProjects,
@@ -108,9 +109,22 @@ describe('eventsToActivity', () => {
             { id: '6', type: 'PullRequestEvent', repo: { name: 'chelebyy/b' }, payload: { action: 'opened', number: 7 }, created_at: '2026-09-02T00:00:00Z' },
             { id: '7', type: 'PullRequestEvent', repo: { name: 'chelebyy/b' }, payload: { action: 'merged', number: 7 }, created_at: '2026-09-01T00:00:00Z' },
         ];
-        const logs = eventsToActivity(events);
+        const logs = collapseActivity(eventsToActivity(events));
         expect(logs.map(log => `${log.type}:${log.ref}`)).toEqual(['push:main', 'release:v1.0.0', 'tag:v2', 'merge:#7']);
         expect(logs[3].url).toBe('https://github.com/chelebyy/b/pull/7');
+    });
+});
+
+describe('collapseActivity after filtering', () => {
+    it('merges pushes to one repo even when a hidden repo pushed in between', () => {
+        const push = (id: string, repoName: string, at: string) => ({ id, type: 'PushEvent', repo: { name: repoName }, payload: { ref: 'refs/heads/main' }, created_at: at });
+        const logs = eventsToActivity([
+            push('1', 'chelebyy/ai-office', '2026-11-03T00:00:00Z'),
+            push('2', 'chelebyy/StokTakip', '2026-11-02T00:00:00Z'),
+            push('3', 'chelebyy/ai-office', '2026-11-01T00:00:00Z'),
+        ]);
+        const visible = filterActivity(logs, [project('ai-office'), project('StokTakip')], config);
+        expect(collapseActivity(visible).map(log => log.id)).toEqual(['1']);
     });
 });
 

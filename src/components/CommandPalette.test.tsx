@@ -170,4 +170,24 @@ describe('CommandPalette Component', () => {
         expect(screen.getByText(/No such project/)).toBeInTheDocument();
         openSpy.mockRestore();
     });
+
+    it('rejects theme names that are not real colors, including object keys', () => {
+        render(
+            <CommandPalette
+                isOpen={true}
+                onClose={mockOnClose}
+                lang="en"
+                matrixEnabled={false}
+                setMatrixEnabled={mockSetMatrixEnabled}
+                projects={projects}
+                user={null}
+            />
+        );
+        document.documentElement.style.removeProperty('--accent');
+        const input = screen.getByRole('textbox');
+        fireEvent.change(input, { target: { value: 'theme constructor' } });
+        fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+        expect(screen.getByText(/Invalid color/)).toBeInTheDocument();
+        expect(document.documentElement.style.getPropertyValue('--accent')).toBe('');
+    });
 });

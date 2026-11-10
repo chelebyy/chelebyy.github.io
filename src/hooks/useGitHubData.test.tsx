@@ -83,3 +83,35 @@ describe('useGitHubData', () => {
         expect(result.current.projects.map(p => p.name)).toEqual(['fresh']);
     });
 });
+
+describe('useGitHubData request budget and activity', () => {
+    beforeEach(() => localStorage.clear());
+    afterEach(() => vi.unstubAllGlobals());
+
+    it('sends a single round of requests when GitHub fails', async () => {
+        const fetchMock = vi.fn(() => respond({ message: 'API rate limit exceeded' }, false));
+        vi.stubGlobal('fetch', fetchMock);
+
+        const { result } = renderHook(() => useGitHubData(config));
+        await waitFor(() => expect(result.current.status).toBe('error'));
+        await new Promise(resolve => setTimeout(resolve, 50));
+        expect(fetchMock).toHaveBeenCalledTimes(3);
+    });
+
+    it('keeps visible activity when many newer events come from a hidden repository', async () => {
+        const hiddenTags = Array.from({ length: 60 }, (_, i) => ({
+            id: `t${i}`, type: 'CreateEvent', repo: { name: 'chelebyy/StokTakip' },
+            payload: { ref_type: 'tag', ref: `v${i}` }, created_at: '2026-11-09T00:00:00Z',
+        }));
+        const visiblePush = { id: 'p1', type: 'PushEvent', repo: { name: 'chelebyy/ai-office' }, payload: { ref: 'refs/heads/main' }, created_at: '2026-11-01T00:00:00Z' };
+        vi.stubGlobal('fetch', vi.fn((url: string) => {
+            if (url.includes('/repos')) return respond([repo(1, 'StokTakip'), repo(2, 'ai-office')]);
+            if (url.includes('/events')) return respond([...hiddenTags, visiblePush]);
+            return respond({ login: 'chelebyy' });
+        }));
+
+        const { result } = renderHook(() => useGitHubData(config));
+        await waitFor(() => expect(result.current.status).toBe('ready'));
+        expect(result.current.activity.map(log => log.repo)).toEqual(['chelebyy/ai-office']);
+    });
+});

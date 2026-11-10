@@ -131,9 +131,9 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, lang, 
             } else {
                 response = <div className="text-red-500 font-bold">{t.cmdSudoDenied}</div>;
             }
-        } else if (name === 'theme' || THEME_COLORS[cmd]) {
+        } else if (name === 'theme' || Object.hasOwn(THEME_COLORS, cmd)) {
             const color = name === 'theme' ? args[0] ?? '' : cmd;
-            if (THEME_COLORS[color]) {
+            if (Object.hasOwn(THEME_COLORS, color)) {
                 document.documentElement.style.setProperty('--accent', THEME_COLORS[color]);
                 response = <div className="text-primary">&gt; {t.cmdThemeSet} {color.toUpperCase()}</div>;
             } else {

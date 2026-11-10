@@ -3,6 +3,7 @@ import { Language } from './src/types';
 import { useSoundEffects } from './src/hooks/useSoundEffects';
 import { useGitHubData } from './src/hooks/useGitHubData';
 import { SECRET_THEME_COLOR } from './src/constants/theme';
+import { searchFold } from './src/lib/format';
 
 // Eager imports (first paint)
 import BootSequence from './src/components/BootSequence';
@@ -75,16 +76,15 @@ const App: React.FC = () => {
   }, [projects]);
 
   const visibleProjects = useMemo(() => {
-    const needle = query.trim().toLocaleLowerCase(lang);
+    const needle = searchFold(query.trim());
     return projects.filter(project => {
       if (selectedLanguage && project.language !== selectedLanguage) return false;
       if (!needle) return true;
-      return [project.name, project.description, project.language ?? '', ...project.topics]
-        .join(' ')
-        .toLocaleLowerCase(lang)
-        .includes(needle);
+      const haystack = [project.name, project.description, project.language ?? '', ...project.topics]
+        .join(' ');
+      return searchFold(haystack).includes(needle);
     });
-  }, [projects, query, selectedLanguage, lang]);
+  }, [projects, query, selectedLanguage]);
 
   const [secretUnlocked, setSecretUnlocked] = useState(false);
   const handleUnlock = () => {

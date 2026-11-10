@@ -31,3 +31,6 @@ GEMINI.md
 GIT_GUIDE.md
 .serena/
 
+
+# Local browser tooling output
+.playwright-mcp/

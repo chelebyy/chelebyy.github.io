@@ -12,7 +12,6 @@ import Hero from './src/components/Hero';
 import Marquee from './src/components/Marquee';
 import Sidebar from './src/components/Sidebar';
 import ProjectCard from './src/components/ProjectCard';
-import SystemMonitor from './src/components/SystemMonitor';
 import ActivityLogList from './src/components/ActivityLogList';
 import Footer from './src/components/Footer';
 
@@ -273,8 +272,6 @@ const App: React.FC = () => {
 
             </div>
 
-            {/* System Monitor */}
-            <SystemMonitor lang={lang} />
 
             <ActivityLogList logs={activityLogs} lang={lang} />
           </div>

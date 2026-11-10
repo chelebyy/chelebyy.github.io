@@ -1,5 +1,5 @@
 <div align="center">
-  <h3>chelebyy@cheleby.me:~/acik-kaynak$</h3>
+  <h3>chelebyy:~/acik-kaynak$</h3>
   <p>Açık kaynak projelerim için terminal görünümlü bir ev.</p>
 
   <a href="README.md"><img src="https://img.shields.io/badge/Lang-English-gray?style=for-the-badge&labelColor=333" alt="English"></a>

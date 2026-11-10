@@ -1,5 +1,5 @@
 <div align="center">
-  <h3>chelebyy@cheleby.me:~/open-source$</h3>
+  <h3>chelebyy:~/open-source$</h3>
   <p>A terminal-style home for my open source projects.</p>
 
   <a href="README.md"><img src="https://img.shields.io/badge/Lang-English-blue?style=for-the-badge&labelColor=333" alt="English"></a>

@@ -35,7 +35,6 @@ const Row: React.FC<{ label: string; children: React.ReactNode }> = ({ label, ch
 const NeofetchPanel: React.FC<Omit<HeroProps, 'onInit' | 'onOpenLogs'>> = ({ lang, user, projects, syncedAt, loading }) => {
     const t = translations[lang];
     const login = user?.login ?? siteConfig.githubUser;
-    const stars = projects.reduce((sum, project) => sum + project.stars, 0);
     const languages = languageBreakdown(projects);
     const lastPush = projects[0]?.pushedAt;
     const placeholder = loading ? '…' : '—';
@@ -49,15 +48,10 @@ const NeofetchPanel: React.FC<Omit<HeroProps, 'onInit' | 'onOpenLogs'>> = ({ lan
             <div className="scanlines grid gap-6 p-5 sm:grid-cols-[auto_1fr]">
                 <pre aria-hidden="true" className="hidden select-none leading-[1.15] text-primary sm:block">{LOGO.join('\n')}</pre>
                 <div className="min-w-0">
-                    <p className="text-sm">
-                        <span className="text-primary">{login}</span>
-                        <span className="text-gray-500">@</span>
-                        <span className="text-white">github</span>
-                    </p>
-                    <p className="mb-3 text-gray-700">{'-'.repeat(login.length + 7)}</p>
+                    <p className="text-sm text-primary">{login}</p>
+                    <p className="mb-3 text-gray-700">{'-'.repeat(login.length)}</p>
                     <dl className="space-y-1">
                         <Row label={t.nfRepos}>{projects.length || placeholder}</Row>
-                        <Row label={t.nfStars}>{projects.length ? `★ ${stars}` : placeholder}</Row>
                         <Row label={t.nfLastPush}>{lastPush ? timeAgo(lastPush, lang) : placeholder}</Row>
                         <Row label={t.nfLocation}>{t.nfLocationValue}</Row>
                         <Row label={t.nfLicense}>{t.nfLicenseValue}</Row>
@@ -121,7 +115,7 @@ const Hero: React.FC<HeroProps> = (props) => {
                         </span>
                     </h1>
 
-                    <p className="max-w-xl border-l border-primary/60 pl-5 font-mono text-sm leading-7 text-gray-400 md:text-[15px]">
+                    <p className="max-w-xl whitespace-pre-line border-l border-primary/60 pl-5 font-mono text-sm leading-7 text-gray-400 md:text-[15px]">
                         {t.heroSub}
                     </p>
 

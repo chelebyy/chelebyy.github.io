@@ -18,7 +18,7 @@ test.describe('Boot Sequence & Navigation', () => {
         // Intermediate boot phases are timer-driven and covered by BootSequence.test.tsx;
         // this browser test verifies the durable user outcome.
         await expect(page.getByTestId('boot-sequence')).toHaveCount(0, { timeout: 30000 });
-        await expect(page.getByText('chelebyy@cheleby.me')).toBeVisible();
+        await expect(page.getByTitle('System control')).toContainText('chelebyy:~/open-source$');
         await expect(page.getByRole('button', { name: 'en', exact: true })).toBeVisible();
         await expect(page.getByRole('button', { name: /terminal/i })).toBeVisible();
     });

@@ -42,17 +42,16 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, lang, 
 
     const getNeofetch = () => {
         const langs = languageBreakdown(projects).map(entry => entry.language).join(', ') || '—';
-        const stars = projects.reduce((sum, project) => sum + project.stars, 0);
         return (
             <div className="text-xs font-mono text-primary leading-tight my-2">
                 <pre>{`
-         /\\        user: ${user?.login ?? siteConfig.githubUser}@github
+         /\\        user: ${user?.login ?? siteConfig.githubUser}
         /  \\       repos: ${projects.length}
-       / /\\ \\      stars: ${stars}
-      / /__\\ \\     languages: ${langs}
-     / /______\\ \\   host: GitHub Pages
-    / /______\\ \\   stack: React, Vite, Tailwind
-   /_/________\\_\\  license: open source
+       / /\\ \\      languages: ${langs}
+      / /__\\ \\     host: GitHub Pages
+     / /______\\ \\   stack: React, Vite, Tailwind
+    / /______\\ \\   license: open source
+   /_/________\\_\\
         `}</pre>
             </div>
         );
@@ -172,7 +171,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, lang, 
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between border-b border-border-dark px-4 py-2 font-mono text-[11px] text-gray-500">
-                    <span>{siteConfig.githubUser}@cheleby.me: ~</span>
+                    <span>{siteConfig.githubUser}:~</span>
                     <button type="button" onClick={onClose} aria-label="Close" className="text-gray-500 hover:text-white">[esc]</button>
                 </div>
                 <div className="h-72 overflow-y-auto p-4 font-mono text-sm space-y-1" onClick={() => inputRef.current?.focus()}>

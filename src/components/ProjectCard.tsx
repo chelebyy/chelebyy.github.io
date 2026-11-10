@@ -53,7 +53,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, lang, index }) => {
                 </div>
 
                 <div className="relative z-10 flex items-start gap-4 font-mono text-xs md:flex-col md:items-end md:gap-2">
-                    <span className="text-gray-400" title="GitHub stars">★ {project.stars}</span>
                     {project.forks > 0 && <span className="text-gray-600" title="Forks">⑂ {project.forks}</span>}
                     {project.homepage && (
                         <a

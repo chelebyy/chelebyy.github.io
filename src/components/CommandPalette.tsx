@@ -98,7 +98,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, lang, 
                 <div className="text-gray-400">
                     {projects.map(project => (
                         <div key={project.id}>
-                            <span className="text-gray-600">drwxr-xr-x  ★{String(project.stars).padEnd(4)}</span> <span className="text-primary">{project.name}/</span>
+                            <span className="text-gray-600">drwxr-xr-x</span> <span className="text-primary">{project.name}/</span>
                         </div>
                     ))}
                 </div>

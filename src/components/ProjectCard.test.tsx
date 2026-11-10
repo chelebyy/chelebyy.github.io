@@ -27,7 +27,7 @@ describe('ProjectCard Component', () => {
         renderCard();
         expect(screen.getByRole('heading', { name: 'ai-office' })).toBeInTheDocument();
         expect(screen.getByText(project.description)).toBeInTheDocument();
-        expect(screen.getByText('★ 3')).toBeInTheDocument();
+        expect(screen.queryByText(/★/)).not.toBeInTheDocument();
         expect(screen.getByText('MIT')).toBeInTheDocument();
         expect(screen.getByText('#agents')).toBeInTheDocument();
     });

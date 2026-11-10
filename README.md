@@ -1,148 +1,61 @@
 <div align="center">
-  <h3>DIGITAL_ARTIFACTS_OS // SYSTEM_READY</h3>
-  <p>A brutalist, cyberpunk-inspired operating system portfolio interface.</p>
+  <h3>chelebyy@cheleby.me:~/open-source$</h3>
+  <p>A terminal-style home for my open source projects.</p>
 
-  <!-- Dil Seçimi (Language Switcher) -->
-  <a href="README.md"><img src="https://img.shields.io/badge/Lang-English-blue?style=for-the-badge&logo=google-translate&labelColor=333" alt="English"></a>
-  <a href="README.TR.md"><img src="https://img.shields.io/badge/Lang-Turkish-gray?style=for-the-badge&logo=google-translate&labelColor=333" alt="Turkish"></a>
+  <a href="README.md"><img src="https://img.shields.io/badge/Lang-English-blue?style=for-the-badge&labelColor=333" alt="English"></a>
+  <a href="README.TR.md"><img src="https://img.shields.io/badge/Lang-Turkish-gray?style=for-the-badge&labelColor=333" alt="Turkish"></a>
 
   <br /><br />
 
-  [![Live Demo](https://img.shields.io/badge/LIVE_SYSTEM_ONLINE-00ff00?style=for-the-badge&logo=github&logoColor=black)](https://chelebyy.github.io)
+  [![Live](https://img.shields.io/badge/live-cheleby.me-4f6bff?style=flat-square)](https://cheleby.me)
   [![CI/CD](https://github.com/chelebyy/chelebyy.github.io/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/chelebyy/chelebyy.github.io/actions)
-
-  <br />
-
-  [![React](https://img.shields.io/badge/React-18.2-blue?style=flat-square&logo=react)](https://react.dev/)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-  [![Vite](https://img.shields.io/badge/Bundled_with-Vite-646cff?style=flat-square&logo=vite)](https://vitejs.dev/)
-  [![Tests](https://img.shields.io/badge/Tests-Passing-success?style=flat-square&logo=vitest)](https://vitest.dev/)
   [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
-
 </div>
 
 ---
 
-## 📸 System Visuals
+## What it does
 
-![System Interface](chelebyy.gif)
+- **Projects come straight from GitHub.** Every public repository of `chelebyy` is listed automatically with its description, language, license, topics, stars and last push. Nothing is hand-written or simulated.
+- **You decide what is hidden.** Edit [`src/config/site.ts`](src/config/site.ts):
 
-> *Secure Sector Access & Matrix Mode Visualized*
+  ```ts
+  hiddenRepos: ['chelebyy.github.io', 'link-manager', 'StokTakip'], // never shown
+  visibleForks: [],      // forks are hidden unless listed here
+  showArchived: true,    // archived repos get an "archived" label
+  ```
 
----
+  Names are case-insensitive. Hidden repositories disappear from the project list *and* the activity log, including data already cached in visitors' browsers.
+- **Activity log:** recent releases, tags, pushes and merged pull requests of the visible repositories, in `git log` style.
+- **`grep` and language filters** over the project list.
+- **neofetch panel** with real numbers: repository count, stars, top languages, last push.
+- **Terminal (`Ctrl + K`):** `ls`, `open <project>`, `neofetch`, `theme <blue|red|green|purple>`, `matrix`, `whoami`, `sudo`, `reboot`, `clear`, `exit`.
+- **Effects:** boot sequence (once per session), crosshair cursor (mouse only), Matrix rain, CRT scanlines (control panel, click the prompt in the header), sound effects.
+- **Easter egg:** `.secret/` below the project list wants a passcode. The system log knows it.
+- English and Turkish; the browser language is used on the first visit.
 
-## ⚡ System Overview
+GitHub data is cached in `localStorage` for 10 minutes so visitors stay well below the API's unauthenticated rate limit. If GitHub does not answer, the page says so instead of showing placeholder projects.
 
-**Digital Artifacts OS** is not just a portfolio website; it's an interactive terminal environment designed to showcase engineering capabilities through raw functionality and aesthetics. It strips away the noise of the modern web, focusing on performance, interactivity, and a distinct "hacker" vibe.
-
-### 🚀 Key Features
-
-* **🖥️ Command Palette (God Mode):**
-  * Press `Ctrl + K` or click the "Connect Repo" button to access the system terminal.
-  * Execute commands like `matrix`, `neofetch`, `theme`, `whoami`.
-  * **Easter Eggs:** Try asking nicely with `sudo please` (or `sudo lütfen` in TR).
-
-* **🟢 Matrix Mode:**
-  * Toggle a fully rendered HTML5 Canvas Matrix Rain effect via the command palette.
-  * *Command:* `matrix`
-
-* **🔒 Secure Sector:**
-  * A hidden, password-protected area for sensitive or "classified" projects.
-  * Features a cryptic unlock mechanism related to the answer to life, the universe, and everything.
-
-* **🎬 Digital Awakening (Boot Sequence):**
-  * Cinematic "System Boot" intro with BIOS checks, authentication, and glitch effects.
-  * Runs once per session to maintain immersion without annoyance.
-  * *Re-experience:* Type `reboot` in the terminal to restart the sequence.
-
-* **📊 Active System Monitor:**
-  * A redesigned protocol area visualizing live system modules (Docker, AI Model, Firewall).
-  * Dynamic status indicators (Running, Optimized, Filtering) that react to system state.
-
-* **🌍 Localization Support:**
-  * Full bilingual support for **English (EN)** and **Turkish (TR)**.
-  * Instant language toggling that updates all system logs, UI elements, and even command responses.
-
-* **📡 Real-Time Data:**
-  * **Live Metrics:** Real-time RAM fluctuations, CPU usage simulation, and Network heartbeat.
-  * **GitHub Integration:** Fetches *real* commit history, push events, and repositories directly from the GitHub API.
-
-* **🔊 Immersive Sound System:**
-  * Cinematic audio feedback throughout the interface.
-  * Boot sequence sounds, log terminal effects, and hover interactions.
-  * Context-aware audio that enhances the cyberpunk atmosphere.
-
----
-
-## 🏗️ Architecture & Deployment
-
-This project follows **Clean Architecture** principles and utilizes a modern **CI/CD** pipeline.
-
-### 🔄 Automated CI/CD (GitHub Actions)
-
-Every push to `main` triggers an automated workflow:
-
-1. **Tested:** Runs 25+ Unit Tests & 9 E2E Tests.
-2. **Built:** Compiles the application using Vite.
-3. **Clean Release:** Generates a developer-free `.zip` artifact for end-users.
-4. **Deployed:** Automatically updates GitHub Pages.
-
-### 🧪 System Integrity (Testing)
-
-We prioritize reliability with a comprehensive test suite:
-
-* **Unit Tests (Vitest):** Covers individual components (Header, Sidebar, ProjectCard, etc.).
-* **E2E Tests (Playwright):** Verifies critical user flows (Boot sequence, Matrix Toggle, Navigation).
-
----
-
-## 🗺️ Cyber Map (Upcoming)
-
-* Animated world map visualization with location markers.
-* Real-time connection visualization effects.
-
-## 🛠️ Installation & Boot
-
-Run the system locally on your machine:
+## Development
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/chelebyy/chelebyy.github.io.git
-
-# 2. Enter the directory
-cd chelebyy.github.io
-
-# 3. Install dependencies
-npm install
-
-# 4. Initialize System
-npm run dev
+npm ci
+npm run dev        # http://localhost:3000
+npm run lint
+npm run typecheck
+npm test           # Vitest unit tests
+npm run test:e2e   # Playwright; the GitHub API is stubbed in e2e/github-stub.ts
+npm run build
 ```
 
-## ⌨️ System Commands
+Stack: React 19, Vite 8, Tailwind CSS 4 (compiled at build time), TypeScript, Vitest, Playwright.
 
-Access the terminal via `Ctrl + K` and try these:
+## Deployment
 
-| Command | Description |
-| :--- | :--- |
-| `help` | Lists available commands |
-| `matrix` | Toggles the Matrix Rain visual effect |
-| `neofetch` / `sys` | Displays detailed system specification |
-| `theme [color]` | Changes system accent color (blue, red, green, purple) |
-| `contact` | Initiates communication protocol |
-| `reboot` / `restart` | Re-initiates the System Boot Sequence |
-| `whoami` | displays current user identity |
-
-## 🤖 Powered By
-
-This project was built with the assistance of next-generation AI agents:
-
-* **Gemini 3.0 Pro:** Rapid Prototyping & UI Generation
-* **Antigravity:** Code Architecture & Agentic Workflow
-* **Claude:** Deep Reasoning & Refactoring
+Every push to `main` runs lint, type check, unit tests, the Playwright suite and `npm audit`, then publishes the build to GitHub Pages (`cheleby.me`).
 
 ---
 
 <div align="center">
-  <sub>Designed & Engineered by <a href="https://github.com/chelebyy">@chelebyy</a></sub>
+  <sub>Built by <a href="https://github.com/chelebyy">@chelebyy</a></sub>
 </div>

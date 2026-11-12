@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Language } from '../types';
-import { useSoundEffects } from '../hooks/useSoundEffects';
 
 const LogTerminal = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: () => void, lang: Language }) => {
     const [logs, setLogs] = useState<string[]>([]);
     const scrollRef = useRef<HTMLDivElement>(null);
-    const { playLogWriteSound } = useSoundEffects();
 
     useEffect(() => {
         if (!isOpen) {
@@ -113,11 +111,7 @@ const LogTerminal = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: () =
             ]
         };
 
-        /* Hook moved to top level */
-
         const interval = setInterval(() => {
-            playLogWriteSound();
-
             // 8% Change to show Special Message (Balanced)
             let randomLog;
             if (Math.random() < 0.08) {
@@ -133,7 +127,7 @@ const LogTerminal = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: () =
         }, 800);
 
         return () => clearInterval(interval);
-    }, [isOpen, lang, playLogWriteSound]);
+    }, [isOpen, lang]);
 
     useEffect(() => {
         if (scrollRef.current) {

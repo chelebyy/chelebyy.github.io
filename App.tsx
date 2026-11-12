@@ -1,6 +1,5 @@
 import React, { useState, Suspense, lazy, useEffect, useMemo, useCallback } from 'react';
 import { Language } from './src/types';
-import { useSoundEffects } from './src/hooks/useSoundEffects';
 import { useGitHubData } from './src/hooks/useGitHubData';
 import { SECRET_THEME_COLOR } from './src/constants/theme';
 import { searchFold } from './src/lib/format';
@@ -43,7 +42,6 @@ const App: React.FC = () => {
     document.documentElement.lang = lang;
   }, [lang]);
 
-  const { playLogOpenSound, initAudio } = useSoundEffects();
 
   // The intro runs once per session and never for visitors who prefer reduced motion.
   const [isBooting, setIsBooting] = useState(() => {
@@ -94,15 +92,9 @@ const App: React.FC = () => {
     document.documentElement.style.setProperty('--accent', SECRET_THEME_COLOR);
   };
 
-  const handleOpenLogs = () => {
-    playLogOpenSound();
-    setIsLogsOpen(true);
-  };
+  const handleOpenLogs = () => setIsLogsOpen(true);
 
-  const handleInit = () => {
-    initAudio();
-    setIsInit(true);
-  };
+  const handleInit = () => setIsInit(true);
 
   const onOverlayComplete = useCallback(() => {
     setIsInit(false);
@@ -174,7 +166,7 @@ const App: React.FC = () => {
       <main className="flex w-full flex-grow flex-col">
         <Suspense fallback={null}>
           <LogTerminal isOpen={isLogsOpen} onClose={() => setIsLogsOpen(false)} lang={lang} />
-          {isInit && <TerminalOverlay onComplete={onOverlayComplete} lang={lang} initAudio={initAudio} />}
+          {isInit && <TerminalOverlay onComplete={onOverlayComplete} lang={lang} />}
         </Suspense>
 
         <Hero

@@ -91,7 +91,6 @@ export const translations = {
         cpIdentity: 'IDENTITY_MODULE',
         cpSettings: 'SYSTEM_SETTINGS',
         cpCrtEffect: 'CRT_SCANLINE_EFFECT',
-        cpSound: 'SOUND_EFFECTS',
         cpFollowers: 'followers',
     },
     tr: {
@@ -178,7 +177,6 @@ export const translations = {
         cpIdentity: 'KİMLİK_MODÜLÜ',
         cpSettings: 'SİSTEM_AYARLARI',
         cpCrtEffect: 'CRT_TARAMA_EFEKTİ',
-        cpSound: 'SES_EFEKTLERİ',
         cpFollowers: 'takipçi',
     }
 };

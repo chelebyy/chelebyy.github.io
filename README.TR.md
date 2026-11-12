@@ -16,7 +16,7 @@
 
 ## Ne yapar
 
-- **Projeler doğrudan GitHub'dan gelir.** `chelebyy` hesabının herkese açık her deposu açıklaması, dili, lisansı, konuları, yıldızları ve son push tarihiyle otomatik listelenir. Elle yazılmış ya da uydurma veri yoktur.
+- **Projeler doğrudan GitHub'dan gelir.** `chelebyy` hesabının herkese açık her deposu açıklaması, dili, lisansı, konuları ve son push tarihiyle otomatik listelenir. Elle yazılmış ya da uydurma veri yoktur.
 - **Neyin gizleneceğine sen karar verirsin.** [`src/config/site.ts`](src/config/site.ts) dosyasını düzenle:
 
   ```ts
@@ -28,9 +28,9 @@
   Adlar büyük/küçük harfe duyarsızdır. Gizlenen depolar proje listesinden *ve* aktivite günlüğünden kaybolur; ziyaretçinin tarayıcısında önbelleğe alınmış veride de.
 - **Aktivite günlüğü:** görünen depoların son sürümleri, etiketleri, push'ları ve birleştirilen PR'ları, `git log` biçiminde.
 - Proje listesinde **`grep` ve dil filtreleri.**
-- Gerçek sayılarla **neofetch paneli:** depo sayısı, yıldızlar, en çok kullanılan diller, son push.
+- Gerçek sayılarla **neofetch paneli:** depo sayısı, en çok kullanılan diller, son push.
 - **Terminal (`Ctrl + K`):** `ls`, `open <proje>`, `neofetch`, `theme <blue|red|green|purple>`, `matrix`, `whoami`, `sudo`, `reboot`, `clear`, `exit`.
-- **Efektler:** kısa bir giriş (yaklaşık 3 sn, oturum başına bir kez, atlanabilir, hareketi azalt ayarında gösterilmez), Matrix yağmuru, CRT tarama çizgileri (kontrol paneli; üst çubuktaki komut satırına tıkla), ses efektleri.
+- **Efektler:** kısa bir giriş (yaklaşık 3 sn, oturum başına bir kez, atlanabilir, hareketi azalt ayarında gösterilmez), Matrix yağmuru, CRT tarama çizgileri (kontrol paneli; üst çubuktaki komut satırına tıkla).
 - **Easter egg:** proje listesinin altındaki `.gizli/` bir şifre istiyor. Sistem günlüğü biliyor.
 - İngilizce ve Türkçe; ilk ziyarette tarayıcının dili kullanılır.
 

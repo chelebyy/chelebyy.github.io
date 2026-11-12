@@ -16,7 +16,7 @@
 
 ## What it does
 
-- **Projects come straight from GitHub.** Every public repository of `chelebyy` is listed automatically with its description, language, license, topics, stars and last push. Nothing is hand-written or simulated.
+- **Projects come straight from GitHub.** Every public repository of `chelebyy` is listed automatically with its description, language, license, topics and last push. Nothing is hand-written or simulated.
 - **You decide what is hidden.** Edit [`src/config/site.ts`](src/config/site.ts):
 
   ```ts
@@ -28,9 +28,9 @@
   Names are case-insensitive. Hidden repositories disappear from the project list *and* the activity log, including data already cached in visitors' browsers.
 - **Activity log:** recent releases, tags, pushes and merged pull requests of the visible repositories, in `git log` style.
 - **`grep` and language filters** over the project list.
-- **neofetch panel** with real numbers: repository count, stars, top languages, last push.
+- **neofetch panel** with real numbers: repository count, top languages, last push.
 - **Terminal (`Ctrl + K`):** `ls`, `open <project>`, `neofetch`, `theme <blue|red|green|purple>`, `matrix`, `whoami`, `sudo`, `reboot`, `clear`, `exit`.
-- **Effects:** a short intro (about 3 s, once per session, skippable, never shown with reduced motion), Matrix rain, CRT scanlines (control panel, click the prompt in the header), sound effects.
+- **Effects:** a short intro (about 3 s, once per session, skippable, never shown with reduced motion), Matrix rain, CRT scanlines (control panel, click the prompt in the header).
 - **Easter egg:** `.secret/` below the project list wants a passcode. The system log knows it.
 - English and Turkish; the browser language is used on the first visit.
 

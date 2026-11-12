@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Language } from '../types';
-import { useSoundEffects } from '../hooks/useSoundEffects';
 
 const sequences = {
     en: [
@@ -19,30 +18,19 @@ const sequences = {
     ]
 };
 
-const TerminalOverlay = ({ onComplete, lang, initAudio }: { onComplete: () => void, lang: Language, initAudio: () => void }) => {
+const TerminalOverlay = ({ onComplete, lang }: { onComplete: () => void, lang: Language }) => {
     const [lines, setLines] = useState<string[]>([]);
-    const { playLogWriteSound, playCompletionSound } = useSoundEffects();
 
     useEffect(() => {
         // Reset lines when language or init restarts (though component unmounts usually)
         // eslint-disable-next-line
         setLines([]);
-        initAudio(); // Ensure AudioContext is awake
 
         const sequence = sequences[lang];
         const timeouts: NodeJS.Timeout[] = [];
-        const lastIndex = sequence.length - 1;
 
-        sequence.forEach(({ text, delay }, index) => {
+        sequence.forEach(({ text, delay }) => {
             const timeout = setTimeout(() => {
-                // Play sound for each line
-                if (index === lastIndex) {
-                    // Last line (ACCESS_GRANTED) - play completion sound
-                    playCompletionSound();
-                } else {
-                    // Regular lines - play typing sound
-                    playLogWriteSound();
-                }
                 setLines(prev => [...prev, text]);
             }, delay);
             timeouts.push(timeout);
@@ -52,7 +40,7 @@ const TerminalOverlay = ({ onComplete, lang, initAudio }: { onComplete: () => vo
         timeouts.push(finishTimeout);
 
         return () => timeouts.forEach(clearTimeout);
-    }, [onComplete, lang, playLogWriteSound, playCompletionSound, initAudio]);
+    }, [onComplete, lang]);
 
     return (
         <div className="fixed inset-0 z-[100] bg-[#0a0a0c] text-primary font-mono text-sm p-4 md:p-10 flex flex-col justify-end pb-20">

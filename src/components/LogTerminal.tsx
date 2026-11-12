@@ -148,30 +148,39 @@ const LogTerminal: React.FC<LogTerminalProps> = ({ isOpen, onClose, lang, projec
         };
     }, [isOpen]);
 
+    // While the panel is the top layer it owns Escape and Tab. escapeEnabled is false while the
+    // command palette or control panel sits on top; when that overlay closes, focus falls to
+    // the page, so take it back.
     useEffect(() => {
         if (!isOpen || !escapeEnabled) return;
+        const panel = panelRef.current as HTMLElement | null;
+        if (panel && !panel.contains(document.activeElement)) closeRef.current?.focus();
+
         const onKey = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') onClose();
+            if (event.key === 'Escape') {
+                onClose();
+                return;
+            }
+            if (event.key !== 'Tab' || !panel) return;
+            const focusable: HTMLElement[] = Array.from(panel.querySelectorAll<HTMLElement>('button, [tabindex="0"]'));
+            if (focusable.length === 0) return;
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            const active = document.activeElement;
+            if (!panel.contains(active)) {
+                event.preventDefault();
+                (event.shiftKey ? last : first).focus();
+            } else if (event.shiftKey && active === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && active === last) {
+                event.preventDefault();
+                first.focus();
+            }
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
     }, [isOpen, escapeEnabled, onClose]);
-
-    // Keep Tab inside the dialog while it is open.
-    const trapTab = (event: React.KeyboardEvent) => {
-        if (event.key !== 'Tab' || !panelRef.current) return;
-        const focusable: HTMLElement[] = Array.from((panelRef.current as HTMLElement).querySelectorAll<HTMLElement>('button, [tabindex="0"]'));
-        if (focusable.length === 0) return;
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-        if (event.shiftKey && document.activeElement === first) {
-            event.preventDefault();
-            last.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
-            event.preventDefault();
-            first.focus();
-        }
-    };
 
     const live = isOpen && !paused && !reducedMotion;
     const status = reducedMotion ? t.logsStatic : paused ? t.logsPaused : t.logsLive;
@@ -189,7 +198,6 @@ const LogTerminal: React.FC<LogTerminalProps> = ({ isOpen, onClose, lang, projec
                 aria-modal="true"
                 aria-labelledby="sys-log-title"
                 inert={!isOpen}
-                onKeyDown={trapTab}
                 className={`fixed inset-y-0 right-0 z-[100] flex w-full flex-col border-l border-primary/40 bg-surface-dark font-mono text-[11px] shadow-[-30px_0_80px_-30px_color-mix(in_oklab,var(--color-primary)_55%,transparent)] duration-300 ease-out motion-reduce:transition-none md:w-[520px] md:text-xs ${
                     isOpen
                         ? 'visible translate-x-0 transition-transform'

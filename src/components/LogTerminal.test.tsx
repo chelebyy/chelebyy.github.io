@@ -135,6 +135,28 @@ describe('LogTerminal', () => {
         expect(close).not.toHaveFocus();
     });
 
+    it('takes focus back when an overlay on top of it closes', () => {
+        const { rerender, onClose } = renderTerminal({ escapeEnabled: false });
+        // The command palette opened on top and took focus; when it unmounts, focus falls to body.
+        (document.activeElement as HTMLElement).blur();
+        expect(document.body).toHaveFocus();
+        rerender(<LogTerminal isOpen={true} onClose={onClose} lang="en" projects={[]} escapeEnabled={true} />);
+        expect(screen.getByRole('button', { name: 'Close system log' })).toHaveFocus();
+    });
+
+    it('pulls a Tab from outside back into the dialog', () => {
+        const outside = document.createElement('button');
+        document.body.appendChild(outside);
+        renderTerminal();
+        outside.focus();
+        fireEvent.keyDown(outside, { key: 'Tab' });
+        expect(screen.getByRole('button', { name: '[pause]' })).toHaveFocus();
+        outside.focus();
+        fireEvent.keyDown(outside, { key: 'Tab', shiftKey: true });
+        expect(screen.getByRole('region', { name: 'System log output' })).toHaveFocus();
+        outside.remove();
+    });
+
     it('speaks Turkish', () => {
         renderTerminal({ lang: 'tr' });
         expect(screen.getByRole('button', { name: 'Sistem günlüğünü kapat' })).toBeInTheDocument();

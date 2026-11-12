@@ -40,4 +40,25 @@ test.describe('System log panel', () => {
         await expect(dialog).toBeHidden();
         await expect(opener).toBeFocused();
     });
+
+    test('keeps focus after the command palette opens on top and closes', async ({ page }) => {
+        await page.getByRole('button', { name: 'tail -f sys.log' }).click();
+        const dialog = page.getByRole('dialog', { name: 'tail -f /var/log/sys.log' });
+        await expect(dialog).toBeVisible();
+
+        await page.keyboard.press('Control+k');
+        const input = page.getByPlaceholder('Enter command...');
+        await expect(input).toBeVisible();
+        await page.keyboard.press('Escape');
+        await expect(input).toBeHidden();
+        // One Escape closes only the palette; the log stays open and gets focus back.
+        await expect(dialog).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Close system log' })).toBeFocused();
+
+        for (let index = 0; index < 4; index++) {
+            await page.keyboard.press('Tab');
+            const insidePanel = await page.evaluate(() => !!document.activeElement?.closest('[role="dialog"]'));
+            expect(insidePanel).toBe(true);
+        }
+    });
 });

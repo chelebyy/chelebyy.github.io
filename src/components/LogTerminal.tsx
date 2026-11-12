@@ -1,176 +1,233 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Language } from '../types';
+import React, { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { Language, Project } from '../types';
+import { translations } from '../constants/translations';
+import { LogLevel, LogLine, SEED_LINES, formatLogTime, nextLogLine, seedLogLines } from '../constants/systemLogs';
 
-const LogTerminal = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: () => void, lang: Language }) => {
-    const [logs, setLogs] = useState<string[]>([]);
+/** Milliseconds between new lines while the stream follows. */
+export const TICK_MS = 800;
+/** Lines kept in the panel; older ones scroll away. */
+export const MAX_LINES = 120;
+/** Lines shown, without streaming, to visitors who prefer reduced motion. */
+export const STATIC_LINES = 16;
+
+const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
+
+const subscribeReducedMotion = (onChange: () => void) => {
+    if (typeof window.matchMedia !== 'function') return () => {};
+    const query = window.matchMedia(REDUCED_MOTION);
+    query.addEventListener('change', onChange);
+    return () => query.removeEventListener('change', onChange);
+};
+const readReducedMotion = () => typeof window.matchMedia === 'function' && window.matchMedia(REDUCED_MOTION).matches;
+
+const LEVEL_LABEL: Record<LogLevel, string> = { info: 'INFO', ok: 'OK', warn: 'WARN', err: 'ERR', alert: 'ALRT' };
+const LEVEL_CLASS: Record<LogLevel, string> = {
+    info: 'text-gray-500',
+    ok: 'text-green-400',
+    warn: 'text-amber-300',
+    err: 'text-red-400',
+    alert: 'text-red-400 font-bold',
+};
+
+const LogRow: React.FC<{ line: LogLine }> = ({ line }) => {
+    const alert = line.level === 'alert';
+    return (
+        <li
+            className={`grid grid-cols-[auto_4ch_1fr] gap-x-3 border-l-2 py-0.5 pl-3 pr-4 leading-relaxed ${
+                alert
+                    ? 'border-red-500 bg-red-500/10 shadow-[inset_0_0_24px_-12px_rgba(239,68,68,0.8)]'
+                    : 'border-transparent hover:border-primary/60 hover:bg-white/[0.02]'
+            }`}
+        >
+            <time dateTime={new Date(line.time).toISOString()} className="text-gray-600 tabular-nums">{formatLogTime(line.time)}</time>
+            <span className={LEVEL_CLASS[line.level]}>{LEVEL_LABEL[line.level]}</span>
+            <span className="min-w-0 break-words">
+                <span className="text-primary-text">{line.unit}:</span>{' '}
+                <span className={alert ? 'font-bold text-red-400' : 'text-gray-300'}>{line.text}</span>
+                {line.code && <> <span className="gs-secret">{line.code}</span></>}
+            </span>
+        </li>
+    );
+};
+
+interface LogStreamProps {
+    lang: Language;
+    projects: Project[];
+    live: boolean;
+    reducedMotion: boolean;
+}
+
+/** The scrolling output. Remounted (via `key`) on every open, so each view starts fresh. */
+const LogStream: React.FC<LogStreamProps> = ({ lang, projects, live, reducedMotion }) => {
+    const t = translations[lang];
+    const [stream, setStream] = useState(() =>
+        seedLogLines(reducedMotion ? STATIC_LINES : SEED_LINES, { lang, projects, spacingMs: TICK_MS }));
     const scrollRef = useRef<HTMLDivElement>(null);
+    const stickToBottom = useRef(true);
 
     useEffect(() => {
-        if (!isOpen) {
-            // eslint-disable-next-line
-            setLogs([]);
-            return;
-        }
+        if (!live) return;
+        const id = window.setInterval(() => {
+            setStream(prev => {
+                const [line, state] = nextLogLine(prev.state, { lang, projects });
+                return { lines: [...prev.lines.slice(-(MAX_LINES - 1)), line], state };
+            });
+        }, TICK_MS);
+        return () => window.clearInterval(id);
+    }, [live, lang, projects]);
 
-        const possibleLogs = {
-            en: [
-                "> SYSTEM_CHECK_INTEGRITY... OK",
-                "> CONNECTING_TO_SATELLITE_UPLINK... SUCCESS",
-                "> DECRYPTING_USER_DATA... [###########] 100%",
-                "> WARNING: HIGH_MEMORY_USAGE_DETECTED",
-                "> OPTIMIZING_RENDER_CYCLE... DONE",
-                "> FETCHING_LATEST_ARTIFACTS... [CACHED]",
-                "> USER_ID: VERIFIED // ACCESS_LEVEL: ARCHITECT",
-                "> QUANTUM_TUNNELING_ESTABLISHED",
-                "> MONITORING_NETWORK_TRAFFIC... STABLE",
-                "> ANALYZING_USER_BEHAVIOR... [PRIVACY_MODE]",
-                "> DEPLOYING_NANOBOTS_TO_DOM...",
-                "> 0 Errors, 0 Warnings found.",
-                "> EXECUTING_ORDER_66... [SKIPPING]",
-                "> SEARCHING_FOR_MEANING_OF_LIFE... <span class='gs-secret'>1905</span>",
-                "> UPLOADING_CONSCIOUSNESS... [|||.......] 23%",
-                "> ERROR: COFFEE_LEVEL_CRITICAL",
-                "> BYPASSING_FIREWALL... ACCESS_GRANTED",
-                "> INITIATING_HYPER_DRIVE...",
-                "> DETECTED_ANOMALY_IN_SECTOR_7G",
-                "> RECALIBRATING_FLUX_CAPACITOR...",
-                "> DOWNLOADING_INTERNET... PLEASE_WAIT",
-                "> SYSTEM_UPDATE_REQUIRED [IGNORE]",
-                "> ENCRYPTING_COMMUNICATION_CHANNEL...",
-                "> SCANNING_FOR_VULNERABILITIES... NONE",
-                "> REROUTING_POWER_TO_SHIELDS...",
-                "> LOADING_TEXTURES... [HIGH_RES]",
-                "> PING_REMOTE_SERVER: 2ms",
-                "> ALLOCATING_VIRTUAL_MEMORY...",
-                "> GARBAGE_COLLECTION_STARTED...",
-                "> SYNCHRONIZING_CLOCKS... [NTP]",
-                "> CHECKING_DISK_SPACE... 99TB FREE",
-                "> MOUNTING_EXTERNAL_DRIVE: /DEV/SDA1",
-                "> KERNEL_PANIC_PREVENTED",
-                "> AI_CORE_ONLINE",
-                "> ESTABLISHING_NEURAL_LINK...",
-                "> COMPILING_SOURCE_CODE...",
-                "> PACKET_LOSS_DETECTED: 0.0001%",
-                "> TRACING_RAY_PATHS...",
-                "> GENERATING_PROCEDURAL_TERRAIN...",
-                "> LOADING_DAEMON_PROCESSES...",
-                "> VERIFYING_CHECKSUMS... MATCH",
-                "> <span class='text-red-500 font-bold shadow-[0_0_10px_rgba(239,68,68,0.6)]'>SYSTEM_ALERT: HUMANITY_PROTOCOL_INITIATED [FREE_PALESTINE 🇵🇸]</span>",
-                "> PROTOCOL_OMEGA_ACTIVATED",
-                "> SEARCHING_FOR_MEANING_OF_LIFE... <span class='gs-secret'>1905</span>",
-                "> GALATASARAY_PROTOCOL_INITIALIZED... <span class='gs-secret'>1905</span>",
-                "> SECRET_KEY_FOUND... <span class='gs-secret'>1905</span>"
-            ],
-            tr: [
-                "> SISTEM_BUTUNLUK_KONTROLU... TAMAM",
-                "> UYDU_BAGLANTISI_KURULUYOR... BASARILI",
-                "> KULLANICI_VERISI_COZULUYOR... [###########] 100%",
-                "> UYARI: YUKSEK_BELLEK_KULLANIMI_TESPIT_EDILDI",
-                "> RENDER_DONGUSU_OPTIMIZE_EDILIYOR... TAMAMLANDI",
-                "> SON_ESERLER_GETIRILIYOR... [ONBELLEK]",
-                "> KULLANICI_KIMLIGI: DOGRULANDI // SEVIYE: MIMAR",
-                "> KUANTUM_TUNELLEME_KURULUYOR...",
-                "> AG_TRAFIGI_IZLENIYOR... STABIL",
-                "> KULLANICI_DAVRANISI_ANALIZ_EDILIYOR... [GIZLI_MOD]",
-                "> DOM_NANOBOTLARI_DAGITILIYOR...",
-                "> 0 Hata, 0 Uyari bulundu.",
-                "> EMIR_66_UYGULANIYOR... [ATLANIYOR]",
-                "> HAYATIN_ANLAMI_ARANIYOR... <span class='gs-secret'>1905</span>",
-                "> BILINC_YUKLENIYOR... [|||.......] %23",
-                "> HATA: KAHVE_SEVIYESI_KRITIK",
-                "> GUVENLIK_DUVARI_ASILIYOR... ERISIM_VERILDI",
-                "> HIPER_SURUCU_BASLATILIYOR...",
-                "> SECTOR_7G_BOLGESINDE_ANOMALI_TESPIT_EDILDI",
-                "> AKIS_KAPASITORU_KALIBRE_EDILIYOR...",
-                "> INTERNET_INDIRILIYOR... LUTFEN_BEKLEYIN",
-                "> SISTEM_GUNCELLEMESI_GEREKLI [GORMEZDEN_GEL]",
-                "> ILETISIM_KANALI_SIFRELENIYOR...",
-                "> ZAFIYET_TARAMASI... TEMIZ",
-                "> KALKANLARA_GUC_AKTARILIYOR...",
-                "> DOKULAR_YUKLENIYOR... [YUKSEK_COZ]",
-                "> SUNUCU_PING: 2ms",
-                "> SANAL_BELLEK_AYRILIYOR...",
-                "> COP_TOPLAYICI_BASLATILDI...",
-                "> SAATLER_ESITLENIYOR... [NTP]",
-                "> DISK_ALANI_KONTROLU... 99TB BOS",
-                "> HARICI_SURUCU_BAGLANDI: /DEV/SDA1",
-                "> CEKIRDEK_PANIGI_ONLENDI",
-                "> YAPAY_ZEKA_CEKIRDEGI_CEVRIMICI",
-                "> NORAL_BAGLANTI_KURULUYOR...",
-                "> KAYNAK_KOD_DERLENIYOR...",
-                "> PAKET_KAYBI_TESPIT_EDILDI: %0.0001",
-                "> ISIN_IZLEME_YOLLARI_HESAPLANIYOR...",
-                "> YORDAMSAL_ARAZI_OLUSTURULUYOR...",
-                "> IBLIS_SURECLERI_YUKLENIYOR...",
-                "> <span class='text-red-500 font-bold shadow-[0_0_10px_rgba(239,68,68,0.6)]'>SISTEM_UYARISI: INSANLIK_PROTOKOLU_BASLATILDI [OZGUR_FILISTIN 🇵🇸]</span>",
-                "> DOGRULAMA_TOPLAMLARI... ESLESTI",
-                "> PROTOKOL_OMEGA_AKTIF",
-                "> HAYATIN_ANLAMI_ARANIYOR... <span class='gs-secret'>1905</span>",
-                "> GALATASARAY_PROTOKOLU_BASLATILDI... <span class='gs-secret'>1905</span>",
-                "> GIZLI_ANAHTAR_BULUNDU... <span class='gs-secret'>1905</span>"
-            ]
+    // Follow the newest line unless the visitor scrolled up to read.
+    useLayoutEffect(() => {
+        const element = scrollRef.current;
+        if (element && stickToBottom.current) element.scrollTop = element.scrollHeight;
+    }, [stream.lines]);
+
+    const onScroll = () => {
+        const element = scrollRef.current;
+        if (!element) return;
+        stickToBottom.current = element.scrollHeight - element.scrollTop - element.clientHeight < 24;
+    };
+
+    return (
+        // No aria-live: a line every 800 ms would drown a screen reader. The region is
+        // focusable so keyboard users can scroll it and read the lines (the hint lives here).
+        <div
+            ref={scrollRef}
+            onScroll={onScroll}
+            role="region"
+            aria-label={t.logsRegion}
+            tabIndex={0}
+            className="scanlines min-h-0 flex-1 overflow-y-auto py-3 focus-visible:outline-offset-[-2px]"
+        >
+            <ol className="space-y-px">
+                {stream.lines.map(line => <LogRow key={line.id} line={line} />)}
+            </ol>
+            {live && <div aria-hidden="true" className="mt-1 pl-[calc(0.75rem+2px)] text-primary-text animate-pulse">▋</div>}
+        </div>
+    );
+};
+
+interface LogTerminalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    lang: Language;
+    projects: Project[];
+    /** False while another overlay sits on top and owns the Escape key. */
+    escapeEnabled?: boolean;
+}
+
+const LogTerminal: React.FC<LogTerminalProps> = ({ isOpen, onClose, lang, projects, escapeEnabled = true }) => {
+    const t = translations[lang];
+    const reducedMotion = useSyncExternalStore(subscribeReducedMotion, readReducedMotion, () => false);
+    const [paused, setPaused] = useState(false);
+    const [session, setSession] = useState(0);
+    const [wasOpen, setWasOpen] = useState(isOpen);
+    const panelRef = useRef<HTMLDivElement>(null);
+    const closeRef = useRef<HTMLButtonElement>(null);
+    const openerRef = useRef<HTMLElement | null>(null);
+
+    // Every open starts a new stream that follows from the start.
+    if (isOpen !== wasOpen) {
+        setWasOpen(isOpen);
+        if (isOpen) {
+            setSession(value => value + 1);
+            setPaused(false);
+        }
+    }
+
+    // Move focus into the panel on open; give it back to whatever opened it on close.
+    useEffect(() => {
+        if (!isOpen) return;
+        const panel = panelRef.current;
+        openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        closeRef.current?.focus();
+        return () => {
+            const opener = openerRef.current;
+            const focusInside = panel?.contains(document.activeElement);
+            if (opener?.isConnected && (focusInside || document.activeElement === document.body)) opener.focus();
         };
-
-        const interval = setInterval(() => {
-            // 8% Change to show Special Message (Balanced)
-            let randomLog;
-            if (Math.random() < 0.08) {
-                randomLog = lang === 'en'
-                    ? "> <span class='text-red-500 font-bold shadow-[0_0_10px_rgba(239,68,68,0.6)]'>SYSTEM_ALERT: HUMANITY_PROTOCOL_INITIATED [FREE_PALESTINE 🇵🇸]</span>"
-                    : "> <span class='text-red-500 font-bold shadow-[0_0_10px_rgba(239,68,68,0.6)]'>SISTEM_UYARISI: INSANLIK_PROTOKOLU_BASLATILDI [OZGUR_FILISTIN 🇵🇸]</span>";
-            } else {
-                randomLog = possibleLogs[lang][Math.floor(Math.random() * possibleLogs[lang].length)];
-            }
-
-            const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
-            setLogs(prev => [...prev.slice(-100), `[${timestamp}] ${randomLog}`]);
-        }, 800);
-
-        return () => clearInterval(interval);
-    }, [isOpen, lang]);
+    }, [isOpen]);
 
     useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        if (!isOpen || !escapeEnabled) return;
+        const onKey = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [isOpen, escapeEnabled, onClose]);
+
+    // Keep Tab inside the dialog while it is open.
+    const trapTab = (event: React.KeyboardEvent) => {
+        if (event.key !== 'Tab' || !panelRef.current) return;
+        const focusable: HTMLElement[] = Array.from((panelRef.current as HTMLElement).querySelectorAll<HTMLElement>('button, [tabindex="0"]'));
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
         }
-    }, [logs]);
+    };
+
+    const live = isOpen && !paused && !reducedMotion;
+    const status = reducedMotion ? t.logsStatic : paused ? t.logsPaused : t.logsLive;
+    const dotClass = reducedMotion ? 'bg-gray-600' : paused ? 'bg-amber-300' : 'bg-green-400 animate-pulse';
 
     return (
         <>
-            {/* Backdrop */}
-            {isOpen && (
-                <div className="fixed inset-0 bg-black/60 z-[40] backdrop-blur-sm" onClick={onClose}></div>
-            )}
+            {isOpen && <div aria-hidden="true" className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm" onClick={onClose} />}
 
-            {/* Sidebar Panel */}
-            <div className={`fixed top-0 right-0 h-full w-full md:w-[400px] bg-surface-dark border-l border-primary/30 z-[50] transform transition-transform duration-300 ease-out shadow-2xl ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-                <div className="flex flex-col h-full font-mono text-xs">
-                    {/* Header */}
-                    <div className="flex justify-between items-center p-4 border-b border-border-dark bg-black/40">
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                            <span className="text-white font-bold">SYSTEM_LOGS</span>
-                        </div>
-                        <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
-                            [X]
+            {/* Stays mounted while closed so it can slide out. `inert` and `invisible` (on close it waits for the
+                slide to end, since visibility transitions discretely; on open it applies at once so focus can land) keep it out of the tab order and the accessibility tree. */}
+            <div
+                ref={panelRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="sys-log-title"
+                inert={!isOpen}
+                onKeyDown={trapTab}
+                className={`fixed inset-y-0 right-0 z-[100] flex w-full flex-col border-l border-primary/40 bg-surface-dark font-mono text-[11px] shadow-[-30px_0_80px_-30px_color-mix(in_oklab,var(--color-primary)_55%,transparent)] duration-300 ease-out motion-reduce:transition-none md:w-[520px] md:text-xs ${
+                    isOpen
+                        ? 'visible translate-x-0 transition-transform'
+                        : 'invisible pointer-events-none translate-x-full transition-[transform,visibility]'
+                }`}
+            >
+                <div className="flex items-center justify-between gap-3 border-b border-border-dark bg-black/30 px-4 py-2.5">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                        <span aria-hidden="true" className={`h-2 w-2 shrink-0 rounded-full ${dotClass}`} />
+                        <h2 id="sys-log-title" className="truncate text-white">{t.logsTitle}</h2>
+                        <span className="shrink-0 text-gray-600">[{status}]</span>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-3">
+                        {!reducedMotion && (
+                            <button
+                                type="button"
+                                onClick={() => setPaused(value => !value)}
+                                aria-pressed={paused}
+                                className="text-gray-500 transition-colors hover:text-white"
+                            >
+                                [{paused ? t.logsResume : t.logsPause}]
+                            </button>
+                        )}
+                        <button
+                            ref={closeRef}
+                            type="button"
+                            onClick={onClose}
+                            aria-label={t.logsClose}
+                            className="text-gray-500 transition-colors hover:text-white"
+                        >
+                            [esc]
                         </button>
                     </div>
-
-                    {/* Logs Output */}
-                    <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-2 text-green-500/80 font-mono">
-                        {logs.map((log, i) => (
-                            <div key={i} className="border-l-2 border-green-900/30 pl-2 hover:border-green-500 transition-colors" dangerouslySetInnerHTML={{ __html: log }}>
-                            </div>
-                        ))}
-                        <div className="animate-pulse">_</div>
-                    </div>
-
-                    {/* Footer */}
-                    {/* lang="en": uppercasing English text under lang="tr" turns "i" into "İ". */}
-                    <div lang="en" className="p-4 border-t border-border-dark text-gray-600 text-[10px] uppercase">
-                        Use 'ESC' to close terminal uplink
-                    </div>
                 </div>
+
+                <LogStream key={`${session}-${lang}`} lang={lang} projects={projects} live={live} reducedMotion={reducedMotion} />
+
+                <div className="border-t border-border-dark px-4 py-2.5 text-[10px] text-gray-600">{t.logsFooter}</div>
             </div>
         </>
     );

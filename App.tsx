@@ -117,6 +117,7 @@ const App: React.FC = () => {
   }, []);
 
   const closeCmd = useCallback(() => setIsCmdOpen(false), []);
+  const closeLogs = useCallback(() => setIsLogsOpen(false), []);
 
   return (
     <div className="relative flex min-h-screen flex-col bg-background-dark">
@@ -154,7 +155,14 @@ const App: React.FC = () => {
 
       <main className="flex w-full flex-grow flex-col">
         <Suspense fallback={null}>
-          <LogTerminal isOpen={isLogsOpen} onClose={() => setIsLogsOpen(false)} lang={lang} />
+          <LogTerminal
+            isOpen={isLogsOpen}
+            onClose={closeLogs}
+            lang={lang}
+            projects={projects}
+            activity={activity}
+            escapeEnabled={!isCmdOpen && !isControlPanelOpen}
+          />
         </Suspense>
 
         <Hero

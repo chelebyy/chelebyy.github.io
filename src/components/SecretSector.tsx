@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Language } from '../types';
 import { translations } from '../constants/translations';
+import { SECRET_PASSCODE } from '../constants/systemLogs';
 
 interface SecretSectorProps {
     lang: Language;
@@ -17,7 +18,7 @@ const SecretSector: React.FC<SecretSectorProps> = ({ lang, unlocked, onUnlock })
 
     const submit = (event: React.FormEvent) => {
         event.preventDefault();
-        if (input.trim() === '1905') {
+        if (input.trim() === SECRET_PASSCODE) {
             onUnlock();
             setOpen(false);
         } else {

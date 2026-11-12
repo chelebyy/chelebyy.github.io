@@ -3,6 +3,7 @@ import { Language, Project } from '../types';
 import { translations } from '../constants/translations';
 import { GitHubDataStatus } from '../hooks/useGitHubData';
 import ProjectCard from './ProjectCard';
+import { isFeatured } from '../config/site';
 
 interface ProjectListProps {
     lang: Language;
@@ -99,7 +100,7 @@ const ProjectList: React.FC<ProjectListProps> = ({
             {status === 'ready' && projects.length > 0 && (
                 <ul>
                     {projects.map((project, index) => (
-                        <ProjectCard key={project.id} project={project} lang={lang} index={index} />
+                        <ProjectCard key={project.id} project={project} lang={lang} index={index} featured={isFeatured(project.name)} />
                     ))}
                 </ul>
             )}

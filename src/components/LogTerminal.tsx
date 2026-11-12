@@ -143,7 +143,7 @@ const LogTerminal = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: () =
             )}
 
             {/* Sidebar Panel */}
-            <div className={`fixed top-0 right-0 h-full w-full md:w-[400px] bg-[#0c0c0e] border-l border-primary/30 z-[50] transform transition-transform duration-300 ease-out shadow-2xl ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+            <div className={`fixed top-0 right-0 h-full w-full md:w-[400px] bg-surface-dark border-l border-primary/30 z-[50] transform transition-transform duration-300 ease-out shadow-2xl ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                 <div className="flex flex-col h-full font-mono text-xs">
                     {/* Header */}
                     <div className="flex justify-between items-center p-4 border-b border-border-dark bg-black/40">
@@ -166,7 +166,8 @@ const LogTerminal = ({ isOpen, onClose, lang }: { isOpen: boolean, onClose: () =
                     </div>
 
                     {/* Footer */}
-                    <div className="p-4 border-t border-border-dark text-gray-600 text-[10px] uppercase">
+                    {/* lang="en": uppercasing English text under lang="tr" turns "i" into "İ". */}
+                    <div lang="en" className="p-4 border-t border-border-dark text-gray-600 text-[10px] uppercase">
                         Use 'ESC' to close terminal uplink
                     </div>
                 </div>

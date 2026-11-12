@@ -20,6 +20,25 @@ export const siteConfig = {
 
     /** Show archived repositories (they get an "archived" label). */
     showArchived: true,
+
+    /** Repository pinned to the top of the list with a "featured" highlight. Empty string turns it off. */
+    featuredRepo: 'herdr-agent-workspace',
+
+    /**
+     * Turkish descriptions shown on the TR page instead of the GitHub description.
+     * Keyed by repository name (case-insensitive). Repos not listed keep their GitHub text.
+     */
+    descriptionsTr: {
+        'herdr-agent-workspace':
+            'Birden fazla kodlama ajanını yan yana çalıştırmak için Herdr düzeni: göstergeler, kota, önceliğe göre ajanlar, takım nabzı, görev ön ayarları ve takım modu, Android ve kaynak panelleri. Türkçe/İngilizce arayüz.',
+        'ai-office':
+            'Codex oturumlarını ve ajanlarını sanal bir ofiste çalışırken izle. Masaüstü tarayıcı arayüzü; Windows ve Linux (Ubuntu/WSL) üzerinde denendi. macOS ve diğer LLM\'ler denenmedi. MIT.',
+        skills:
+            'Pratik yazılım geliştirme için ajan becerileri: projeye duyarlı test, güvenlik, GitHub CI ve depo yönetişimi ile başlıyor.',
+    } as Record<string, string>,
 };
 
 export type SiteConfig = typeof siteConfig;
+
+export const isFeatured = (repoName: string): boolean =>
+    siteConfig.featuredRepo !== '' && repoName.toLowerCase() === siteConfig.featuredRepo.toLowerCase();

@@ -8,6 +8,8 @@ const config = {
     hiddenRepos: ['StokTakip'],
     visibleForks: [] as string[],
     showArchived: true,
+    featuredRepo: '',
+    descriptionsTr: {} as Record<string, string>,
 };
 
 const repo = (id: number, name: string) => ({

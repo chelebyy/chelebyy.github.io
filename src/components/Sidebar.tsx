@@ -32,7 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({ lang, languages, total, selectedLangu
         `flex w-full items-center justify-between gap-2 px-2 py-0.5 text-left transition-colors ${active ? 'bg-primary/15 text-white' : 'text-gray-500 hover:bg-white/5 hover:text-gray-200'}`;
 
     return (
-        <aside className="hidden w-64 shrink-0 border-r border-border-dark bg-[#0c0c0e] md:block">
+        <aside className="hidden w-64 shrink-0 border-r border-border-dark bg-linear-to-b from-surface-dark via-background-dark to-background-dark md:block">
             <div className="sticky top-12 max-h-[calc(100vh-3rem)] overflow-y-auto p-6 font-mono text-[13px] leading-7">
                 <p className="mb-4 border-l border-primary/60 pl-2 text-[10px] uppercase tracking-[0.2em] text-gray-600">
                     {t.directory} ~/

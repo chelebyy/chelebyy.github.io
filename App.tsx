@@ -3,6 +3,7 @@ import { Language } from './src/types';
 import { useGitHubData } from './src/hooks/useGitHubData';
 import { SECRET_THEME_COLOR } from './src/constants/theme';
 import { searchFold } from './src/lib/format';
+import { isFeatured } from './src/config/site';
 
 // Eager imports (first paint)
 import BootSequence from './src/components/BootSequence';
@@ -74,13 +75,17 @@ const App: React.FC = () => {
 
   const visibleProjects = useMemo(() => {
     const needle = searchFold(query.trim());
-    return projects.filter(project => {
+    const matches = projects.filter(project => {
       if (selectedLanguage && project.language !== selectedLanguage) return false;
       if (!needle) return true;
       const haystack = [project.name, project.description, project.language ?? '', ...project.topics]
         .join(' ');
       return searchFold(haystack).includes(needle);
     });
+    // The featured repo leads the list; everything else keeps GitHub's order.
+    const featured = matches.findIndex(project => isFeatured(project.name));
+    if (featured > 0) matches.unshift(...matches.splice(featured, 1));
+    return matches;
   }, [projects, query, selectedLanguage]);
 
   const [secretUnlocked, setSecretUnlocked] = useState(false);

@@ -40,7 +40,7 @@ const NeofetchPanel: React.FC<Omit<HeroProps, 'onInit' | 'onOpenLogs'>> = ({ lan
     const placeholder = loading ? '…' : '—';
 
     return (
-        <div className="relative border border-border-dark bg-[#0c0d12] font-mono text-xs shadow-[0_0_0_1px_rgba(0,0,0,0.6),0_30px_80px_-30px_rgba(79,107,255,0.35)]">
+        <div className="relative border border-border-dark bg-surface-dark font-mono text-xs shadow-[0_0_0_1px_rgba(0,0,0,0.4),0_30px_80px_-30px_var(--color-primary)]">
             <div className="flex items-center justify-between border-b border-border-dark px-4 py-2 text-[11px] text-gray-500">
                 <span>neofetch</span>
                 <span>{syncedAt ? `${t.nfSynced} ${timeAgo(syncedAt, lang)}` : placeholder}</span>
@@ -93,7 +93,16 @@ const Hero: React.FC<HeroProps> = (props) => {
         <section className="relative overflow-hidden border-b border-border-dark">
             <div
                 aria-hidden="true"
-                className="absolute inset-0 opacity-[0.04]"
+                className="absolute inset-0"
+                style={{
+                    backgroundImage:
+                        'radial-gradient(ellipse 55% 70% at 78% 45%, color-mix(in oklab, var(--color-primary) 16%, transparent), transparent 70%),' +
+                        'radial-gradient(ellipse 45% 60% at 12% 30%, color-mix(in oklab, var(--color-primary) 7%, transparent), transparent 70%)',
+                }}
+            />
+            <div
+                aria-hidden="true"
+                className="absolute inset-0 opacity-[0.05]"
                 style={{
                     backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)',
                     backgroundSize: '48px 48px',

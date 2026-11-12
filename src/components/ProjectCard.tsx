@@ -2,7 +2,7 @@ import React from 'react';
 import { Language, Project } from '../types';
 import { translations } from '../constants/translations';
 import { languageColor, timeAgo } from '../lib/format';
-import { siteConfig } from '../config/site';
+import { turkishDescription } from '../config/site';
 
 interface ProjectCardProps {
     project: Project;
@@ -11,13 +11,9 @@ interface ProjectCardProps {
     featured?: boolean;
 }
 
-const turkishDescriptions = new Map(
-    Object.entries(siteConfig.descriptionsTr).map(([name, text]) => [name.toLowerCase(), text]),
-);
-
 /** GitHub descriptions are written in English; the TR page swaps in a hand-written translation when one exists. */
 const projectDescription = (project: Project, lang: Language): string =>
-    (lang === 'tr' && turkishDescriptions.get(project.name.toLowerCase())) || project.description;
+    (lang === 'tr' && turkishDescription(project.name)) || project.description;
 
 /** One project rendered as an `ls -la` entry that expands into a card on hover/focus. */
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, lang, index, featured = false }) => {
@@ -53,7 +49,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, lang, index, feature
                             </a>
                         </h3>
                         {featured && (
-                            <span className="border border-primary/50 bg-primary/10 px-1.5 font-mono text-[10px] uppercase tracking-wider text-primary">{t.featured}</span>
+                            <span className="border border-primary/50 bg-primary/15 px-1.5 font-mono text-[10px] uppercase tracking-wider text-gray-200">{t.featured}</span>
                         )}
                         {project.archived && (
                             <span className="border border-yellow-700/50 px-1.5 font-mono text-[10px] uppercase text-yellow-600">{t.archived}</span>

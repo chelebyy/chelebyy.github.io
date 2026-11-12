@@ -13,7 +13,7 @@
      sink into a near-black background. These keep secondary text readable. */
   --color-gray-400: #b0b6c4;
   --color-gray-500: #9097a8;
-  --color-gray-600: #737a8d;
+  --color-gray-600: #82899d; /* ≥4.5:1 (WCAG AA) on background, surface and the featured tint */
   --color-gray-700: #575e70;
   --color-gray-800: #3a4052;
 

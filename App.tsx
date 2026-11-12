@@ -3,7 +3,7 @@ import { Language } from './src/types';
 import { useGitHubData } from './src/hooks/useGitHubData';
 import { SECRET_THEME_COLOR } from './src/constants/theme';
 import { searchFold } from './src/lib/format';
-import { isFeatured } from './src/config/site';
+import { isFeatured, turkishDescription } from './src/config/site';
 
 // Eager imports (first paint)
 import BootSequence from './src/components/BootSequence';
@@ -78,7 +78,8 @@ const App: React.FC = () => {
     const matches = projects.filter(project => {
       if (selectedLanguage && project.language !== selectedLanguage) return false;
       if (!needle) return true;
-      const haystack = [project.name, project.description, project.language ?? '', ...project.topics]
+      // Both descriptions are searched so grep finds what the card shows on either page.
+      const haystack = [project.name, project.description, turkishDescription(project.name) ?? '', project.language ?? '', ...project.topics]
         .join(' ');
       return searchFold(haystack).includes(needle);
     });

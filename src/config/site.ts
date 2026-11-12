@@ -40,5 +40,13 @@ export const siteConfig = {
 
 export type SiteConfig = typeof siteConfig;
 
-export const isFeatured = (repoName: string): boolean =>
+const turkishDescriptions = new Map(
+    Object.entries(siteConfig.descriptionsTr).map(([name, text]) => [name.toLowerCase(), text]),
+);
+
+/** Hand-written Turkish description for a repo, if one exists. */
+export const turkishDescription = (repoName: string): string | undefined =>
+    turkishDescriptions.get(repoName.toLowerCase());
+
+export const isFeatured =(repoName: string): boolean =>
     siteConfig.featuredRepo !== '' && repoName.toLowerCase() === siteConfig.featuredRepo.toLowerCase();

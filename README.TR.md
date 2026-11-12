@@ -30,7 +30,7 @@
 - Proje listesinde **`grep` ve dil filtreleri.**
 - Gerçek sayılarla **neofetch paneli:** depo sayısı, en çok kullanılan diller, son push.
 - **Terminal (`Ctrl + K`):** `ls`, `open <proje>`, `neofetch`, `theme <blue|red|green|purple>`, `matrix`, `whoami`, `sudo`, `reboot`, `clear`, `exit`.
-- **Efektler:** açılıp kapanan eski bir tüplü monitörde kısa bir giriş (yaklaşık 5,4 sn, oturum başına bir kez, atlanabilir, hareketi azalt ayarında gösterilmez), Matrix yağmuru (terminalde `matrix`) ve sistem günlüğü (`tail -f sys.log`).
+- **Efektler:** eski bir bilgisayarın ekranında yeşil fosforla yazılan, sonunda televizyon parazitiyle kesilip siteye geçen kısa bir giriş (yaklaşık 5,8 sn, oturum başına bir kez, atlanabilir, hareketi azalt ayarında gösterilmez), Matrix yağmuru (terminalde `matrix`) ve sistem günlüğü (`tail -f sys.log`).
 - **Easter egg:** proje listesinin altındaki `.gizli/` bir şifre istiyor. Sistem günlüğü biliyor.
 - İngilizce ve Türkçe; ilk ziyarette tarayıcının dili kullanılır.
 

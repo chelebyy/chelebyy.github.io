@@ -37,7 +37,7 @@ describe('BootSequence Component', () => {
         act(() => {
             vi.advanceTimersByTime(BOOT_FADE_AT - BOOT_LINE_DELAYS[BOOT_LINE_DELAYS.length - 1]);
         });
-        expect(screen.getByTestId('boot-sequence')).toHaveAttribute('data-exit', 'zoom');
+        expect(screen.getByTestId('boot-sequence')).toHaveAttribute('data-exit', 'static');
         expect(onComplete).not.toHaveBeenCalled();
 
         // ...and hands over exactly once when it has finished.
@@ -109,7 +109,7 @@ describe('BootSequence Component', () => {
         act(() => {
             vi.advanceTimersByTime(BOOT_FADE_AT + 100);
         });
-        expect(screen.getByTestId('boot-sequence')).toHaveAttribute('data-exit', 'zoom');
+        expect(screen.getByTestId('boot-sequence')).toHaveAttribute('data-exit', 'static');
 
         fireEvent.keyDown(window, { key: 'Enter' });
         act(() => {

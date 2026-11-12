@@ -1,13 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { BOOT_EXIT_MS, BOOT_FADE_AT, BOOT_LINE_DELAYS, BOOT_POWER_ON, BootExit } from '../constants/boot';
+import { BOOT_EXIT_MS, BOOT_FADE_AT, BOOT_LINE_DELAYS, BOOT_POWER_ON } from '../constants/boot';
 import { GitHubDataStatus } from '../hooks/useGitHubData';
 
 interface BootSequenceProps {
     onComplete: () => void;
     /** Loading state and number of visible repositories. */
     repos: { status: GitHubDataStatus; count: number };
-    /** How the intro hands over to the site after the last command. */
-    exit?: BootExit;
 }
 
 const SKIP_MS = 200;
@@ -16,10 +14,10 @@ type Phase = 'run' | 'exit' | 'skip';
 
 /**
  * Short, automatic intro on a vintage computer: the screen warms up, a few shell
- * lines type out, then an exit transition hands over to the site.
+ * lines type out, then the picture breaks up into TV static and the site cuts in.
  * Runs without a click and can be skipped with any key, click or touch.
  */
-const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repos, exit = 'zoom' }) => {
+const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repos }) => {
     const [visible, setVisible] = useState(0);
     const [phase, setPhase] = useState<Phase>('run');
     const phaseRef = useRef<Phase>('run');
@@ -70,12 +68,12 @@ const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repos, exit = '
     ];
 
     const exiting = phase === 'exit';
-    const rootExit = phase === 'skip' ? 'opacity-0' : exiting ? `intro-exit intro-exit--${exit}` : '';
+    const rootExit = phase === 'skip' ? 'opacity-0' : exiting ? 'intro-exit intro-exit--static' : '';
 
     return (
         <div
             data-testid="boot-sequence"
-            data-exit={exiting ? exit : undefined}
+            data-exit={exiting ? 'static' : undefined}
             aria-hidden="true"
             className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden bg-background-dark px-4 transition-opacity ease-out ${rootExit}`}
             style={phase === 'skip'
@@ -84,7 +82,7 @@ const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repos, exit = '
         >
             {/* Vintage computer photo (Pixabay Content License); the text sits on its glass screen. */}
             <div
-                className={`intro-computer relative aspect-[2/3] h-[min(86vh,138vw,960px)] ${exiting && exit === 'zoom' ? 'intro-computer--zoom' : ''} ${exiting && exit === 'static' ? 'intro-computer--static' : ''}`}
+                className={`intro-computer relative aspect-[2/3] h-[min(86vh,138vw,960px)] ${exiting ? 'intro-computer--static' : ''}`}
                 style={{ animationDuration: `${BOOT_EXIT_MS}ms` }}
             >
                 <img
@@ -119,9 +117,8 @@ const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repos, exit = '
                 </div>
             </div>
 
-            {/* Exit effects that sit on top of everything. */}
-            {exiting && exit === 'static' && <div className="intro-static pointer-events-none absolute inset-0" style={{ animationDuration: `${BOOT_EXIT_MS}ms` }} />}
-            {exiting && exit === 'wipe' && <div className="intro-wipe-line pointer-events-none absolute inset-x-0" style={{ animationDuration: `${BOOT_EXIT_MS}ms` }} />}
+            {/* TV static over everything during the exit. */}
+            {exiting && <div className="intro-static pointer-events-none absolute inset-0" style={{ animationDuration: `${BOOT_EXIT_MS}ms` }} />}
 
             <p className="absolute bottom-6 font-mono text-[11px] text-gray-600">press any key to skip</p>
         </div>

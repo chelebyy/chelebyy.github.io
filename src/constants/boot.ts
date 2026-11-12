@@ -7,6 +7,3 @@ export const BOOT_FADE_AT = 4800;
 export const BOOT_EXIT_MS = 1000;
 export const BOOT_DONE_AT = BOOT_FADE_AT + BOOT_EXIT_MS;
 
-/** How the intro hands over to the site once the last command has run. */
-export type BootExit = 'zoom' | 'static' | 'wipe';
-export const BOOT_EXITS: BootExit[] = ['zoom', 'static', 'wipe'];

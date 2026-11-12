@@ -182,34 +182,7 @@
   animation-fill-mode: forwards;
 }
 
-/* 1) Dive into the screen: zoom toward the glass, then reveal the site. */
-.intro-computer {
-  /* Centre of the glass screen inside the photo. */
-  transform-origin: 50% 31.3%;
-}
-
-.intro-computer--zoom {
-  animation-name: intro-zoom;
-  animation-timing-function: cubic-bezier(0.55, 0, 0.9, 0.35);
-  animation-fill-mode: forwards;
-}
-
-.intro-exit--zoom {
-  animation-name: intro-fade-late;
-  animation-timing-function: linear;
-}
-
-@keyframes intro-zoom {
-  0% { transform: scale(1); filter: brightness(1); }
-  100% { transform: scale(9); filter: brightness(1.6); }
-}
-
-@keyframes intro-fade-late {
-  0%, 72% { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-/* 2) Static and cut: the picture shakes under TV noise, then the site cuts in. */
+/* Static and cut: the picture shakes under TV noise, then the site cuts in. */
 .intro-computer--static {
   animation-name: intro-jitter;
   animation-timing-function: steps(1);
@@ -254,31 +227,6 @@
   100% { opacity: 0; }
 }
 
-/* 3) Scanline wipe: a bright green line sweeps down and uncovers the site. */
-.intro-exit--wipe {
-  animation-name: intro-wipe;
-  animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
-}
-
-.intro-wipe-line {
-  top: 0;
-  height: 3px;
-  background: #8dffa4;
-  box-shadow: 0 0 12px #50ff78, 0 0 40px rgba(80, 255, 120, 0.6);
-  animation-name: intro-wipe-line;
-  animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
-  animation-fill-mode: forwards;
-}
-
-@keyframes intro-wipe {
-  0% { clip-path: inset(0 0 0 0); }
-  100% { clip-path: inset(100% 0 0 0); }
-}
-
-@keyframes intro-wipe-line {
-  0% { top: 0; }
-  100% { top: 100%; }
-}
 
 @keyframes crt-flicker {
   0%, 100% { opacity: 1; }

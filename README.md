@@ -30,7 +30,7 @@
 - **`grep` and language filters** over the project list.
 - **neofetch panel** with real numbers: repository count, top languages, last push.
 - **Terminal (`Ctrl + K`):** `ls`, `open <project>`, `neofetch`, `theme <blue|red|green|purple>`, `matrix`, `whoami`, `sudo`, `reboot`, `clear`, `exit`.
-- **Effects:** a short intro on an old CRT monitor that warms up and switches off (about 5.4 s, once per session, skippable, never shown with reduced motion), Matrix rain (`matrix` in the terminal), and a system log (`tail -f sys.log`).
+- **Effects:** a short intro typed in green phosphor on a vintage computer that breaks up into TV static before the site cuts in (about 5.8 s, once per session, skippable, never shown with reduced motion), Matrix rain (`matrix` in the terminal), and a system log (`tail -f sys.log`).
 - **Easter egg:** `.secret/` below the project list wants a passcode. The system log knows it.
 - English and Turkish; the browser language is used on the first visit.
 

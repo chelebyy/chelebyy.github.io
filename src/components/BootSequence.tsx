@@ -1,42 +1,46 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { BOOT_DONE_AT, BOOT_FADE_AT, BOOT_LINE_DELAYS, BOOT_POWER_ON } from '../constants/boot';
+import { BOOT_EXIT_MS, BOOT_FADE_AT, BOOT_LINE_DELAYS, BOOT_POWER_ON, BootExit } from '../constants/boot';
 import { GitHubDataStatus } from '../hooks/useGitHubData';
 
 interface BootSequenceProps {
     onComplete: () => void;
     /** Loading state and number of visible repositories. */
     repos: { status: GitHubDataStatus; count: number };
+    /** How the intro hands over to the site after the last command. */
+    exit?: BootExit;
 }
 
 const SKIP_MS = 200;
 
+type Phase = 'run' | 'exit' | 'skip';
+
 /**
- * Short, automatic intro shown on an old CRT monitor: the screen warms up,
- * a few shell lines type out, then the screen switches off and the site appears.
+ * Short, automatic intro on a vintage computer: the screen warms up, a few shell
+ * lines type out, then an exit transition hands over to the site.
  * Runs without a click and can be skipped with any key, click or touch.
  */
-const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repos }) => {
+const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repos, exit = 'zoom' }) => {
     const [visible, setVisible] = useState(0);
-    const [offMs, setOffMs] = useState<number | null>(null);
+    const [phase, setPhase] = useState<Phase>('run');
     const finished = useRef(false);
 
-    const finish = useCallback((duration: number) => {
+    // Every exit path ends exactly when its animation does, so nothing is cut off.
+    const finish = useCallback((next: Exclude<Phase, 'run'>) => {
         if (finished.current) return;
         finished.current = true;
-        // Screen-off and backdrop fade both end exactly at `duration`, so nothing is cut off.
-        setOffMs(duration);
-        window.setTimeout(onComplete, duration);
+        setPhase(next);
+        window.setTimeout(onComplete, next === 'skip' ? SKIP_MS : BOOT_EXIT_MS);
     }, [onComplete]);
 
     useEffect(() => {
         const timers = BOOT_LINE_DELAYS.map((delay, index) =>
             window.setTimeout(() => setVisible(index + 1), delay));
-        timers.push(window.setTimeout(() => finish(BOOT_DONE_AT - BOOT_FADE_AT), BOOT_FADE_AT));
+        timers.push(window.setTimeout(() => finish('exit'), BOOT_FADE_AT));
         return () => timers.forEach(window.clearTimeout);
     }, [finish]);
 
     useEffect(() => {
-        const skip = () => finish(SKIP_MS);
+        const skip = () => finish('skip');
         window.addEventListener('keydown', skip);
         window.addEventListener('pointerdown', skip);
         return () => {
@@ -57,20 +61,24 @@ const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repos }) => {
         { text: 'open ./open-source', command: true },
     ];
 
-    const off = offMs !== null;
-    // The backdrop starts fading once the screen has mostly collapsed.
-    const fadeDelay = off ? Math.round(offMs * 0.4) : 0;
-    const fadeDuration = off ? offMs - fadeDelay : 0;
+    const exiting = phase === 'exit';
+    const rootExit = phase === 'skip' ? 'opacity-0' : exiting ? `intro-exit intro-exit--${exit}` : '';
 
     return (
         <div
             data-testid="boot-sequence"
+            data-exit={exiting ? exit : undefined}
             aria-hidden="true"
-            className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-background-dark px-4 transition-opacity ease-out ${off ? 'opacity-0' : 'opacity-100'}`}
-            style={{ transitionDuration: `${fadeDuration / 1000}s`, transitionDelay: `${fadeDelay / 1000}s` }}
+            className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden bg-background-dark px-4 transition-opacity ease-out ${rootExit}`}
+            style={phase === 'skip'
+                ? { transitionDuration: `${SKIP_MS / 1000}s` }
+                : { animationDuration: `${BOOT_EXIT_MS}ms` }}
         >
             {/* Vintage computer photo (Pixabay Content License); the text sits on its glass screen. */}
-            <div className="relative aspect-[2/3] h-[min(86vh,138vw,960px)]">
+            <div
+                className={`intro-computer relative aspect-[2/3] h-[min(86vh,138vw,960px)] ${exiting && exit === 'zoom' ? 'intro-computer--zoom' : ''} ${exiting && exit === 'static' ? 'intro-computer--static' : ''}`}
+                style={{ animationDuration: `${BOOT_EXIT_MS}ms` }}
+            >
                 <img
                     src="/intro/retro-computer.webp"
                     alt=""
@@ -88,8 +96,8 @@ const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repos }) => {
                 <div className="crt-glass absolute left-[19.4%] top-[16.7%] h-[29.2%] w-[61.1%] overflow-hidden rounded-[9%/13%] bg-[#030805] [container-type:inline-size]">
                     {/* Text scales with the screen width (cqi), so the longest command always fits on one line. */}
                     <div
-                        className={`crt-screen absolute inset-0 whitespace-nowrap px-[7cqi] py-[7cqi] font-mono text-[clamp(6px,4cqi,15px)] leading-[1.8] ${off ? 'crt-screen--off' : 'crt-screen--on'}`}
-                        style={off ? { animationDuration: `${offMs}ms` } : { animationDuration: `${BOOT_POWER_ON}ms` }}
+                        className="crt-screen crt-screen--on absolute inset-0 whitespace-nowrap px-[7cqi] py-[7cqi] font-mono text-[clamp(6px,4cqi,15px)] leading-[1.8]"
+                        style={{ animationDuration: `${BOOT_POWER_ON}ms` }}
                     >
                         {lines.slice(0, visible).map((line, index) => (
                             <p key={index} className={`${line.command ? 'text-[#a8ffb8]' : 'text-[#4fd16d]'} ${index === visible - 1 ? 'caret' : ''}`}>
@@ -102,6 +110,10 @@ const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repos }) => {
                     <div className="crt-vignette pointer-events-none absolute inset-0" />
                 </div>
             </div>
+
+            {/* Exit effects that sit on top of everything. */}
+            {exiting && exit === 'static' && <div className="intro-static pointer-events-none absolute inset-0" style={{ animationDuration: `${BOOT_EXIT_MS}ms` }} />}
+            {exiting && exit === 'wipe' && <div className="intro-wipe-line pointer-events-none absolute inset-x-0" style={{ animationDuration: `${BOOT_EXIT_MS}ms` }} />}
 
             <p className="absolute bottom-6 font-mono text-[11px] text-gray-600">press any key to skip</p>
         </div>

@@ -3,6 +3,7 @@ import { Language } from './src/types';
 import { useGitHubData } from './src/hooks/useGitHubData';
 import { SECRET_THEME_COLOR } from './src/constants/theme';
 import { searchFold } from './src/lib/format';
+import { BOOT_EXITS, BootExit } from './src/constants/boot';
 
 // Eager imports (first paint)
 import BootSequence from './src/components/BootSequence';
@@ -42,9 +43,15 @@ const App: React.FC = () => {
   }, [lang]);
 
 
+  // TEMPORARY preview switch while choosing the intro exit: ?intro=zoom|static|wipe replays the intro.
+  const [introExit] = useState<BootExit | null>(() => {
+    const value = new URLSearchParams(window.location.search).get('intro');
+    return BOOT_EXITS.find(exit => exit === value) ?? null;
+  });
+
   // The intro runs once per session and never for visitors who prefer reduced motion.
   const [isBooting, setIsBooting] = useState(() => {
-    if (sessionStorage.getItem('hasBooted')) return false;
+    if (sessionStorage.getItem('hasBooted') && !introExit) return false;
     return !(typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   });
   const handleBootComplete = useCallback(() => {
@@ -114,7 +121,7 @@ const App: React.FC = () => {
 
   return (
     <div className="relative flex min-h-screen flex-col bg-background-dark">
-      {isBooting && <BootSequence onComplete={handleBootComplete} repos={{ status, count: projects.length }} />}
+      {isBooting && <BootSequence onComplete={handleBootComplete} repos={{ status, count: projects.length }} exit={introExit ?? 'zoom'} />}
 
       <Suspense fallback={null}>
         {matrixEnabled && <MatrixRain />}

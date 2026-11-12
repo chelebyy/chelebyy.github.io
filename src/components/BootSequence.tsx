@@ -73,7 +73,7 @@ const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repos }) => {
             <div className="crt-monitor w-[min(92vw,600px)] rounded-[26px] p-4 sm:p-6">
                 <div className="crt-glass relative aspect-[4/3] overflow-hidden rounded-[20px/16px] bg-[#05060a]">
                     <div
-                        className={`crt-screen absolute inset-0 px-6 py-7 font-mono text-[13px] leading-7 sm:px-9 sm:py-9 sm:text-[15px] ${off ? 'crt-screen--off' : 'crt-screen--on'}`}
+                        className={`crt-screen absolute inset-0 whitespace-nowrap px-4 py-5 font-mono text-[11px] leading-6 min-[400px]:px-6 min-[400px]:py-7 min-[400px]:text-[13px] min-[400px]:leading-7 sm:px-9 sm:py-9 sm:text-[15px] ${off ? 'crt-screen--off' : 'crt-screen--on'}`}
                         style={off ? { animationDuration: `${offMs}ms` } : { animationDuration: `${BOOT_POWER_ON}ms` }}
                     >
                         {lines.slice(0, visible).map((line, index) => (

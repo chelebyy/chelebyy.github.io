@@ -5,7 +5,7 @@ import { SEED_LINES, SECRET_PASSCODE } from '../constants/systemLogs';
 
 const renderTerminal = (props: { isOpen?: boolean; lang?: 'en' | 'tr'; escapeEnabled?: boolean } = {}) => {
     const onClose = vi.fn();
-    const utils = render(<LogTerminal isOpen={true} onClose={onClose} lang="en" projects={[]} {...props} />);
+    const utils = render(<LogTerminal isOpen={true} onClose={onClose} lang="en" projects={[]} activity={[]} {...props} />);
     return { ...utils, onClose };
 };
 
@@ -68,7 +68,7 @@ describe('LogTerminal', () => {
         document.body.appendChild(opener);
         opener.focus();
         const { rerender, onClose } = renderTerminal();
-        rerender(<LogTerminal isOpen={false} onClose={onClose} lang="en" projects={[]} />);
+        rerender(<LogTerminal isOpen={false} onClose={onClose} lang="en" projects={[]} activity={[]} />);
         expect(opener).toHaveFocus();
         opener.remove();
     });
@@ -98,15 +98,15 @@ describe('LogTerminal', () => {
         const { rerender, onClose } = renderTerminal();
         act(() => { vi.advanceTimersByTime(TICK_MS * 4); });
         fireEvent.click(screen.getByRole('button', { name: '[pause]' }));
-        rerender(<LogTerminal isOpen={false} onClose={onClose} lang="en" projects={[]} />);
-        rerender(<LogTerminal isOpen={true} onClose={onClose} lang="en" projects={[]} />);
+        rerender(<LogTerminal isOpen={false} onClose={onClose} lang="en" projects={[]} activity={[]} />);
+        rerender(<LogTerminal isOpen={true} onClose={onClose} lang="en" projects={[]} activity={[]} />);
         expect(logLines()).toHaveLength(SEED_LINES);
         expect(screen.getByRole('button', { name: '[pause]' })).toBeInTheDocument();
     });
 
     it('stops streaming when closed', () => {
         const { rerender, onClose } = renderTerminal();
-        rerender(<LogTerminal isOpen={false} onClose={onClose} lang="en" projects={[]} />);
+        rerender(<LogTerminal isOpen={false} onClose={onClose} lang="en" projects={[]} activity={[]} />);
         const before = document.querySelectorAll('li').length;
         act(() => { vi.advanceTimersByTime(TICK_MS * 5); });
         expect(document.querySelectorAll('li')).toHaveLength(before);
@@ -140,7 +140,7 @@ describe('LogTerminal', () => {
         // The command palette opened on top and took focus; when it unmounts, focus falls to body.
         (document.activeElement as HTMLElement).blur();
         expect(document.body).toHaveFocus();
-        rerender(<LogTerminal isOpen={true} onClose={onClose} lang="en" projects={[]} escapeEnabled={true} />);
+        rerender(<LogTerminal isOpen={true} onClose={onClose} lang="en" projects={[]} activity={[]} escapeEnabled={true} />);
         expect(screen.getByRole('button', { name: 'Close system log' })).toHaveFocus();
     });
 

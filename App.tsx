@@ -160,6 +160,7 @@ const App: React.FC = () => {
             onClose={closeLogs}
             lang={lang}
             projects={projects}
+            activity={activity}
             escapeEnabled={!isCmdOpen && !isControlPanelOpen}
           />
         </Suspense>

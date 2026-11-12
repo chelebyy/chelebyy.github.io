@@ -13,7 +13,7 @@ import {
     StreamState,
 } from './systemLogs';
 import { reposToProjects } from '../lib/github';
-import { Language } from '../types';
+import { ActivityLog, Language } from '../types';
 
 const projects = reposToProjects([
     { id: 1, name: 'ai-office', description: '', language: 'TypeScript', stargazers_count: 0, forks_count: 0, html_url: 'https://github.com/chelebyy/ai-office', homepage: null, pushed_at: '2026-11-01T00:00:00Z', archived: false, fork: false, license: null },
@@ -72,6 +72,23 @@ describe('system log stream', () => {
         // roll in the data band, then project 0, then kind 1 (indexer line)
         const [line] = run(1, 'en', sequence(ALERT_CHANCE + SECRET_CHANCE + 0.01, 0, 0.5));
         expect(line.text).toBe('indexed ai-office/ (TypeScript)');
+    });
+
+    it.each([
+        [{ type: 'release', ref: 'v1.2.0' }, 'release', 'ai-office v1.2.0 published', 'ai-office v1.2.0 yayınlandı'],
+        [{ type: 'push', ref: 'main' }, 'push', 'ai-office → main', 'ai-office → main'],
+        [{ type: 'merge', ref: '#7' }, 'merge', 'ai-office #7 merged', 'ai-office #7 birleştirildi'],
+        [{ type: 'tag', ref: 'v2' }, 'tag', 'ai-office tagged v2', 'ai-office etiketlendi: v2'],
+        [{ type: 'create' }, 'init', 'ai-office created', 'ai-office oluşturuldu'],
+    ] as const)('turns a real %o event into a log line', (event, unit, en, tr) => {
+        const activity: ActivityLog[] = [{ id: 'e1', timestamp: '2026-11-01T00:00:00Z', repo: 'chelebyy/ai-office', message: '', url: 'https://github.com/chelebyy/ai-office', ...event }];
+        // roll in the data band, project 0, kind 3 of 5 (an activity slot), event 0
+        const random = () => sequence(ALERT_CHANCE + SECRET_CHANCE + 0.01, 0, 0.7, 0);
+        const [enLine] = nextLogLine(initialStreamState(), { lang: 'en', projects, activity, random: random(), now: Date.parse('2026-11-03T00:00:00Z') });
+        const [trLine] = nextLogLine(initialStreamState(), { lang: 'tr', projects, activity, random: random(), now: Date.parse('2026-11-03T00:00:00Z') });
+        expect(enLine.unit).toBe(unit);
+        expect(enLine.text).toContain(en);
+        expect(trLine.text).toContain(tr);
     });
 
     it('falls back to flavour lines while no repositories have loaded', () => {

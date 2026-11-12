@@ -1,4 +1,4 @@
-import { Language, Project } from '../types';
+import { ActivityLog, Language, Project } from '../types';
 import { timeAgo } from '../lib/format';
 
 /** Passcode for the secret sector. The system log is the only place that leaks it. */
@@ -29,37 +29,39 @@ const t = (level: LogLevel, unit: string, en: string, tr: string, code?: string)
     ({ level, unit, text: { en, tr }, code });
 
 const FLAVOUR: Template[] = [
+    // Dev classics
     t('ok', 'kernel', 'integrity check passed', 'bütünlük kontrolü geçti'),
-    t('ok', 'uplink', 'satellite uplink established', 'uydu bağlantısı kuruldu'),
-    t('info', 'crypto', 'decrypting user data [##########] 100%', 'kullanıcı verisi çözülüyor [##########] %100'),
-    t('warn', 'mem', 'high memory usage: 97 open browser tabs', 'yüksek bellek kullanımı: 97 açık sekme'),
-    t('ok', 'render', 'render cycle optimised', 'render döngüsü optimize edildi'),
     t('info', 'auth', 'visitor verified // access level: guest (read-only)', 'ziyaretçi doğrulandı // yetki: misafir (salt okunur)'),
-    t('info', 'net', 'monitoring traffic… stable', 'ağ trafiği izleniyor… stabil'),
     t('info', 'privacy', 'analysing visitor behaviour… skipped, no trackers here', 'ziyaretçi davranışı analiz ediliyor… atlandı, burada izleyici yok'),
-    t('info', 'dom', 'deploying nanobots to the DOM', 'DOM’a nanobotlar gönderiliyor'),
+    t('warn', 'mem', 'high memory usage: 97 open browser tabs', 'yüksek bellek kullanımı: 97 açık sekme'),
     t('ok', 'lint', '0 errors, 0 warnings', '0 hata, 0 uyarı'),
-    t('info', 'empire', 'executing order 66… skipped', 'emir 66 uygulanıyor… atlandı'),
-    t('info', 'upload', 'uploading consciousness [###.......] 23%', 'bilinç yükleniyor [###.......] %23'),
-    t('err', 'coffee', 'coffee level critical', 'kahve seviyesi kritik'),
-    t('warn', 'coffee', 'refill requested, ETA 4 min', 'dolum istendi, tahmini 4 dk'),
-    t('info', 'drive', 'initiating hyperdrive', 'hiper sürücü başlatılıyor'),
-    t('warn', 'sector-7g', 'anomaly detected', 'anomali tespit edildi'),
-    t('info', 'flux', 'recalibrating flux capacitor (1.21 GW)', 'akı kapasitörü kalibre ediliyor (1,21 GW)'),
-    t('info', 'net', 'downloading the internet… please wait', 'internet indiriliyor… lütfen bekleyin'),
-    t('warn', 'update', 'system update required [ignored]', 'sistem güncellemesi gerekli [yok sayıldı]'),
-    t('ok', 'scan', 'vulnerability scan: clean', 'zafiyet taraması: temiz'),
-    t('info', 'shields', 'rerouting power to shields', 'kalkanlara güç aktarılıyor'),
-    t('info', 'ntp', 'clocks synchronised', 'saatler eşitlendi'),
-    t('info', 'disk', 'free space: 99 TB (probably)', 'boş alan: 99 TB (muhtemelen)'),
-    t('ok', 'kernel', 'kernel panic prevented', 'çekirdek paniği önlendi'),
-    t('info', 'build', 'compiling source code… works on my machine', 'kaynak kod derleniyor… bende çalışıyor'),
-    t('warn', 'net', 'packet loss: 0.0001%', 'paket kaybı: %0,0001'),
-    t('info', 'daemon', 'loading daemon processes', 'arka plan süreçleri yükleniyor'),
-    t('ok', 'verify', 'checksums match', 'sağlama toplamları eşleşti'),
+    t('info', 'build', 'compiling… works on my machine', 'derleniyor… bende çalışıyor'),
     t('err', 'stackoverflow', 'connection lost, falling back to reading the docs', 'bağlantı koptu, belgeleri okumaya geçiliyor'),
     t('info', 'git', 'rebasing onto reality… 0 conflicts', 'gerçekliğe rebase ediliyor… 0 çakışma'),
     t('ok', 'cache', 'cache invalidated (one of the two hard things)', 'önbellek geçersiz kılındı (iki zor şeyden biri)'),
+    t('info', 'empire', 'executing order 66… skipped', 'emir 66 uygulanıyor… atlandı'),
+    t('err', 'coffee', 'coffee level critical', 'kahve seviyesi kritik'),
+    t('warn', 'coffee', 'refill requested, ETA 4 min', 'dolum istendi, tahmini 4 dk'),
+    // The kitchen ("everything I cook ends up here, burnt ones included")
+    t('info', 'oven', '2 projects in the oven, one smells burnt', 'fırında 2 proje var, biri yanık kokuyor'),
+    t('warn', 'oven', 'burnt build detected, shipping it anyway', 'yanık derleme tespit edildi, yine de yayında'),
+    t('info', 'pantry', 'new idea stored (total: too many)', 'kilere yeni fikir eklendi (toplam: çok fazla)'),
+    t('ok', 'taste', 'tasted it, needs a few more tests', 'tadına bakıldı, biraz daha test lazım'),
+    t('info', 'tea', 'brewing… the build can wait', 'demleniyor… derleme bekleyebilir'),
+    t('ok', 'tea', 'second glass poured', 'ikinci bardak dolduruldu'),
+    // Working with agents
+    t('info', 'agents', '3 Codex sessions running, one of them is arguing', '3 Codex oturumu çalışıyor, biri tartışıyor'),
+    t('ok', 'review', 'reviewer found nothing. suspicious.', 'reviewer bulgu bulmadı. şüpheli.'),
+    t('warn', 'agents', 'Claude and Codex disagree, calling a referee', 'Claude ile Codex anlaşamadı, hakem çağrılıyor'),
+    // Habits
+    t('err', 'deploy', 'friday 17:45, deploy request denied', 'cuma 17:45, deploy isteği reddedildi'),
+    t('info', 'projects', 'side project #14 started before #13 shipped', '13. bitmeden 14. yan proje başladı'),
+    t('warn', 'todo', 'a TODO from 2024 is still here', '2024’ten kalma bir TODO hâlâ burada'),
+    t('info', 'docs', 'README updated, code unchanged', 'README güncellendi, kod aynı'),
+    t('ok', 'tests', 'all green. ran them twice to be sure', 'hepsi yeşil. emin olmak için iki kez çalıştırıldı'),
+    t('info', 'clock', '02:13, one last commit', 'saat 02:13, son bir commit'),
+    t('warn', 'naming', 'naming things: attempt 3', 'isim bulma: 3. deneme'),
+    t('info', 'license', 'open source: take it, fork it, burn it better', 'açık kaynak: al, fork’la, daha güzel yak'),
 ];
 
 /** Lines that leak the passcode. */
@@ -87,9 +89,32 @@ export const SECRET_MAX_GAP = 10;
 /** Lines shown at once when the panel opens, like `tail` does. */
 export const SEED_LINES = 10;
 
-const dataLine = (projects: Project[], lang: Language, random: () => number, now: number): Template => {
+/** A line for one real GitHub event (repo and ref come from the API and are rendered as text). */
+const activityLine = (log: ActivityLog, lang: Language, now: number): Template => {
+    const repo = log.repo.split('/')[1] ?? log.repo;
+    const ref = log.ref ?? '';
+    const ago = timeAgo(log.timestamp, lang, now);
+    switch (log.type) {
+        case 'release':
+            return t('ok', 'release', `${repo} ${ref} published ${ago}`, `${repo} ${ref} yayınlandı, ${ago}`);
+        case 'tag':
+            return t('info', 'tag', `${repo} tagged ${ref}`, `${repo} etiketlendi: ${ref}`);
+        case 'create':
+            return t('ok', 'init', `${repo} created ${ago}`, `${repo} oluşturuldu, ${ago}`);
+        case 'merge':
+            return t('ok', 'merge', `${repo} ${ref} merged ${ago}`, `${repo} ${ref} birleştirildi, ${ago}`);
+        default:
+            return ref
+                ? t('info', 'push', `${repo} → ${ref}, ${ago}`, `${repo} → ${ref}, ${ago}`)
+                : t('info', 'push', `${repo} pushed ${ago}`, `${repo} push aldı, ${ago}`);
+    }
+};
+
+const dataLine = (projects: Project[], activity: ActivityLog[], lang: Language, random: () => number, now: number): Template => {
     const project = projects[Math.floor(random() * projects.length)];
-    const kind = Math.floor(random() * 3);
+    // Three project-based kinds; when there is recent activity, two more slots go to real events.
+    const kind = Math.floor(random() * (activity.length > 0 ? 5 : 3));
+    if (kind >= 3) return activityLine(activity[Math.floor(random() * activity.length)], lang, now);
     if (kind === 0) {
         return t('ok', 'gh-sync', `${projects.length} public repos mirrored from api.github.com`, `api.github.com’dan ${projects.length} açık depo eşitlendi`);
     }
@@ -112,19 +137,21 @@ export const initialStreamState = (): StreamState => ({ nextId: 0, sinceSecret: 
 export interface StreamContext {
     lang: Language;
     projects: Project[];
+    /** Recent public GitHub events, already filtered like the activity list. */
+    activity?: ActivityLog[];
     random?: () => number;
     now?: number;
 }
 
 /** Picks the next log line. Pure apart from the injected random source. */
-export const nextLogLine = (state: StreamState, { lang, projects, random = Math.random, now = Date.now() }: StreamContext): [LogLine, StreamState] => {
+export const nextLogLine = (state: StreamState, { lang, projects, activity = [], random = Math.random, now = Date.now() }: StreamContext): [LogLine, StreamState] => {
     const pick = <T,>(items: T[]): T => items[Math.floor(random() * items.length)];
     const choose = (): Template => {
         if (state.sinceSecret >= SECRET_MAX_GAP - 1) return pick(SECRETS);
         const roll = random();
         if (roll < ALERT_CHANCE) return ALERT;
         if (roll < ALERT_CHANCE + SECRET_CHANCE) return pick(SECRETS);
-        if (roll < ALERT_CHANCE + SECRET_CHANCE + DATA_CHANCE && projects.length > 0) return dataLine(projects, lang, random, now);
+        if (roll < ALERT_CHANCE + SECRET_CHANCE + DATA_CHANCE && projects.length > 0) return dataLine(projects, activity, lang, random, now);
         return pick(FLAVOUR);
     };
     let template = choose();

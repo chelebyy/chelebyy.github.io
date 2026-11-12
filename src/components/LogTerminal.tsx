@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { Language, Project } from '../types';
+import { ActivityLog, Language, Project } from '../types';
 import { translations } from '../constants/translations';
 import { LogLevel, LogLine, SEED_LINES, formatLogTime, nextLogLine, seedLogLines } from '../constants/systemLogs';
 
@@ -53,15 +53,16 @@ const LogRow: React.FC<{ line: LogLine }> = ({ line }) => {
 interface LogStreamProps {
     lang: Language;
     projects: Project[];
+    activity: ActivityLog[];
     live: boolean;
     reducedMotion: boolean;
 }
 
 /** The scrolling output. Remounted (via `key`) on every open, so each view starts fresh. */
-const LogStream: React.FC<LogStreamProps> = ({ lang, projects, live, reducedMotion }) => {
+const LogStream: React.FC<LogStreamProps> = ({ lang, projects, activity, live, reducedMotion }) => {
     const t = translations[lang];
     const [stream, setStream] = useState(() =>
-        seedLogLines(reducedMotion ? STATIC_LINES : SEED_LINES, { lang, projects, spacingMs: TICK_MS }));
+        seedLogLines(reducedMotion ? STATIC_LINES : SEED_LINES, { lang, projects, activity, spacingMs: TICK_MS }));
     const scrollRef = useRef<HTMLDivElement>(null);
     const stickToBottom = useRef(true);
 
@@ -69,12 +70,12 @@ const LogStream: React.FC<LogStreamProps> = ({ lang, projects, live, reducedMoti
         if (!live) return;
         const id = window.setInterval(() => {
             setStream(prev => {
-                const [line, state] = nextLogLine(prev.state, { lang, projects });
+                const [line, state] = nextLogLine(prev.state, { lang, projects, activity });
                 return { lines: [...prev.lines.slice(-(MAX_LINES - 1)), line], state };
             });
         }, TICK_MS);
         return () => window.clearInterval(id);
-    }, [live, lang, projects]);
+    }, [live, lang, projects, activity]);
 
     // Follow the newest line unless the visitor scrolled up to read.
     useLayoutEffect(() => {
@@ -112,11 +113,12 @@ interface LogTerminalProps {
     onClose: () => void;
     lang: Language;
     projects: Project[];
+    activity: ActivityLog[];
     /** False while another overlay sits on top and owns the Escape key. */
     escapeEnabled?: boolean;
 }
 
-const LogTerminal: React.FC<LogTerminalProps> = ({ isOpen, onClose, lang, projects, escapeEnabled = true }) => {
+const LogTerminal: React.FC<LogTerminalProps> = ({ isOpen, onClose, lang, projects, activity, escapeEnabled = true }) => {
     const t = translations[lang];
     const reducedMotion = useSyncExternalStore(subscribeReducedMotion, readReducedMotion, () => false);
     const [paused, setPaused] = useState(false);
@@ -233,7 +235,7 @@ const LogTerminal: React.FC<LogTerminalProps> = ({ isOpen, onClose, lang, projec
                     </div>
                 </div>
 
-                <LogStream key={`${session}-${lang}`} lang={lang} projects={projects} live={live} reducedMotion={reducedMotion} />
+                <LogStream key={`${session}-${lang}`} lang={lang} projects={projects} activity={activity} live={live} reducedMotion={reducedMotion} />
 
                 <div className="border-t border-border-dark px-4 py-2.5 text-[10px] text-gray-600">{t.logsFooter}</div>
             </div>

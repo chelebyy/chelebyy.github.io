@@ -41,28 +41,33 @@ test.describe('Intro & Navigation', () => {
         await expect(page.getByTestId('boot-sequence')).toHaveCount(0);
     });
 
-    test('keeps every intro line inside the monitor screen on a 320 px phone', async ({ page }) => {
-        await page.setViewportSize({ width: 320, height: 640 });
-        await page.goto('/');
+    for (const width of [280, 320, 375]) {
+        test(`keeps every intro line inside the monitor screen at ${width} px`, async ({ page }) => {
+            await page.setViewportSize({ width, height: 640 });
+            await page.goto('/');
 
-        const intro = page.getByTestId('boot-sequence');
-        const lastLine = intro.getByText('open ./open-source');
-        await expect(lastLine).toBeVisible();
+            const intro = page.getByTestId('boot-sequence');
+            await expect(intro.getByText('open ./open-source')).toBeVisible();
 
-        const glass = await intro.locator('.crt-glass').boundingBox();
-        const lines = await intro.locator('.crt-screen p').evaluateAll(nodes =>
-            nodes.map(node => {
-                const rect = node.getBoundingClientRect();
-                const lineHeight = parseFloat(getComputedStyle(node).lineHeight);
-                return { bottom: rect.bottom, right: rect.right, rows: Math.round(rect.height / lineHeight) };
-            }));
-        expect(glass).toBeTruthy();
-        expect(lines).toHaveLength(5);
-        for (const line of lines) {
-            // A terminal line must not wrap, and must stay inside the glass.
-            expect(line.rows).toBe(1);
-            expect(line.bottom).toBeLessThanOrEqual(glass!.y + glass!.height);
-            expect(line.right).toBeLessThanOrEqual(glass!.x + glass!.width);
-        }
-    });
+            const glass = await intro.locator('.crt-glass').boundingBox();
+            // Measure the rendered text itself (a Range), not the paragraph box,
+            // so text that overflows a fixed-width paragraph is caught too.
+            const lines = await intro.locator('.crt-screen p').evaluateAll(nodes =>
+                nodes.map(node => {
+                    const range = document.createRange();
+                    range.selectNodeContents(node);
+                    const text = range.getBoundingClientRect();
+                    const lineHeight = parseFloat(getComputedStyle(node).lineHeight);
+                    return { bottom: text.bottom, right: text.right, rows: Math.round(text.height / lineHeight) };
+                }));
+            expect(glass).toBeTruthy();
+            expect(lines).toHaveLength(5);
+            for (const line of lines) {
+                // A terminal line must not wrap, and its text must stay inside the glass.
+                expect(line.rows).toBe(1);
+                expect(line.bottom).toBeLessThanOrEqual(glass!.y + glass!.height);
+                expect(line.right).toBeLessThanOrEqual(glass!.x + glass!.width);
+            }
+        });
+    }
 });

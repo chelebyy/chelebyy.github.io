@@ -21,7 +21,7 @@ test.describe('Layout stability', () => {
         test(`GitHub data arriving late does not shift the page at ${viewport.width}px`, async ({ page }) => {
             // Web fonts swapping in shift text on their own schedule; keep the fallback font so
             // this test measures only the shift caused by GitHub data arriving.
-            await page.route(/fonts\.(googleapis|gstatic)\.com/, route => route.abort());
+            await page.route(/\.woff2(\?|$)/, route => route.abort());
             await stubGitHub(page, { delayMs: 800 });
             await skipBoot(page);
             await page.setViewportSize(viewport);
@@ -36,7 +36,7 @@ test.describe('Layout stability', () => {
 
     for (const fail of [false, true]) {
         test(`the project section does not move under a phone visitor who scrolled to it while loading (${fail ? 'GitHub error' : 'list'})`, async ({ page }) => {
-            await page.route(/fonts\.(googleapis|gstatic)\.com/, route => route.abort());
+            await page.route(/\.woff2(\?|$)/, route => route.abort());
             await stubGitHub(page, { delayMs: 1500, fail });
             await skipBoot(page);
             await page.setViewportSize({ width: 375, height: 812 });

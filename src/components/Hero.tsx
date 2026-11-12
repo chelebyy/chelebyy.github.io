@@ -27,7 +27,7 @@ const LOGO = [
 
 const Row: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
     <div className="flex gap-3">
-        <dt className="w-24 shrink-0 text-primary">{label}</dt>
+        <dt className="w-24 shrink-0 text-primary-text">{label}</dt>
         <dd className="min-w-0 truncate text-gray-300">{children}</dd>
     </div>
 );
@@ -49,34 +49,35 @@ const NeofetchPanel: React.FC<Omit<HeroProps, 'onInit' | 'onOpenLogs'>> = ({ lan
                 <span>{syncedAt ? `${t.nfSynced} ${timeAgo(syncedAt, lang)}` : placeholder}</span>
             </div>
             <div className="scanlines grid gap-6 p-5 sm:grid-cols-[auto_1fr]">
-                <pre aria-hidden="true" className="hidden select-none leading-[1.15] text-primary sm:block">{LOGO.join('\n')}</pre>
+                <pre aria-hidden="true" className="hidden select-none leading-[1.15] text-primary-text sm:block">{LOGO.join('\n')}</pre>
                 <div className="min-w-0">
-                    <p className="text-sm text-primary">{login}</p>
-                    <p className="mb-3 text-gray-700">{'-'.repeat(login.length)}</p>
+                    <p className="text-sm text-primary-text">{login}</p>
+                    <p className="mb-3 text-gray-600">{'-'.repeat(login.length)}</p>
                     <dl className="space-y-1">
                         <Row label={t.nfRepos}>{projects.length || placeholder}</Row>
                         <Row label={t.nfLastPush}>{lastPush ? timeAgo(lastPush, lang) : placeholder}</Row>
                         <Row label={t.nfLocation}>{t.nfLocationValue}</Row>
                         <Row label={t.nfLicense}>{t.nfLicenseValue}</Row>
                     </dl>
-                    {languages.length > 0 && (
-                        <div className="mt-4">
-                            <p className="mb-2 text-primary">{t.nfLanguages}</p>
-                            <div className="flex h-1.5 w-full overflow-hidden bg-white/5" aria-hidden="true">
-                                {languages.map(entry => (
-                                    <span key={entry.language} style={{ width: `${entry.share * 100}%`, backgroundColor: languageColor(entry.language) }} />
-                                ))}
-                            </div>
-                            <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-gray-400">
-                                {languages.map(entry => (
-                                    <li key={entry.language} className="flex items-center gap-1.5">
-                                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: languageColor(entry.language) }} />
-                                        {entry.language} <span className="text-gray-600">{Math.round(entry.share * 100)}%</span>
-                                    </li>
-                                ))}
-                            </ul>
+                    {/* Always rendered, with room for two rows of languages, so the panel keeps
+                        its height when GitHub data arrives (no layout shift). */}
+                    <div className="mt-4">
+                        <p className="mb-2 text-primary-text">{t.nfLanguages}</p>
+                        <div className="flex h-1.5 w-full overflow-hidden bg-white/5" aria-hidden="true">
+                            {languages.map(entry => (
+                                <span key={entry.language} style={{ width: `${entry.share * 100}%`, backgroundColor: languageColor(entry.language) }} />
+                            ))}
                         </div>
-                    )}
+                        <ul className="mt-2 flex min-h-9 flex-wrap content-start gap-x-4 gap-y-1 text-gray-400">
+                            {languages.length === 0 && <li>{placeholder}</li>}
+                            {languages.map(entry => (
+                                <li key={entry.language} className="flex items-center gap-1.5">
+                                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: languageColor(entry.language) }} />
+                                    {entry.language} <span className="text-gray-600">{Math.round(entry.share * 100)}%</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                     <div className="mt-4 flex gap-1" aria-hidden="true">
                         {['#4f6bff', '#ff5f57', '#febc2e', '#28c840', '#a97bff', '#89e051', '#e5e7eb', '#374151'].map(color => (
                             <span key={color} className="h-3 w-5" style={{ backgroundColor: color }} />
@@ -115,7 +116,7 @@ const Hero: React.FC<HeroProps> = (props) => {
             <div className="relative mx-auto grid max-w-[1440px] items-center gap-12 px-6 py-16 md:px-12 md:py-24 lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)] lg:gap-16">
                 <div className="flex flex-col gap-7">
                     <p className="font-mono text-sm text-gray-500">
-                        <span className="text-primary">$</span> {t.systemReady}
+                        <span className="text-primary-text">$</span> {t.systemReady}
                     </p>
 
                     <h1 className="max-w-2xl border-l-2 border-primary pl-5 text-2xl font-semibold leading-snug tracking-tight text-white md:pl-7 md:text-4xl md:leading-tight">

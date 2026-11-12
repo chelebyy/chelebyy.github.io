@@ -43,7 +43,7 @@ const ControlPanel = ({
                 {/* Header */}
                 <div className="flex justify-between items-center mb-8 relative z-10 border-b border-white/5 pb-4">
                     <h2 className="text-white font-bold font-mono tracking-widest uppercase flex items-center gap-2">
-                        <span aria-hidden="true" className="text-primary">&gt;_</span>
+                        <span aria-hidden="true" className="text-primary-text">&gt;_</span>
                         {t.cpTitle}
                     </h2>
                     <button type="button" onClick={onClose} aria-label="Close" className="font-mono text-xs text-gray-500 hover:text-white transition-colors">
@@ -73,10 +73,10 @@ const ControlPanel = ({
 
                             <div className="flex gap-4 text-xs font-mono text-gray-500">
                                 <span>
-                                    <span className="text-primary">{t.nfRepos}</span> {user?.public_repos || '0'}
+                                    <span className="text-primary-text">{t.nfRepos}</span> {user?.public_repos || '0'}
                                 </span>
                                 <span>
-                                    <span className="text-primary">{t.cpFollowers}</span> {user?.followers || '0'}
+                                    <span className="text-primary-text">{t.cpFollowers}</span> {user?.followers || '0'}
                                 </span>
                             </div>
                         </div>

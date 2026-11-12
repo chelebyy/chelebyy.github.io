@@ -42,7 +42,9 @@ const Sidebar: React.FC<SidebarProps> = ({ lang, languages, total, selectedLangu
                         <a href="#projects-section" onClick={scrollTo('projects-section')} className="text-gray-200 hover:text-primary">
                             {t.projectsDir}/
                         </a>
-                        <ul aria-label={t.languageFilter}>
+                        {/* Always at least "all" plus four languages tall (measured 128px), before and
+                            after GitHub answers, so the entries below do not jump for up to four languages. */}
+                        <ul aria-label={t.languageFilter} className="min-h-32">
                             <Branch last={languages.length === 0}>
                                 <button type="button" aria-pressed={selectedLanguage === null} onClick={() => onSelectLanguage(null)} className={item(selectedLanguage === null)}>
                                     <span>{t.allLanguages}</span>
@@ -74,7 +76,7 @@ const Sidebar: React.FC<SidebarProps> = ({ lang, languages, total, selectedLangu
                         </a>
                     </Branch>
                     <Branch last>
-                        <a href="#secret-section" onClick={scrollTo('secret-section')} className={secretUnlocked ? 'gs-secret' : 'text-gray-700 hover:text-gray-400'}>
+                        <a href="#secret-section" onClick={scrollTo('secret-section')} className={secretUnlocked ? 'gs-secret' : 'text-gray-600 hover:text-gray-400'}>
                             {t.secretName}
                         </a>
                     </Branch>

@@ -11,7 +11,7 @@ interface ActivityLogListProps {
 const typeColor: Record<ActivityLog['type'], string> = {
     release: 'text-[#28c840]',
     tag: 'text-[#febc2e]',
-    push: 'text-primary',
+    push: 'text-primary-text',
     create: 'text-[#a97bff]',
     merge: 'text-[#a97bff]',
 };
@@ -22,7 +22,7 @@ const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, lang }) => {
     return (
         <section id="activity-section" aria-labelledby="activity-title" className="scroll-mt-12 px-6 py-12 md:px-10">
             <p className="mb-2 font-mono text-xs text-gray-600">
-                <span className="text-primary">$</span> {t.recentActivity}
+                <span className="text-primary-text">$</span> {t.recentActivity}
             </p>
             <h2 id="activity-title" className="mb-6 text-2xl font-bold tracking-tight text-white">{t.activityDir}.log</h2>
 

@@ -31,8 +31,10 @@ const events = [
 ];
 
 /** Serve fixed GitHub API answers so browser tests never depend on the real API or its rate limit. */
-export const stubGitHub = async (page: Page, options: { fail?: boolean } = {}) => {
-    await page.route('https://api.github.com/**', route => {
+export const stubGitHub = async (page: Page, options: { fail?: boolean; delayMs?: number } = {}) => {
+    await page.route('https://api.github.com/**', async route => {
+        // A delay makes the page render its loading state first, like a real network would.
+        if (options.delayMs) await new Promise(resolve => setTimeout(resolve, options.delayMs));
         if (options.fail) return route.fulfill({ status: 403, json: { message: 'API rate limit exceeded' } });
         const url = route.request().url();
         if (url.includes('/repos')) return route.fulfill({ json: repos });

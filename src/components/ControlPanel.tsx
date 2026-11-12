@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Language, GitHubUser } from '../types';
 import { translations } from '../constants/translations';
 
@@ -6,20 +6,28 @@ interface ControlPanelProps {
     isOpen: boolean;
     onClose: () => void;
     lang: Language;
-    crtEnabled: boolean;
-    setCrtEnabled: (enabled: boolean) => void;
-    user: GitHubUser;
+    user: GitHubUser | null;
+    /** False while another overlay (the terminal) sits on top and owns the Escape key. */
+    escapeEnabled?: boolean;
 }
 
 const ControlPanel = ({
     isOpen,
     onClose,
     lang,
-    crtEnabled,
-    setCrtEnabled,
-    user
+    user,
+    escapeEnabled = true
 }: ControlPanelProps) => {
     const t = translations[lang];
+
+    useEffect(() => {
+        if (!isOpen || !escapeEnabled) return;
+        const onKey = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [isOpen, onClose, escapeEnabled]);
 
     if (!isOpen) return null;
 
@@ -35,11 +43,11 @@ const ControlPanel = ({
                 {/* Header */}
                 <div className="flex justify-between items-center mb-8 relative z-10 border-b border-white/5 pb-4">
                     <h2 className="text-white font-bold font-mono tracking-widest uppercase flex items-center gap-2">
-                        <span className="material-symbols-outlined text-primary">admin_panel_settings</span>
+                        <span aria-hidden="true" className="text-primary">&gt;_</span>
                         {t.cpTitle}
                     </h2>
-                    <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
-                        <span className="material-symbols-outlined">close</span>
+                    <button type="button" onClick={onClose} aria-label="Close" className="font-mono text-xs text-gray-500 hover:text-white transition-colors">
+                        [esc]
                     </button>
                 </div>
 
@@ -64,43 +72,17 @@ const ControlPanel = ({
                             <p className="text-gray-400 text-xs font-mono mb-2">{user?.bio || 'Full Stack Developer'}</p>
 
                             <div className="flex gap-4 text-xs font-mono text-gray-500">
-                                <span className="flex items-center gap-1">
-                                    <span className="material-symbols-outlined text-[14px]">folder</span>
-                                    {user?.public_repos || '0'}
+                                <span>
+                                    <span className="text-primary">{t.nfRepos}</span> {user?.public_repos || '0'}
                                 </span>
-                                <span className="flex items-center gap-1">
-                                    <span className="material-symbols-outlined text-[14px]">group</span>
-                                    {user?.followers || '0'}
+                                <span>
+                                    <span className="text-primary">{t.cpFollowers}</span> {user?.followers || '0'}
                                 </span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* System Settings */}
-                <div className="relative z-10">
-                    <h3 className="text-xs text-gray-500 font-mono uppercase mb-4 pl-2 border-l-2 border-primary">{t.cpSettings}</h3>
-
-                    <div className="flex flex-col gap-3">
-                        <label className="flex items-center justify-between p-3 bg-white/5 rounded-sm hover:bg-white/10 cursor-pointer transition-colors group">
-                            <span className="text-gray-300 font-mono text-sm group-hover:text-white">{t.cpCrtEffect}</span>
-                            <div className="relative inline-flex items-center cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    className="sr-only peer"
-                                    checked={crtEnabled}
-                                    onChange={(e) => setCrtEnabled(e.target.checked)}
-                                />
-                                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                {/* Footer info */}
-                <div className="mt-8 text-center">
-                    <p className="text-[10px] text-gray-600 font-mono uppercase">System Integrity: 100% // Secure Connection</p>
-                </div>
             </div>
         </div>
 

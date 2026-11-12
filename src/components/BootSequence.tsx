@@ -1,140 +1,126 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { BOOT_EXIT_MS, BOOT_FADE_AT, BOOT_LINE_DELAYS, BOOT_POWER_ON } from '../constants/boot';
+import { GitHubDataStatus } from '../hooks/useGitHubData';
 
 interface BootSequenceProps {
     onComplete: () => void;
-    playPhaseSound: (phase: 'bios' | 'auth' | 'access') => void;
-    initAudio: () => void;
+    /** Loading state and number of visible repositories. */
+    repos: { status: GitHubDataStatus; count: number };
 }
 
-const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, playPhaseSound, initAudio }) => {
-    const [lines, setLines] = useState<string[]>([]);
-    const [phase, setPhase] = useState<'start' | 'bios' | 'auth' | 'access' | 'drop'>('start');
+const SKIP_MS = 200;
 
-    const handleStart = () => {
-        initAudio(); // Explicitly wake up AudioContext on click
-        setPhase('bios');
-    };
+type Phase = 'run' | 'exit' | 'skip';
+
+/**
+ * Short, automatic intro on a vintage computer: the screen warms up, a few shell
+ * lines type out, then the picture breaks up into TV static and the site cuts in.
+ * Runs without a click and can be skipped with any key, click or touch.
+ */
+const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repos }) => {
+    const [visible, setVisible] = useState(0);
+    const [phase, setPhase] = useState<Phase>('run');
+    const phaseRef = useRef<Phase>('run');
+
+    // run → exit, run → skip, and exit → skip (a key press still shortens a playing exit).
+    const finish = useCallback((next: Exclude<Phase, 'run'>) => {
+        const current = phaseRef.current;
+        if (current === 'skip' || current === next) return;
+        phaseRef.current = next;
+        setPhase(next);
+    }, []);
+
+    // The hand-over timer starts after React has committed the new phase, so the
+    // animation it waits for is already on screen; a later skip replaces it.
+    useEffect(() => {
+        if (phase === 'run') return;
+        const timer = window.setTimeout(onComplete, phase === 'skip' ? SKIP_MS : BOOT_EXIT_MS);
+        return () => window.clearTimeout(timer);
+    }, [phase, onComplete]);
 
     useEffect(() => {
-        if (phase !== 'bios') return;
-
-        // Phase 1: BIOS / POST
-        const bootText = [
-            "BIOS_MEM_CHECK: 64GB OK",
-            "LOADING_KERNEL_V4.2... OK",
-            "MOUNTING_VIRTUAL_FS... OK",
-            "INIT_GRAPHICS_DRIVER... OK",
-            "ESTABLISHING_SECURE_UPLINK... [CONNECTED]"
-        ];
-
-        // Play initial sound - NOW triggered by user click
-        playPhaseSound('bios');
-
-        let lineIndex = 0;
-        const printInterval = setInterval(() => {
-            setLines(prev => {
-                const newLines = [...prev, bootText[lineIndex]];
-                return newLines.slice(-7);
-            });
-
-            lineIndex++;
-
-            if (lineIndex === bootText.length) {
-                clearInterval(printInterval);
-                setTimeout(() => setPhase('auth'), 600);
-            }
-        }, 400);
-
-        return () => clearInterval(printInterval);
-    }, [phase, playPhaseSound]);
+        const timers = BOOT_LINE_DELAYS.map((delay, index) =>
+            window.setTimeout(() => setVisible(index + 1), delay));
+        timers.push(window.setTimeout(() => finish('exit'), BOOT_FADE_AT));
+        return () => timers.forEach(window.clearTimeout);
+    }, [finish]);
 
     useEffect(() => {
-        if (phase === 'auth') {
-            playPhaseSound('auth');
-            // Phase 2: Authentication
-            const timer = setTimeout(() => {
-                setPhase('access');
-            }, 2500);
-            return () => clearTimeout(timer);
-        }
+        const skip = () => finish('skip');
+        window.addEventListener('keydown', skip);
+        window.addEventListener('pointerdown', skip);
+        return () => {
+            window.removeEventListener('keydown', skip);
+            window.removeEventListener('pointerdown', skip);
+        };
+    }, [finish]);
 
-        if (phase === 'access') {
-            playPhaseSound('access');
-            // Phase 3: Access Granted -> The Drop
-            const timer = setTimeout(() => {
-                setPhase('drop');
-                setTimeout(onComplete, 300); // Sync with CSS ping animation
-            }, 1000);
-            return () => clearTimeout(timer);
-        }
-    }, [phase, onComplete, playPhaseSound]);
+    const lines: Array<{ text: string; command?: boolean }> = [
+        { text: 'ssh guest@cheleby.me', command: true },
+        { text: 'connected.' },
+        { text: 'gh repo list chelebyy --public', command: true },
+        {
+            text: repos.status === 'ready'
+                ? `${repos.count} repositories found`
+                : repos.status === 'error' ? 'github.com did not answer' : 'fetching repositories…',
+        },
+        { text: 'open ./open-source', command: true },
+    ];
 
+    const exiting = phase === 'exit';
+    const rootExit = phase === 'skip' ? 'opacity-0' : exiting ? 'intro-exit intro-exit--static' : '';
 
     return (
         <div
             data-testid="boot-sequence"
-            className={`fixed inset-0 z-[9999] bg-black text-green-500 font-mono flex flex-col items-center justify-center transition-all duration-300 ${phase === 'drop' ? 'opacity-0 scale-110' : 'opacity-100'}`}
+            data-exit={exiting ? 'static' : undefined}
+            aria-hidden="true"
+            className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden bg-background-dark px-4 transition-opacity ease-out ${rootExit}`}
+            style={phase === 'skip'
+                ? { transitionDuration: `${SKIP_MS / 1000}s` }
+                : { animationDuration: `${BOOT_EXIT_MS}ms` }}
         >
+            {/* Vintage computer photo (Pixabay Content License); the text sits on its glass screen. */}
+            <div
+                className={`intro-computer relative aspect-[2/3] h-[min(86vh,138vw,960px)] ${exiting ? 'intro-computer--static' : ''}`}
+                style={{ animationDuration: `${BOOT_EXIT_MS}ms` }}
+            >
+                <img
+                    src="/intro/retro-computer.webp"
+                    alt=""
+                    width={720}
+                    height={1080}
+                    decoding="async"
+                    fetchPriority="high"
+                    className="crt-photo absolute inset-0 h-full w-full select-none object-cover"
+                    draggable={false}
+                />
+                {/* Blend the photo's wall and desk into the page background. */}
+                <div className="crt-photo-fade pointer-events-none absolute inset-0" />
 
-            {/* Background Grid */}
-            <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(#0f0 1px, transparent 1px), linear-gradient(90deg, #0f0 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-
-            <div className="max-w-xl w-full p-6 relative z-10">
-
-                {/* Phase 0: Start Screen */}
-                {phase === 'start' && (
-                    <div className="text-center">
-                        <div className="text-xs text-green-700 mb-4 tracking-widest uppercase">// System Ready</div>
-                        <button
-                            onClick={handleStart}
-                            className="px-8 py-4 border border-green-500/50 bg-green-500/10 text-green-500 font-mono tracking-widest uppercase hover:bg-green-500/20 hover:border-green-500 transition-all duration-300 animate-pulse cursor-pointer"
-                        >
-                            [ INITIALIZE SYSTEM ]
-                        </button>
-                        <div className="text-[10px] text-green-900 mt-4">Click to begin boot sequence</div>
-                    </div>
-                )}
-
-                {/* Phase 1: BIOS Lines */}
-                {phase === 'bios' && (
-                    <div className="space-y-1 font-mono text-left w-full">
-                        {lines.map((line, i) => (
-                            <div key={i} className="text-sm md:text-base opacity-80">
-                                <span className="mr-2 text-green-700">{`>`}</span>
-                                {line}
-                            </div>
+                {/* The glass screen of the photographed monitor. */}
+                <div className="crt-glass absolute left-[19.4%] top-[16.7%] h-[29.2%] w-[61.1%] overflow-hidden rounded-[9%/13%] bg-[#030805] [container-type:inline-size]">
+                    {/* Text scales with the screen width (cqi), so the longest command always fits on one line. */}
+                    <div
+                        className="crt-screen crt-screen--on absolute inset-0 whitespace-nowrap px-[7cqi] py-[7cqi] font-mono text-[clamp(6px,4cqi,15px)] leading-[1.8]"
+                        style={{ animationDuration: `${BOOT_POWER_ON}ms` }}
+                    >
+                        {lines.slice(0, visible).map((line, index) => (
+                            <p key={index} className={`${line.command ? 'text-[#a8ffb8]' : 'text-[#4fd16d]'} ${index === visible - 1 ? 'caret' : ''}`}>
+                                {line.command && <span className="mr-[0.6em] text-[#6dff8c]">$</span>}
+                                {line.text}
+                            </p>
                         ))}
-                        <div className="animate-pulse mt-2 ml-4">_</div>
                     </div>
-                )}
-
-                {/* Phase 2: Authentication */}
-                {phase === 'auth' && (
-                    <div className="text-center w-full">
-                        <div className="text-xl md:text-2xl mb-8 animate-pulse font-bold tracking-widest">AUTHENTICATING_USER...</div>
-                        <div className="h-1 w-64 bg-gray-900 mx-auto rounded overflow-hidden relative border border-green-900/30">
-                            <div className="absolute inset-0 bg-green-500 animate-[loading_2s_ease-in-out]"></div>
-                        </div>
-                        <p className="text-[10px] text-green-600/70 mt-4 tracking-[0.2em] animate-pulse">VERIFYING_BIOMETRICS_HASH</p>
-                    </div>
-                )}
-
-                {/* Phase 3: Access Granted */}
-                {phase === 'access' && (
-                    <div className="text-center relative w-full">
-                        <div className="absolute inset-0 bg-green-500/10 blur-2xl animate-pulse"></div>
-                        <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter relative z-10 glitch-text" data-text="ACCESS GRANTED">
-                            ACCESS GRANTED
-                        </h1>
-                        <p className="text-green-400 mt-6 tracking-[0.5em] text-xs uppercase animate-bounce">Welcome Back Admin</p>
-                    </div>
-                )}
+                    <div className="crt-scanlines pointer-events-none absolute inset-0" />
+                    <div className="crt-vignette pointer-events-none absolute inset-0" />
+                </div>
             </div>
 
-            {/* The Drop: CRT Flash */}
-            {phase === 'drop' && (
-                <div className="absolute inset-0 bg-white animate-[ping_0.1s_ease-out]"></div>
-            )}
+            {/* TV static over everything during the exit. */}
+            {exiting && <div className="intro-static pointer-events-none absolute inset-0" style={{ animationDuration: `${BOOT_EXIT_MS}ms` }} />}
+
+            <p className="absolute bottom-6 font-mono text-[11px] text-gray-600">press any key to skip</p>
         </div>
     );
 };

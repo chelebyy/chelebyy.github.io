@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import CommandPalette from './CommandPalette';
+import { reposToProjects } from '../lib/github';
+
+const projects = reposToProjects([
+    { id: 1, name: 'ai-office', description: '', language: 'TypeScript', stargazers_count: 2, forks_count: 0, html_url: 'https://github.com/chelebyy/ai-office', homepage: null, pushed_at: '2026-11-01T00:00:00Z', archived: false, fork: false, license: null },
+]);
 
 // Mock dependencies
 const mockSetMatrixEnabled = vi.fn();
@@ -21,6 +26,8 @@ describe('CommandPalette Component', () => {
                 lang="en"
                 matrixEnabled={false}
                 setMatrixEnabled={mockSetMatrixEnabled}
+                projects={projects}
+                user={null}
             />
         );
         expect(screen.queryByText('➜')).not.toBeInTheDocument();
@@ -35,6 +42,8 @@ describe('CommandPalette Component', () => {
                 lang="en"
                 matrixEnabled={false}
                 setMatrixEnabled={mockSetMatrixEnabled}
+                projects={projects}
+                user={null}
             />
         );
 
@@ -57,6 +66,8 @@ describe('CommandPalette Component', () => {
                 lang="en"
                 matrixEnabled={false}
                 setMatrixEnabled={mockSetMatrixEnabled}
+                projects={projects}
+                user={null}
             />
         );
 
@@ -76,6 +87,8 @@ describe('CommandPalette Component', () => {
                 lang="en"
                 matrixEnabled={false}
                 setMatrixEnabled={mockSetMatrixEnabled}
+                projects={projects}
+                user={null}
             />
         );
 
@@ -94,6 +107,8 @@ describe('CommandPalette Component', () => {
                 lang="en"
                 matrixEnabled={false}
                 setMatrixEnabled={mockSetMatrixEnabled}
+                projects={projects}
+                user={null}
             />
         );
 
@@ -112,6 +127,8 @@ describe('CommandPalette Component', () => {
                 lang="en"
                 matrixEnabled={false}
                 setMatrixEnabled={mockSetMatrixEnabled}
+                projects={projects}
+                user={null}
             />
         );
 
@@ -123,5 +140,54 @@ describe('CommandPalette Component', () => {
         // Using a regex or a flexible matcher is safer
         const deniedMessage = screen.getByText(/PERMISSION DENIED/i);
         expect(deniedMessage).toBeInTheDocument();
+    });
+
+    it('lists projects and opens one on GitHub', () => {
+        const openSpy = vi.spyOn(window, 'open').mockReturnValue(null);
+        render(
+            <CommandPalette
+                isOpen={true}
+                onClose={mockOnClose}
+                lang="en"
+                matrixEnabled={false}
+                setMatrixEnabled={mockSetMatrixEnabled}
+                projects={projects}
+                user={null}
+            />
+        );
+
+        const input = screen.getByRole('textbox');
+        fireEvent.change(input, { target: { value: 'ls' } });
+        fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+        expect(screen.getByText('ai-office/')).toBeInTheDocument();
+
+        fireEvent.change(input, { target: { value: 'open AI-Office' } });
+        fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+        expect(openSpy).toHaveBeenCalledWith('https://github.com/chelebyy/ai-office', '_blank', 'noopener,noreferrer');
+
+        fireEvent.change(input, { target: { value: 'open nope' } });
+        fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+        expect(screen.getByText(/No such project/)).toBeInTheDocument();
+        openSpy.mockRestore();
+    });
+
+    it('rejects theme names that are not real colors, including object keys', () => {
+        render(
+            <CommandPalette
+                isOpen={true}
+                onClose={mockOnClose}
+                lang="en"
+                matrixEnabled={false}
+                setMatrixEnabled={mockSetMatrixEnabled}
+                projects={projects}
+                user={null}
+            />
+        );
+        document.documentElement.style.removeProperty('--accent');
+        const input = screen.getByRole('textbox');
+        fireEvent.change(input, { target: { value: 'theme constructor' } });
+        fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+        expect(screen.getByText(/Invalid color/)).toBeInTheDocument();
+        expect(document.documentElement.style.getPropertyValue('--accent')).toBe('');
     });
 });

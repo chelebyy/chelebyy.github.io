@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Language } from '../types';
+import { GitHubUser, Language, Project } from '../types';
 import { translations } from '../constants/translations';
+import { languageBreakdown } from '../lib/github';
+import { siteConfig } from '../config/site';
+import { THEME_COLORS } from '../constants/theme';
 
 interface CommandPaletteProps {
     isOpen: boolean;
@@ -8,9 +11,13 @@ interface CommandPaletteProps {
     lang: Language;
     matrixEnabled: boolean;
     setMatrixEnabled: (enabled: boolean) => void;
+    projects: Project[];
+    user: GitHubUser | null;
 }
 
-const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, lang, matrixEnabled, setMatrixEnabled }) => {
+const openExternal = (url: string) => window.open(url, '_blank', 'noopener,noreferrer');
+
+const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, lang, matrixEnabled, setMatrixEnabled, projects, user }) => {
     const t = translations[lang];
     const [input, setInput] = useState('');
     const [history, setHistory] = useState<React.ReactNode[]>([]);
@@ -24,122 +31,156 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, lang, 
         }
     }, [isOpen, lang, t.cmdReady, t.cmdHelp]);
 
-    // Neofetch ASCII Art
-    const getNeofetch = () => (
-        <div className="text-xs font-mono text-primary leading-tight my-2">
-            <pre>{`
-         /\\        OS: Digital Artifacts OS v1.0
-        /  \\       Host: VITE-REACT-TS-CORE
-       / /\\ \\      Kernel: 5.15.0-generic
-      / /__\\ \\     Uptime: 420 days, 6 hours
-     / /______\\ \\    Packages: 1337 (npm)
-    / /______\\ \\   Shell: zsh 5.8
-   /_/________\\_\\  Resolution: 1920x1080
-                   DE: Cyberpunk
-                   WM: Tiling
-                   Theme: Dark [GTK2/3]
-                   Icons: Material Symbols
-                   Terminal: WebTerm
-                   CPU: Neural Engine X1
-                   GPU: Rendering Unit 04
+    useEffect(() => {
+        if (!isOpen) return;
+        const onKey = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [isOpen, onClose]);
+
+    const getNeofetch = () => {
+        const langs = languageBreakdown(projects).map(entry => entry.language).join(', ') || '—';
+        return (
+            <div className="text-xs font-mono text-primary leading-tight my-2">
+                <pre>{`
+         /\\        user: ${user?.login ?? siteConfig.githubUser}
+        /  \\       repos: ${projects.length}
+       / /\\ \\      languages: ${langs}
+      / /__\\ \\     host: GitHub Pages
+     / /______\\ \\   stack: React, Vite, Tailwind
+    / /______\\ \\   license: open source
+   /_/________\\_\\
         `}</pre>
-        </div>
-    );
+            </div>
+        );
+    };
+
+    const commands: Array<[string, string]> = [
+        ['ls', t.helpDescLs],
+        ['open [name]', t.helpDescOpen],
+        ['theme [color]', t.helpDescTheme],
+        ['matrix', t.helpDescMatrix],
+        ['neofetch', t.helpDescNeofetch],
+        ['whoami', t.helpDescWhoami],
+        ['contact', t.helpDescContact],
+        ['sudo [cmd]', t.helpDescSudo],
+        ['reboot', t.helpDescReboot],
+        ['clear', t.helpDescClear],
+        ['exit', t.helpDescExit],
+    ];
 
     const handleCommand = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            const cmd = input.trim().toLowerCase();
-            const newHistory = [...history, <div key={Date.now() + 'cmd'} className="text-white">{translations['en'].terminal.split(':')[0]}:~$ {input}</div>];
+        if (e.key !== 'Enter') return;
+        const raw = input.trim();
+        const cmd = raw.toLowerCase();
+        const [name, ...args] = cmd.split(/\s+/);
+        const newHistory = [...history, <div key={Date.now() + 'cmd'} className="text-white">{siteConfig.githubUser}:~$ {input}</div>];
 
-            let response: React.ReactNode;
+        let response: React.ReactNode;
 
-            if (cmd === 'help') {
-                response = (
-                    <div className="text-gray-400">
-                        <div>&gt; {t.cmdAvailable}</div>
-                        <div className="pl-4 text-primary">theme [color] <span className="text-gray-600">{t.helpDescTheme}</span></div>
-                        <div className="pl-4 text-primary">matrix <span className="text-gray-600">{t.helpDescMatrix}</span></div>
-                        <div className="pl-4 text-primary">neofetch <span className="text-gray-600">{t.helpDescNeofetch}</span></div>
-                        <div className="pl-4 text-primary">clear <span className="text-gray-600">{t.helpDescClear}</span></div>
-                        <div className="pl-4 text-primary">contact <span className="text-gray-600">{t.helpDescContact}</span></div>
-                        <div className="pl-4 text-primary">whoami <span className="text-gray-600">{t.helpDescWhoami}</span></div>
-                        <div className="pl-4 text-primary">sudo [cmd] <span className="text-gray-600">{t.helpDescSudo}</span></div>
-                        <div className="pl-4 text-primary">exit <span className="text-gray-600">{t.helpDescExit}</span></div>
-                    </div>
-                );
-            } else if (cmd === 'clear') {
-                setHistory([]);
-                setInput('');
-                return;
-            } else if (cmd === 'matrix') {
-                if (matrixEnabled) {
-                    setMatrixEnabled(false);
-                    response = <div className="text-gray-500">{t.cmdMatrixMsgOff}</div>;
-                } else {
-                    setMatrixEnabled(true);
-                    response = <div className="text-green-500 font-bold glow">{t.cmdMatrixMsgOn}</div>;
-                }
-            } else if (cmd === 'neofetch' || cmd === 'sys') {
-                response = getNeofetch();
-            } else if (cmd === 'whoami') {
-                response = <div className="text-blue-400">{t.cmdWhoami}</div>;
-            } else if (cmd.startsWith('sudo')) {
-                if (cmd.includes('please') || cmd.includes('lütfen') || cmd.includes('lutfen')) {
-                    response = <div className="text-yellow-400">{t.cmdSudoGranted}</div>;
-                } else {
-                    response = <div className="text-red-500 font-bold blink">{t.cmdSudoDenied}</div>;
-                }
-            } else if (cmd.startsWith('theme') || ['blue', 'red', 'green', 'purple'].includes(cmd)) {
-                const color = cmd.startsWith('theme') ? cmd.split(' ')[1] : cmd;
-                const colors: Record<string, string> = {
-                    blue: '#1337ec',
-                    red: '#ff0055',
-                    green: '#00ff41',
-                    purple: '#9d00ff'
-                };
-                if (colors[color]) {
-                    document.documentElement.style.setProperty('--color-primary', colors[color]);
-                    response = <div className="text-primary">&gt; {t.cmdThemeSet} {color.toUpperCase()}</div>;
-                } else {
-                    response = <div className="text-red-400">&gt; {t.cmdInvalidColor}</div>;
-                }
-            } else if (cmd === 'contact') {
-                window.location.href = 'mailto:contact@cheleby.dev';
-                response = <div className="text-yellow-400">&gt; {t.cmdOpenMail}</div>;
-            } else if (cmd === 'reboot' || cmd === 'restart') {
-                sessionStorage.removeItem('hasBooted');
-                window.location.reload();
-                return;
-            } else if (cmd === 'exit') {
-                onClose();
-                return;
-            } else if (cmd === '') {
-                response = '';
-            } else {
-                response = <div className="text-red-400">&gt; {t.cmdNotFound} {cmd}</div>;
-            }
-
-            if (response) newHistory.push(<div key={Date.now() + 'resp'}>{response}</div>);
-            setHistory(newHistory);
+        if (cmd === 'help') {
+            response = (
+                <div className="text-gray-400">
+                    <div>&gt; {t.cmdAvailable}</div>
+                    {commands.map(([command, desc]) => (
+                        <div key={command} className="pl-4 text-primary">{command} <span className="text-gray-600">{desc}</span></div>
+                    ))}
+                </div>
+            );
+        } else if (cmd === 'clear') {
+            setHistory([]);
             setInput('');
+            return;
+        } else if (name === 'ls') {
+            response = (
+                <div className="text-gray-400">
+                    {projects.map(project => (
+                        <div key={project.id}>
+                            <span className="text-gray-600">drwxr-xr-x</span> <span className="text-primary">{project.name}/</span>
+                        </div>
+                    ))}
+                </div>
+            );
+        } else if (name === 'open' || name === 'cd') {
+            const target = args.join(' ').replace(/\/$/, '');
+            const project = projects.find(p => p.name.toLowerCase() === target);
+            if (project) {
+                openExternal(project.url);
+                response = <div className="text-primary">&gt; {t.cmdOpening} {project.name}</div>;
+            } else {
+                response = <div className="text-red-400">&gt; {t.cmdNoSuchProject} {target || '?'}</div>;
+            }
+        } else if (cmd === 'matrix') {
+            if (matrixEnabled) {
+                setMatrixEnabled(false);
+                response = <div className="text-gray-500">{t.cmdMatrixMsgOff}</div>;
+            } else {
+                setMatrixEnabled(true);
+                response = <div className="text-green-500 font-bold">{t.cmdMatrixMsgOn}</div>;
+            }
+        } else if (cmd === 'neofetch' || cmd === 'sys') {
+            response = getNeofetch();
+        } else if (cmd === 'whoami') {
+            response = <div className="text-blue-400">{t.cmdWhoami}</div>;
+        } else if (name === 'sudo') {
+            if (cmd.includes('please') || cmd.includes('lütfen') || cmd.includes('lutfen')) {
+                response = <div className="text-yellow-400">{t.cmdSudoGranted}</div>;
+            } else {
+                response = <div className="text-red-500 font-bold">{t.cmdSudoDenied}</div>;
+            }
+        } else if (name === 'theme' || Object.hasOwn(THEME_COLORS, cmd)) {
+            const color = name === 'theme' ? args[0] ?? '' : cmd;
+            if (Object.hasOwn(THEME_COLORS, color)) {
+                document.documentElement.style.setProperty('--accent', THEME_COLORS[color]);
+                response = <div className="text-primary">&gt; {t.cmdThemeSet} {color.toUpperCase()}</div>;
+            } else {
+                response = <div className="text-red-400">&gt; {t.cmdInvalidColor}</div>;
+            }
+        } else if (cmd === 'contact') {
+            openExternal(`https://github.com/${siteConfig.githubUser}`);
+            response = <div className="text-yellow-400">&gt; {t.cmdOpenMail}</div>;
+        } else if (cmd === 'reboot' || cmd === 'restart') {
+            sessionStorage.removeItem('hasBooted');
+            window.location.reload();
+            return;
+        } else if (cmd === 'exit') {
+            onClose();
+            return;
+        } else if (cmd === '') {
+            response = '';
+        } else {
+            response = <div className="text-red-400">&gt; {t.cmdNotFound} {raw}</div>;
         }
+
+        if (response) newHistory.push(<div key={Date.now() + 'resp'}>{response}</div>);
+        setHistory(newHistory);
+        setInput('');
     };
 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-            <div className="w-full max-w-2xl bg-[#0c0c0e] border border-primary box-shadow-primary p-6 rounded-sm relative" onClick={e => e.stopPropagation()}>
-                <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-white">
-                    <span className="material-symbols-outlined">close</span>
-                </button>
-                <div className="h-64 overflow-y-auto mb-4 font-mono text-sm space-y-1 custom-scrollbar" onClick={() => inputRef.current?.focus()}>
+        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4" onClick={onClose}>
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-label="Terminal"
+                className="w-full max-w-2xl bg-[#0c0c0e] border border-primary/60 shadow-[0_0_60px_-20px_var(--color-primary)] rounded-sm relative"
+                onClick={e => e.stopPropagation()}
+            >
+                <div className="flex items-center justify-between border-b border-border-dark px-4 py-2 font-mono text-[11px] text-gray-500">
+                    <span>{siteConfig.githubUser}:~</span>
+                    <button type="button" onClick={onClose} aria-label="Close" className="text-gray-500 hover:text-white">[esc]</button>
+                </div>
+                <div className="h-72 overflow-y-auto p-4 font-mono text-sm space-y-1" onClick={() => inputRef.current?.focus()}>
                     {history.map((line, i) => (
                         <div key={i}>{line}</div>
                     ))}
-                    <div ref={el => { el?.scrollIntoView({ behavior: "smooth" }); }} />
+                    <div ref={el => { el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }} />
                 </div>
-                <div className="flex items-center gap-2 border-t border-border-dark pt-4">
+                <div className="flex items-center gap-2 border-t border-border-dark px-4 py-3">
                     <span className="text-primary font-bold font-mono">➜</span>
                     <input
                         ref={inputRef}
@@ -147,8 +188,11 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, lang, 
                         value={input}
                         onChange={e => setInput(e.target.value)}
                         onKeyDown={handleCommand}
+                        aria-label={t.cmdPlaceholder}
                         className="bg-transparent border-none outline-none text-white font-mono w-full focus:ring-0"
                         placeholder={t.cmdPlaceholder}
+                        spellCheck={false}
+                        autoComplete="off"
                         autoFocus
                     />
                 </div>

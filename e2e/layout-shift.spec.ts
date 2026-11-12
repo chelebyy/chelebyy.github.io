@@ -33,4 +33,20 @@ test.describe('Layout stability', () => {
             expect(await layoutShiftTotal(page)).toBeLessThan(0.01);
         });
     }
+
+    for (const fail of [false, true]) {
+        test(`the project section does not move under a phone visitor who scrolled to it while loading (${fail ? 'GitHub error' : 'list'})`, async ({ page }) => {
+            await page.route(/fonts\.(googleapis|gstatic)\.com/, route => route.abort());
+            await stubGitHub(page, { delayMs: 1500, fail });
+            await skipBoot(page);
+            await page.setViewportSize({ width: 375, height: 812 });
+            await page.goto('/');
+
+            // Jump to the list before GitHub answers; layout shifts in view are then measured there.
+            const section = page.locator('#projects-section');
+            await section.evaluate(element => element.scrollIntoView());
+            await expect(fail ? section.getByRole('button', { name: 'Retry' }) : section.getByRole('heading', { level: 3 }).first()).toBeVisible();
+            expect(await layoutShiftTotal(page)).toBeLessThan(0.01);
+        });
+    }
 });

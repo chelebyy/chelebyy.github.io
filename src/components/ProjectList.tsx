@@ -18,8 +18,8 @@ interface ProjectListProps {
     onRetry: () => void;
 }
 
-/** `tall` keeps the loading state at least a screen high, so the sections below start
- *  off-screen and the arriving list does not push visible content around (layout shift). */
+/** `tall` keeps the loading state, and the error or empty state that may replace it, at least a
+ *  screen high, so the sections below stay off-screen and nothing visible moves (layout shift). */
 const Notice: React.FC<{ children: React.ReactNode; tall?: boolean }> = ({ children, tall = false }) => (
     <div className={`flex flex-col items-center gap-4 border-b border-border-dark px-6 py-16 text-center font-mono text-sm text-gray-500 ${tall ? 'min-h-svh justify-start pt-24' : 'min-h-[240px] justify-center'}`}>
         {children}
@@ -83,7 +83,7 @@ const ProjectList: React.FC<ProjectListProps> = ({
             )}
 
             {status === 'error' && (
-                <Notice>
+                <Notice tall>
                     <p className="max-w-md text-gray-400">{t.loadError}</p>
                     <div className="flex gap-3">
                         <button type="button" onClick={onRetry} className="border border-border-dark px-3 py-1 text-gray-300 hover:border-primary hover:text-white">
@@ -96,11 +96,13 @@ const ProjectList: React.FC<ProjectListProps> = ({
                 </Notice>
             )}
 
-            {status === 'ready' && total === 0 && <Notice>{t.emptyList}</Notice>}
+            {status === 'ready' && total === 0 && <Notice tall>{t.emptyList}</Notice>}
             {status === 'ready' && total > 0 && projects.length === 0 && <Notice>{t.noMatches}</Notice>}
 
             {status === 'ready' && projects.length > 0 && (
-                <ul>
+                // The unfiltered list keeps the loading state's height, so a short list does not
+                // pull the sections below up into view when it replaces the loading notice.
+                <ul className={!query && selectedLanguage === null ? 'min-h-svh' : undefined}>
                     {projects.map((project, index) => (
                         <ProjectCard key={project.id} project={project} lang={lang} index={index} featured={isFeatured(project.name)} />
                     ))}

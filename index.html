@@ -22,6 +22,10 @@
     <meta name="twitter:description" content="Use it as you wish — but you're on your own if it crashes." />
     <meta name="twitter:image" content="https://cheleby.me/og.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- The intro photo is the largest paint; start it with the HTML instead of after the JS
+         bundle. Visitors who prefer reduced motion never see the intro, so they skip it. -->
+    <link rel="preload" as="image" href="/intro/retro-computer.webp" type="image/webp" fetchpriority="high"
+        media="(prefers-reduced-motion: no-preference)" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

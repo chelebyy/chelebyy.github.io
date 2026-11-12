@@ -18,8 +18,10 @@ interface ProjectListProps {
     onRetry: () => void;
 }
 
-const Notice: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <div className="flex min-h-[240px] flex-col items-center justify-center gap-4 border-b border-border-dark px-6 py-16 text-center font-mono text-sm text-gray-500">
+/** `tall` keeps the loading state at least a screen high, so the sections below start
+ *  off-screen and the arriving list does not push visible content around (layout shift). */
+const Notice: React.FC<{ children: React.ReactNode; tall?: boolean }> = ({ children, tall = false }) => (
+    <div className={`flex flex-col items-center gap-4 border-b border-border-dark px-6 py-16 text-center font-mono text-sm text-gray-500 ${tall ? 'min-h-svh justify-start pt-24' : 'min-h-[240px] justify-center'}`}>
         {children}
     </div>
 );
@@ -34,7 +36,7 @@ const ProjectList: React.FC<ProjectListProps> = ({
             <div className="flex flex-col gap-5 border-b border-border-dark px-6 py-8 md:flex-row md:items-end md:justify-between md:px-10">
                 <div>
                     <p className="mb-2 font-mono text-xs text-gray-600">
-                        <span className="text-primary">$</span> {t.indexOf}
+                        <span className="text-primary-text">$</span> {t.indexOf}
                     </p>
                     <h2 id="projects-title" className="text-3xl font-bold tracking-tight text-white md:text-4xl">
                         {t.projectsDir}
@@ -50,7 +52,7 @@ const ProjectList: React.FC<ProjectListProps> = ({
                         onChange={event => onQueryChange(event.target.value)}
                         spellCheck={false}
                         autoComplete="off"
-                        className="w-full bg-transparent text-white outline-none placeholder:text-gray-700"
+                        className="w-full bg-transparent text-white outline-none placeholder:text-gray-600"
                         placeholder="…"
                     />
                 </label>
@@ -75,7 +77,7 @@ const ProjectList: React.FC<ProjectListProps> = ({
             )}
 
             {status === 'loading' && (
-                <Notice>
+                <Notice tall>
                     <span className="caret">{t.loading}</span>
                 </Notice>
             )}

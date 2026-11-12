@@ -30,8 +30,8 @@ const SecretSector: React.FC<SecretSectorProps> = ({ lang, unlocked, onUnlock })
     return (
         <section id="secret-section" className="scroll-mt-12 border-b border-border-dark px-6 py-6 font-mono text-xs md:px-10">
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                <span className="text-gray-700">{unlocked ? 'drwxr-xr-x' : 'drwx------'}</span>
-                <span className="text-gray-700">root</span>
+                <span className="text-gray-600">{unlocked ? 'drwxr-xr-x' : 'drwx------'}</span>
+                <span className="text-gray-600">root</span>
                 {unlocked ? (
                     <span className="gs-secret text-sm">{t.secretName}</span>
                 ) : (
@@ -39,12 +39,12 @@ const SecretSector: React.FC<SecretSectorProps> = ({ lang, unlocked, onUnlock })
                         {t.secretName}
                     </button>
                 )}
-                {!unlocked && !open && <span className="text-gray-700">{t.secretLocked}</span>}
+                {!unlocked && !open && <span className="text-gray-600">{t.secretLocked}</span>}
             </div>
 
             {!unlocked && open && (
                 <form onSubmit={submit} className={`mt-4 flex max-w-sm items-center gap-2 border-b pb-1 ${denied ? 'border-red-500' : 'border-primary'}`}>
-                    <label htmlFor="secret-passcode" className={denied ? 'text-red-500' : 'text-primary'}>
+                    <label htmlFor="secret-passcode" className={denied ? 'text-red-500' : 'text-primary-text'}>
                         {denied ? t.secretDenied : `${t.secretPrompt}:`}
                     </label>
                     <input
@@ -57,13 +57,13 @@ const SecretSector: React.FC<SecretSectorProps> = ({ lang, unlocked, onUnlock })
                         onChange={event => setInput(event.target.value)}
                         className="w-full bg-transparent tracking-[0.4em] text-white outline-none"
                     />
-                    <span className="whitespace-nowrap text-[10px] text-gray-700">{t.secretHint}</span>
+                    <span className="whitespace-nowrap text-[10px] text-gray-600">{t.secretHint}</span>
                 </form>
             )}
 
             {unlocked && (
                 <div className="mt-4 max-w-xl space-y-1 text-gray-400">
-                    <p className="text-primary">{t.secretUnlocked}</p>
+                    <p className="text-primary-text">{t.secretUnlocked}</p>
                     <p>{t.secretBody}</p>
                 </div>
             )}

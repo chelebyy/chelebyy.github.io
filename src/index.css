@@ -4,6 +4,10 @@
 
 @theme {
   --color-primary: var(--accent, #4f6bff);
+  /* Accent for small text: the raw accent is ~4.3:1 on the page (below WCAG AA for
+     12-13px). Mixing in 20% white clears 5:1 for every theme colour; fills and
+     borders keep the raw accent so white text on it stays readable. */
+  --color-primary-text: color-mix(in srgb, var(--color-primary) 80%, white);
   --color-background-light: #f6f6f8;
   --color-background-dark: #12141c;
   --color-surface-dark: #181b26;

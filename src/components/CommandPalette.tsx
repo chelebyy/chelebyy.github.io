@@ -43,7 +43,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, lang, 
     const getNeofetch = () => {
         const langs = languageBreakdown(projects).map(entry => entry.language).join(', ') || '—';
         return (
-            <div className="text-xs font-mono text-primary leading-tight my-2">
+            <div className="text-xs font-mono text-primary-text leading-tight my-2">
                 <pre>{`
          /\\        user: ${user?.login ?? siteConfig.githubUser}
         /  \\       repos: ${projects.length}
@@ -85,7 +85,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, lang, 
                 <div className="text-gray-400">
                     <div>&gt; {t.cmdAvailable}</div>
                     {commands.map(([command, desc]) => (
-                        <div key={command} className="pl-4 text-primary">{command} <span className="text-gray-600">{desc}</span></div>
+                        <div key={command} className="pl-4 text-primary-text">{command} <span className="text-gray-600">{desc}</span></div>
                     ))}
                 </div>
             );
@@ -98,7 +98,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, lang, 
                 <div className="text-gray-400">
                     {projects.map(project => (
                         <div key={project.id}>
-                            <span className="text-gray-600">drwxr-xr-x</span> <span className="text-primary">{project.name}/</span>
+                            <span className="text-gray-600">drwxr-xr-x</span> <span className="text-primary-text">{project.name}/</span>
                         </div>
                     ))}
                 </div>
@@ -108,7 +108,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, lang, 
             const project = projects.find(p => p.name.toLowerCase() === target);
             if (project) {
                 openExternal(project.url);
-                response = <div className="text-primary">&gt; {t.cmdOpening} {project.name}</div>;
+                response = <div className="text-primary-text">&gt; {t.cmdOpening} {project.name}</div>;
             } else {
                 response = <div className="text-red-400">&gt; {t.cmdNoSuchProject} {target || '?'}</div>;
             }
@@ -134,7 +134,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, lang, 
             const color = name === 'theme' ? args[0] ?? '' : cmd;
             if (Object.hasOwn(THEME_COLORS, color)) {
                 document.documentElement.style.setProperty('--accent', THEME_COLORS[color]);
-                response = <div className="text-primary">&gt; {t.cmdThemeSet} {color.toUpperCase()}</div>;
+                response = <div className="text-primary-text">&gt; {t.cmdThemeSet} {color.toUpperCase()}</div>;
             } else {
                 response = <div className="text-red-400">&gt; {t.cmdInvalidColor}</div>;
             }
@@ -181,7 +181,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, lang, 
                     <div ref={el => { el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }} />
                 </div>
                 <div className="flex items-center gap-2 border-t border-border-dark px-4 py-3">
-                    <span className="text-primary font-bold font-mono">➜</span>
+                    <span className="text-primary-text font-bold font-mono">➜</span>
                     <input
                         ref={inputRef}
                         type="text"

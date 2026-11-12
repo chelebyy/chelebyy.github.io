@@ -30,7 +30,7 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang, onOpenControlPanel, onOp
                         <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]/80 transition-colors group-hover:bg-[#28c840]" />
                     </span>
                     <span className="truncate text-gray-300">
-                        <span className="text-primary">{t.terminal}</span>
+                        <span className="text-primary-text">{t.terminal}</span>
                         <span className="text-gray-600">:</span>
                         <span className="text-gray-400">{t.path}</span>
                         <span className="text-gray-600">$</span>

@@ -167,7 +167,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, lang, 
                 role="dialog"
                 aria-modal="true"
                 aria-label="Terminal"
-                className="w-full max-w-2xl bg-[#0c0c0e] border border-primary/60 shadow-[0_0_60px_-20px_var(--color-primary)] rounded-sm relative"
+                className="w-full max-w-2xl bg-surface-dark border border-primary/60 shadow-[0_0_60px_-20px_var(--color-primary)] rounded-sm relative"
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between border-b border-border-dark px-4 py-2 font-mono text-[11px] text-gray-500">

@@ -75,7 +75,7 @@ const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repos }) => {
             data-testid="boot-sequence"
             data-exit={exiting ? 'static' : undefined}
             aria-hidden="true"
-            className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden bg-background-dark px-4 transition-opacity ease-out ${rootExit}`}
+            className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden bg-[#0a0a0c] px-4 transition-opacity ease-out ${rootExit}`}
             style={phase === 'skip'
                 ? { transitionDuration: `${SKIP_MS / 1000}s` }
                 : { animationDuration: `${BOOT_EXIT_MS}ms` }}
@@ -95,7 +95,8 @@ const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repos }) => {
                     className="crt-photo absolute inset-0 h-full w-full select-none object-cover"
                     draggable={false}
                 />
-                {/* Blend the photo's wall and desk into the page background. */}
+                {/* Blend the photo's wall and desk into the intro background. The intro keeps
+                    #0a0a0c (not the page token) because the photo's dark wall is matched to it. */}
                 <div className="crt-photo-fade pointer-events-none absolute inset-0" />
 
                 {/* The glass screen of the photographed monitor. */}

@@ -38,6 +38,31 @@ describe('ProjectCard Component', () => {
         expect(screen.getByRole('link', { name: /demo/ })).toHaveAttribute('href', project.homepage);
     });
 
+    it('uses the hand-written Turkish description on the TR page and the GitHub text on the EN page', () => {
+        const repo = { ...project, name: 'AI-Office' };
+        const { unmount } = render(<ul><ProjectCard project={repo} lang="tr" index={0} /></ul>);
+        expect(screen.getByText(/sanal bir ofiste/)).toBeInTheDocument();
+        expect(screen.queryByText(project.description)).not.toBeInTheDocument();
+        unmount();
+
+        render(<ul><ProjectCard project={repo} lang="en" index={0} /></ul>);
+        expect(screen.getByText(project.description)).toBeInTheDocument();
+    });
+
+    it('keeps the GitHub description on the TR page when no translation exists', () => {
+        render(<ul><ProjectCard project={{ ...project, name: 'untranslated' }} lang="tr" index={0} /></ul>);
+        expect(screen.getByText(project.description)).toBeInTheDocument();
+    });
+
+    it('labels only the featured project', () => {
+        const { unmount } = render(<ul><ProjectCard project={project} lang="en" index={0} featured /></ul>);
+        expect(screen.getByText('featured')).toBeInTheDocument();
+        unmount();
+
+        renderCard();
+        expect(screen.queryByText('featured')).not.toBeInTheDocument();
+    });
+
     it('shows a placeholder instead of inventing a description, and labels archived repos', () => {
         renderCard({ description: '', archived: true, homepage: null });
         expect(screen.getByText('No description yet.')).toBeInTheDocument();

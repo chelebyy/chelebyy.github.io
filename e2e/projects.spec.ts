@@ -45,6 +45,19 @@ test.describe('Projects from GitHub', () => {
         await expect(list.getByRole('heading', { level: 3 })).toHaveText(['arackiralama']);
     });
 
+    test('pins the featured repo first and greps the Turkish description shown on the TR page', async ({ page }) => {
+        await stubGitHub(page);
+        await skipBoot(page, 'tr');
+        await page.goto('/');
+
+        const list = page.locator('#projects-section');
+        await expect(list.getByRole('heading', { level: 3 }).first()).toHaveText('herdr-agent-workspace');
+        await expect(list.locator('li').first().getByText('öne çıkan')).toBeVisible();
+
+        await list.getByRole('searchbox').fill('sanal bir ofiste');
+        await expect(list.getByRole('heading', { level: 3 })).toHaveText(['ai-office']);
+    });
+
     test('shows an honest error instead of placeholder projects when GitHub fails', async ({ page }) => {
         await stubGitHub(page, { fail: true });
         await skipBoot(page);

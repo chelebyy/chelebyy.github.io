@@ -2,45 +2,67 @@ import React from 'react';
 import { Language, Project } from '../types';
 import { translations } from '../constants/translations';
 import { languageColor, timeAgo } from '../lib/format';
+import { turkishDescription } from '../config/site';
 
 interface ProjectCardProps {
     project: Project;
     lang: Language;
     index: number;
+    featured?: boolean;
 }
 
+/** GitHub descriptions are written in English; the TR page swaps in a hand-written translation when one exists. */
+const projectDescription = (project: Project, lang: Language): string =>
+    (lang === 'tr' && turkishDescription(project.name)) || project.description;
+
 /** One project rendered as an `ls -la` entry that expands into a card on hover/focus. */
-const ProjectCard: React.FC<ProjectCardProps> = ({ project, lang, index }) => {
+const ProjectCard: React.FC<ProjectCardProps> = ({ project, lang, index, featured = false }) => {
     const t = translations[lang];
     const tags = project.topics.slice(0, 4);
+    const description = projectDescription(project, lang);
+    const accent = project.language ? languageColor(project.language) : 'var(--color-primary)';
 
     return (
-        <li className="group relative border-b border-border-dark transition-colors hover:bg-white/[0.025] focus-within:bg-white/[0.025]">
-            <span aria-hidden="true" className="absolute inset-y-0 left-0 w-0.5 origin-top scale-y-0 bg-primary transition-transform duration-300 group-hover:scale-y-100 group-focus-within:scale-y-100" />
-            <div className="grid gap-x-6 gap-y-3 px-6 py-6 md:grid-cols-[3.5rem_minmax(0,1fr)_auto] md:px-10">
-                <div className="hidden pt-1 font-mono text-xs text-gray-700 md:block">
+        <li
+            className={`group relative border-b border-border-dark transition-colors hover:bg-white/[0.035] focus-within:bg-white/[0.035] ${featured ? 'bg-primary/[0.06]' : ''}`}
+            style={{ '--lang': accent } as React.CSSProperties}
+        >
+            <span
+                aria-hidden="true"
+                className="absolute inset-y-0 left-0 w-0.5 bg-[var(--lang)] opacity-50 transition-[opacity,width] duration-300 group-hover:w-1 group-hover:opacity-100 group-focus-within:w-1 group-focus-within:opacity-100"
+            />
+            <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100"
+                style={{ backgroundImage: 'linear-gradient(90deg, color-mix(in oklab, var(--lang) 9%, transparent), transparent 45%)' }}
+            />
+            <div className="relative grid gap-x-6 gap-y-3 px-6 py-6 md:grid-cols-[3.5rem_minmax(0,1fr)_auto] md:px-10">
+                <div className="hidden pt-1 font-mono text-xs text-gray-600 transition-colors group-hover:text-[var(--lang)] md:block">
                     {String(index + 1).padStart(2, '0')}
                 </div>
 
                 <div className="min-w-0">
                     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                        <h3 className="text-xl font-semibold tracking-tight text-white md:text-2xl">
+                        <h3 className={`font-semibold tracking-tight text-white ${featured ? 'text-2xl md:text-3xl' : 'text-xl md:text-2xl'}`}>
                             <a href={project.url} target="_blank" rel="noopener noreferrer" className="outline-none after:absolute after:inset-0 group-hover:text-primary">
                                 {project.name}
                             </a>
                         </h3>
+                        {featured && (
+                            <span className="border border-primary/50 bg-primary/15 px-1.5 font-mono text-[10px] uppercase tracking-wider text-gray-200">{t.featured}</span>
+                        )}
                         {project.archived && (
                             <span className="border border-yellow-700/50 px-1.5 font-mono text-[10px] uppercase text-yellow-600">{t.archived}</span>
                         )}
                         {project.fork && <span className="font-mono text-[10px] uppercase text-gray-600">fork</span>}
                     </div>
-                    <p className={`mt-2 max-w-3xl text-[15px] leading-relaxed ${project.description ? 'text-gray-400' : 'italic text-gray-600'}`}>
-                        {project.description || t.noDescription}
+                    <p className={`mt-2 max-w-3xl text-[15px] leading-relaxed ${description ? 'text-gray-400' : 'italic text-gray-600'}`}>
+                        {description || t.noDescription}
                     </p>
                     <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-[11px] text-gray-500">
                         {project.language && (
                             <span className="flex items-center gap-1.5">
-                                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: languageColor(project.language) }} />
+                                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: accent }} />
                                 {project.language}
                             </span>
                         )}

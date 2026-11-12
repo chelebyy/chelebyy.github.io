@@ -55,14 +55,6 @@
   background: var(--color-primary);
 }
 
-/* The custom cursor replaces the native one only on precise pointers. */
-@media (pointer: fine) {
-  html.custom-cursor,
-  html.custom-cursor * {
-    cursor: none !important;
-  }
-}
-
 @keyframes shake {
   0% { transform: translate(1px, 1px) rotate(0deg); }
   10% { transform: translate(-1px, -2px) rotate(-1deg); }

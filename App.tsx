@@ -7,7 +7,6 @@ import { searchFold } from './src/lib/format';
 
 // Eager imports (first paint)
 import BootSequence from './src/components/BootSequence';
-import CustomCursor from './src/components/CustomCursor';
 import Header from './src/components/Header';
 import Hero from './src/components/Hero';
 import Sidebar from './src/components/Sidebar';
@@ -132,7 +131,6 @@ const App: React.FC = () => {
   return (
     <div className="relative flex min-h-screen flex-col bg-background-dark">
       {isBooting && <BootSequence onComplete={handleBootComplete} repos={{ status, count: projects.length }} />}
-      <CustomCursor />
 
       <Suspense fallback={null}>
         {matrixEnabled && <MatrixRain />}

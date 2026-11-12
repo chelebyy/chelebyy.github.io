@@ -30,7 +30,7 @@
 - Proje listesinde **`grep` ve dil filtreleri.**
 - Gerçek sayılarla **neofetch paneli:** depo sayısı, yıldızlar, en çok kullanılan diller, son push.
 - **Terminal (`Ctrl + K`):** `ls`, `open <proje>`, `neofetch`, `theme <blue|red|green|purple>`, `matrix`, `whoami`, `sudo`, `reboot`, `clear`, `exit`.
-- **Efektler:** açılış sekansı (oturum başına bir kez), nişangâh imleç (yalnızca fareyle), Matrix yağmuru, CRT tarama çizgileri (kontrol paneli; üst çubuktaki komut satırına tıkla), ses efektleri.
+- **Efektler:** kısa bir giriş (yaklaşık 1,5 sn, oturum başına bir kez, atlanabilir, hareketi azalt ayarında gösterilmez), Matrix yağmuru, CRT tarama çizgileri (kontrol paneli; üst çubuktaki komut satırına tıkla), ses efektleri.
 - **Easter egg:** proje listesinin altındaki `.gizli/` bir şifre istiyor. Sistem günlüğü biliyor.
 - İngilizce ve Türkçe; ilk ziyarette tarayıcının dili kullanılır.
 

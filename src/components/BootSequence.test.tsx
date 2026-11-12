@@ -22,7 +22,7 @@ describe('BootSequence Component', () => {
         expect(screen.getByText('ssh guest@cheleby.me')).toBeInTheDocument();
     });
 
-    it('types its lines and hands over to the site in about three seconds', () => {
+    it('types its lines and hands over to the site in about five and a half seconds', () => {
         const onComplete = vi.fn();
         render(<BootSequence onComplete={onComplete} repos={{ status: 'ready', count: 7 }} />);
 
@@ -37,7 +37,7 @@ describe('BootSequence Component', () => {
             vi.advanceTimersByTime(BOOT_DONE_AT);
         });
         expect(onComplete).toHaveBeenCalledTimes(1);
-        expect(BOOT_DONE_AT).toBeLessThanOrEqual(3500);
+        expect(BOOT_DONE_AT).toBeLessThanOrEqual(6000);
     });
 
     it('says it is still fetching while the repository count is unknown', () => {

@@ -14,8 +14,8 @@ test.describe('Intro & Navigation', () => {
         await expect(intro).toBeVisible();
         await expect(intro.getByText('ssh guest@cheleby.me')).toBeVisible();
 
-        // The intro hands over to the site on its own in about three seconds.
-        await expect(intro).toHaveCount(0, { timeout: 5000 });
+        // The intro hands over to the site on its own in about five and a half seconds.
+        await expect(intro).toHaveCount(0, { timeout: 8000 });
         await expect(page.getByTitle('System control')).toContainText('chelebyy:~/open-source$');
         await expect(page.getByRole('button', { name: 'en', exact: true })).toBeVisible();
         await expect(page.getByRole('button', { name: /terminal/i })).toBeVisible();

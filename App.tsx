@@ -19,7 +19,6 @@ const MatrixRain = lazy(() => import('./src/components/MatrixRain'));
 const ControlPanel = lazy(() => import('./src/components/ControlPanel'));
 const CommandPalette = lazy(() => import('./src/components/CommandPalette'));
 const LogTerminal = lazy(() => import('./src/components/LogTerminal'));
-const TerminalOverlay = lazy(() => import('./src/components/TerminalOverlay'));
 
 const LANG_KEY = 'cheleby:lang';
 
@@ -53,7 +52,6 @@ const App: React.FC = () => {
     sessionStorage.setItem('hasBooted', 'true');
   }, []);
 
-  const [isInit, setIsInit] = useState(false);
   const [isLogsOpen, setIsLogsOpen] = useState(false);
   const [isCmdOpen, setIsCmdOpen] = useState(false);
   const [isControlPanelOpen, setIsControlPanelOpen] = useState(false);
@@ -94,12 +92,7 @@ const App: React.FC = () => {
 
   const handleOpenLogs = () => setIsLogsOpen(true);
 
-  const handleInit = () => setIsInit(true);
-
-  const onOverlayComplete = useCallback(() => {
-    setIsInit(false);
-    document.getElementById('projects-section')?.scrollIntoView({ behavior: 'smooth' });
-  }, []);
+  const handleInit = () => document.getElementById('projects-section')?.scrollIntoView({ behavior: 'smooth' });
 
   useEffect(() => {
     const handleOpenCmd = () => setIsCmdOpen(true);
@@ -166,7 +159,6 @@ const App: React.FC = () => {
       <main className="flex w-full flex-grow flex-col">
         <Suspense fallback={null}>
           <LogTerminal isOpen={isLogsOpen} onClose={() => setIsLogsOpen(false)} lang={lang} />
-          {isInit && <TerminalOverlay onComplete={onOverlayComplete} lang={lang} />}
         </Suspense>
 
         <Hero

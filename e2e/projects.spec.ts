@@ -2,6 +2,19 @@ import { test, expect } from '@playwright/test';
 import { skipBoot, stubGitHub } from './github-stub';
 
 test.describe('Projects from GitHub', () => {
+    test('the explore button scrolls straight to the project list', async ({ page }) => {
+        await stubGitHub(page);
+        await skipBoot(page);
+        await page.setViewportSize({ width: 1280, height: 480 });
+        await page.goto('/');
+
+        const heading = page.getByRole('heading', { name: /^projects/ });
+        await expect(heading).not.toBeInViewport();
+        await page.getByRole('button', { name: './explore_projects' }).click();
+        await expect(heading).toBeInViewport({ timeout: 1500 });
+        await expect(page.getByText('INITIALIZING_KERNEL')).toHaveCount(0);
+    });
+
     test('lists public repositories but hides blocked repos and forks everywhere', async ({ page }) => {
         await stubGitHub(page);
         await skipBoot(page);

@@ -40,7 +40,10 @@ const NeofetchPanel: React.FC<Omit<HeroProps, 'onInit' | 'onOpenLogs'>> = ({ lan
     const placeholder = loading ? '…' : '—';
 
     return (
-        <div className="relative border border-border-dark bg-surface-dark font-mono text-xs shadow-[0_0_0_1px_rgba(0,0,0,0.4),0_30px_80px_-30px_var(--color-primary)]">
+        <div
+            className="relative border border-border-dark bg-surface-dark font-mono text-xs"
+            style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.4), 0 30px 80px -30px color-mix(in oklab, var(--color-primary) 55%, transparent)' }}
+        >
             <div className="flex items-center justify-between border-b border-border-dark px-4 py-2 text-[11px] text-gray-500">
                 <span>neofetch</span>
                 <span>{syncedAt ? `${t.nfSynced} ${timeAgo(syncedAt, lang)}` : placeholder}</span>

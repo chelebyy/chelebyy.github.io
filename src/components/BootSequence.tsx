@@ -22,15 +22,23 @@ type Phase = 'run' | 'exit' | 'skip';
 const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repos, exit = 'zoom' }) => {
     const [visible, setVisible] = useState(0);
     const [phase, setPhase] = useState<Phase>('run');
-    const finished = useRef(false);
+    const phaseRef = useRef<Phase>('run');
 
-    // Every exit path ends exactly when its animation does, so nothing is cut off.
+    // run → exit, run → skip, and exit → skip (a key press still shortens a playing exit).
     const finish = useCallback((next: Exclude<Phase, 'run'>) => {
-        if (finished.current) return;
-        finished.current = true;
+        const current = phaseRef.current;
+        if (current === 'skip' || current === next) return;
+        phaseRef.current = next;
         setPhase(next);
-        window.setTimeout(onComplete, next === 'skip' ? SKIP_MS : BOOT_EXIT_MS);
-    }, [onComplete]);
+    }, []);
+
+    // The hand-over timer starts after React has committed the new phase, so the
+    // animation it waits for is already on screen; a later skip replaces it.
+    useEffect(() => {
+        if (phase === 'run') return;
+        const timer = window.setTimeout(onComplete, phase === 'skip' ? SKIP_MS : BOOT_EXIT_MS);
+        return () => window.clearTimeout(timer);
+    }, [phase, onComplete]);
 
     useEffect(() => {
         const timers = BOOT_LINE_DELAYS.map((delay, index) =>

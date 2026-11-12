@@ -5,7 +5,6 @@ import { translations } from '../constants/translations';
 
 describe('ControlPanel Component', () => {
     const mockOnClose = vi.fn();
-    const mockSetCrtEnabled = vi.fn();
     const mockUser = {
         login: 'testuser',
         avatar_url: 'http://example.com/avatar.jpg',
@@ -21,8 +20,6 @@ describe('ControlPanel Component', () => {
                 isOpen={true}
                 onClose={mockOnClose}
                 lang="en"
-                crtEnabled={false}
-                setCrtEnabled={mockSetCrtEnabled}
                 user={mockUser}
             />
         );
@@ -36,29 +33,10 @@ describe('ControlPanel Component', () => {
                 isOpen={false}
                 onClose={mockOnClose}
                 lang="en"
-                crtEnabled={false}
-                setCrtEnabled={mockSetCrtEnabled}
                 user={mockUser}
             />
         );
         expect(screen.queryByText(translations.en.cpTitle)).not.toBeInTheDocument();
-    });
-
-    it('toggles CRT effect', () => {
-        render(
-            <ControlPanel
-                isOpen={true}
-                onClose={mockOnClose}
-                lang="en"
-                crtEnabled={false}
-                setCrtEnabled={mockSetCrtEnabled}
-                user={mockUser}
-            />
-        );
-
-        const checkbox = screen.getByRole('checkbox');
-        fireEvent.click(checkbox);
-        expect(mockSetCrtEnabled).toHaveBeenCalledWith(true);
     });
 
     it('calls onClose when close button clicked', () => {
@@ -67,8 +45,6 @@ describe('ControlPanel Component', () => {
                 isOpen={true}
                 onClose={mockOnClose}
                 lang="en"
-                crtEnabled={false}
-                setCrtEnabled={mockSetCrtEnabled}
                 user={mockUser}
             />
         );
@@ -87,8 +63,6 @@ describe('ControlPanel Component', () => {
                 isOpen={true}
                 onClose={onClose}
                 lang="en"
-                crtEnabled={false}
-                setCrtEnabled={mockSetCrtEnabled}
                 user={mockUser}
             />
         );
@@ -103,8 +77,6 @@ describe('ControlPanel Component', () => {
                 isOpen={true}
                 onClose={onClose}
                 lang="en"
-                crtEnabled={false}
-                setCrtEnabled={mockSetCrtEnabled}
                 user={mockUser}
                 escapeEnabled={false}
             />

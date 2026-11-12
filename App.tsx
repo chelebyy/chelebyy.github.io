@@ -55,7 +55,6 @@ const App: React.FC = () => {
   const [isLogsOpen, setIsLogsOpen] = useState(false);
   const [isCmdOpen, setIsCmdOpen] = useState(false);
   const [isControlPanelOpen, setIsControlPanelOpen] = useState(false);
-  const [crtEnabled, setCrtEnabled] = useState(false);
   const [matrixEnabled, setMatrixEnabled] = useState(false);
 
   const { status, user, projects, activity, syncedAt, retry } = useGitHubData();
@@ -126,8 +125,6 @@ const App: React.FC = () => {
           isOpen={isControlPanelOpen}
           onClose={() => setIsControlPanelOpen(false)}
           lang={lang}
-          crtEnabled={crtEnabled}
-          setCrtEnabled={setCrtEnabled}
           user={user}
           escapeEnabled={!isCmdOpen}
         />
@@ -141,13 +138,6 @@ const App: React.FC = () => {
           user={user}
         />
       </Suspense>
-
-      {crtEnabled && (
-        <div className="fixed inset-0 pointer-events-none z-[9998] overflow-hidden">
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] bg-[length:100%_3px,3px_100%]"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(0,0,0,0)_60%,rgba(0,0,0,0.4)_100%)]"></div>
-        </div>
-      )}
 
       <Header
         lang={lang}

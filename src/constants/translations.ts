@@ -89,8 +89,6 @@ export const translations = {
         // Control Panel
         cpTitle: 'SYSTEM_CONTROL_CENTER',
         cpIdentity: 'IDENTITY_MODULE',
-        cpSettings: 'SYSTEM_SETTINGS',
-        cpCrtEffect: 'CRT_SCANLINE_EFFECT',
         cpFollowers: 'followers',
     },
     tr: {
@@ -175,8 +173,6 @@ export const translations = {
         helpDescExit: '- Terminali kapat',
         cpTitle: 'SİSTEM_KONTROL_MERKEZİ',
         cpIdentity: 'KİMLİK_MODÜLÜ',
-        cpSettings: 'SİSTEM_AYARLARI',
-        cpCrtEffect: 'CRT_TARAMA_EFEKTİ',
         cpFollowers: 'takipçi',
     }
 };

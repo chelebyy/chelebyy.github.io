@@ -15,6 +15,10 @@ describe('BootSequence Component', () => {
     it('starts on its own, without a button to click', () => {
         render(<BootSequence onComplete={vi.fn()} repos={{ status: 'ready', count: 7 }} />);
         expect(screen.queryByRole('button')).not.toBeInTheDocument();
+        // The first line appears once the CRT screen has warmed up, with no user input.
+        act(() => {
+            vi.advanceTimersByTime(BOOT_LINE_DELAYS[0]);
+        });
         expect(screen.getByText('ssh guest@cheleby.me')).toBeInTheDocument();
     });
 
@@ -73,7 +77,9 @@ describe('BootSequence Component', () => {
         const onComplete = vi.fn();
         render(<BootSequence onComplete={onComplete} repos={{ status: 'ready', count: 7 }} />);
         fireEvent.keyDown(window, { key: 'Enter' });
-        const fadeMs = parseFloat(getComputedStyle(screen.getByTestId('boot-sequence')).transitionDuration) * 1000;
+        // The backdrop fade may start after a delay; hand-over must wait for delay + duration.
+        const style = getComputedStyle(screen.getByTestId('boot-sequence'));
+        const fadeMs = Math.round((parseFloat(style.transitionDelay || '0') + parseFloat(style.transitionDuration)) * 1000);
         expect(fadeMs).toBeGreaterThan(0);
         act(() => {
             vi.advanceTimersByTime(fadeMs - 1);

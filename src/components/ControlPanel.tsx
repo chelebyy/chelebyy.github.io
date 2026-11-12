@@ -6,8 +6,6 @@ interface ControlPanelProps {
     isOpen: boolean;
     onClose: () => void;
     lang: Language;
-    crtEnabled: boolean;
-    setCrtEnabled: (enabled: boolean) => void;
     user: GitHubUser | null;
     /** False while another overlay (the terminal) sits on top and owns the Escape key. */
     escapeEnabled?: boolean;
@@ -17,8 +15,6 @@ const ControlPanel = ({
     isOpen,
     onClose,
     lang,
-    crtEnabled,
-    setCrtEnabled,
     user,
     escapeEnabled = true
 }: ControlPanelProps) => {
@@ -87,30 +83,6 @@ const ControlPanel = ({
                     </div>
                 </div>
 
-                {/* System Settings */}
-                <div className="relative z-10">
-                    <h3 className="text-xs text-gray-500 font-mono uppercase mb-4 pl-2 border-l-2 border-primary">{t.cpSettings}</h3>
-
-                    <div className="flex flex-col gap-3">
-                        <label className="flex items-center justify-between p-3 bg-white/5 rounded-sm hover:bg-white/10 cursor-pointer transition-colors group">
-                            <span className="text-gray-300 font-mono text-sm group-hover:text-white">{t.cpCrtEffect}</span>
-                            <div className="relative inline-flex items-center cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    className="sr-only peer"
-                                    checked={crtEnabled}
-                                    onChange={(e) => setCrtEnabled(e.target.checked)}
-                                />
-                                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                {/* Footer info */}
-                <div className="mt-8 text-center">
-                    <p className="text-[10px] text-gray-600 font-mono uppercase">System Integrity: 100% // Secure Connection</p>
-                </div>
             </div>
         </div>
 

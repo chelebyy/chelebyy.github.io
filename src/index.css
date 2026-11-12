@@ -21,8 +21,8 @@
   --color-gray-700: #575e70;
   --color-gray-800: #3a4052;
 
-  --font-display: "Space Grotesk", sans-serif;
-  --font-mono: "JetBrains Mono", "Noto Sans Mono", ui-monospace, monospace;
+  --font-display: "Space Grotesk Variable", sans-serif;
+  --font-mono: "JetBrains Mono Variable", "Noto Sans Mono", ui-monospace, monospace;
 
   --radius-sm: 0.125rem;
   --radius-lg: 0.25rem;

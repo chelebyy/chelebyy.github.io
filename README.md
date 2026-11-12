@@ -54,6 +54,10 @@ Stack: React 19, Vite 8, Tailwind CSS 4 (compiled at build time), TypeScript, Vi
 
 Every push to `main` runs lint, type check, unit tests, the Playwright suite and `npm audit`, then publishes the build to GitHub Pages (`cheleby.me`).
 
+## Credits
+
+The vintage computer in the intro (`public/intro/retro-computer.webp`) is an AI-generated illustration by Andy_Eneses on [Pixabay](https://pixabay.com/illustrations/vintage-computer-retro-1960s-9861874/), used under the [Pixabay Content License](https://pixabay.com/service/license-summary/). It was resized and re-encoded for the site; the terminal text is drawn on top of it.
+
 ---
 
 <div align="center">

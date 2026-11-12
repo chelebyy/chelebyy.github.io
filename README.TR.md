@@ -54,6 +54,10 @@ Yığın: React 19, Vite 8, Tailwind CSS 4 (derleme zamanında), TypeScript, Vit
 
 `main`'e yapılan her push lint, tip kontrolü, birim testleri, Playwright testleri ve `npm audit` çalıştırır, ardından derlemeyi GitHub Pages'e (`cheleby.me`) yayınlar.
 
+## Kaynaklar
+
+Girişteki eski bilgisayar görseli (`public/intro/retro-computer.webp`), Andy_Eneses'in [Pixabay](https://pixabay.com/tr/illustrations/eski-bilgisayar-retro-1960larda-9861874/)'de paylaştığı, yapay zekâyla üretilmiş bir illüstrasyondur ve [Pixabay İçerik Lisansı](https://pixabay.com/tr/service/license-summary/) kapsamında kullanılmaktadır. Site için yeniden boyutlandırıldı ve yeniden kodlandı; terminal yazısı görselin üstüne çiziliyor.
+
 ---
 
 <div align="center">

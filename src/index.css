@@ -117,27 +117,32 @@
   );
 }
 
-/* ---- Intro: old CRT monitor ---- */
-.crt-monitor {
-  background: linear-gradient(180deg, #2b2d34 0%, #1c1d23 55%, #15161b 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    inset 0 -6px 14px rgba(0, 0, 0, 0.55),
-    0 40px 90px -30px rgba(79, 107, 255, 0.25),
-    0 30px 60px rgba(0, 0, 0, 0.6);
+/* ---- Intro: green-phosphor screen on a photographed vintage computer ---- */
+/* Fade the photo's edges (wall, desk) into the page so no hard rectangle shows. */
+.crt-photo {
+  -webkit-mask-image: radial-gradient(ellipse 52% 50% at 50% 47%, #000 72%, transparent 100%);
+  mask-image: radial-gradient(ellipse 52% 50% at 50% 47%, #000 72%, transparent 100%);
+}
+
+.crt-photo-fade {
+  background: linear-gradient(to bottom, rgba(10, 10, 12, 0.25), transparent 22%, transparent 80%, rgba(10, 10, 12, 0.45));
 }
 
 .crt-glass {
   box-shadow:
-    0 0 0 3px #0c0d11,
-    0 0 0 5px rgba(255, 255, 255, 0.04),
-    inset 0 0 70px rgba(0, 0, 0, 0.95);
+    inset 0 0 40px rgba(0, 0, 0, 0.9),
+    0 0 22px rgba(80, 255, 120, 0.12);
 }
 
 .crt-screen {
   transform-origin: center;
-  text-shadow: 0 0 6px rgba(120, 145, 255, 0.55), 0 0 1px rgba(220, 230, 255, 0.6);
-  background: radial-gradient(ellipse at center, rgba(40, 60, 140, 0.18) 0%, transparent 70%);
+  text-shadow: 0 0 6px rgba(80, 255, 120, 0.55), 0 0 1px rgba(200, 255, 210, 0.7);
+  background: radial-gradient(ellipse at center, rgba(40, 140, 70, 0.22) 0%, transparent 72%);
+}
+
+.crt-screen .caret::after {
+  background: #6dff8c;
+  box-shadow: 0 0 6px rgba(80, 255, 120, 0.7);
 }
 
 .crt-screen--on {
@@ -168,10 +173,6 @@
   background:
     radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.75) 100%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0%, transparent 35%);
-}
-
-.crt-led {
-  box-shadow: 0 0 6px #28c840, 0 0 12px rgba(40, 200, 64, 0.5);
 }
 
 /* Warm-up: a thin bright line opens into the full picture. */

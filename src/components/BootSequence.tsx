@@ -69,17 +69,31 @@ const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repos }) => {
             className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-background-dark px-4 transition-opacity ease-out ${off ? 'opacity-0' : 'opacity-100'}`}
             style={{ transitionDuration: `${fadeDuration / 1000}s`, transitionDelay: `${fadeDelay / 1000}s` }}
         >
-            {/* Monitor */}
-            <div className="crt-monitor w-[min(92vw,600px)] rounded-[26px] p-4 sm:p-6">
-                <div className="crt-glass relative aspect-[4/3] overflow-hidden rounded-[20px/16px] bg-[#05060a] [container-type:inline-size]">
+            {/* Vintage computer photo (Pixabay Content License); the text sits on its glass screen. */}
+            <div className="relative aspect-[2/3] h-[min(86vh,138vw,960px)]">
+                <img
+                    src="/intro/retro-computer.webp"
+                    alt=""
+                    width={720}
+                    height={1080}
+                    decoding="async"
+                    fetchPriority="high"
+                    className="crt-photo absolute inset-0 h-full w-full select-none object-cover"
+                    draggable={false}
+                />
+                {/* Blend the photo's wall and desk into the page background. */}
+                <div className="crt-photo-fade pointer-events-none absolute inset-0" />
+
+                {/* The glass screen of the photographed monitor. */}
+                <div className="crt-glass absolute left-[19.4%] top-[16.7%] h-[29.2%] w-[61.1%] overflow-hidden rounded-[9%/13%] bg-[#030805] [container-type:inline-size]">
                     {/* Text scales with the screen width (cqi), so the longest command always fits on one line. */}
                     <div
-                        className={`crt-screen absolute inset-0 whitespace-nowrap px-[6cqi] py-[6cqi] font-mono text-[clamp(8px,4cqi,15px)] leading-[1.85] ${off ? 'crt-screen--off' : 'crt-screen--on'}`}
+                        className={`crt-screen absolute inset-0 whitespace-nowrap px-[7cqi] py-[7cqi] font-mono text-[clamp(6px,4cqi,15px)] leading-[1.8] ${off ? 'crt-screen--off' : 'crt-screen--on'}`}
                         style={off ? { animationDuration: `${offMs}ms` } : { animationDuration: `${BOOT_POWER_ON}ms` }}
                     >
                         {lines.slice(0, visible).map((line, index) => (
-                            <p key={index} className={`${line.command ? 'text-[#dfe6ff]' : 'text-[#7f93d9]'} ${index === visible - 1 ? 'caret' : ''}`}>
-                                {line.command && <span className="mr-2 text-primary">$</span>}
+                            <p key={index} className={`${line.command ? 'text-[#a8ffb8]' : 'text-[#4fd16d]'} ${index === visible - 1 ? 'caret' : ''}`}>
+                                {line.command && <span className="mr-[0.6em] text-[#6dff8c]">$</span>}
                                 {line.text}
                             </p>
                         ))}
@@ -87,20 +101,9 @@ const BootSequence: React.FC<BootSequenceProps> = ({ onComplete, repos }) => {
                     <div className="crt-scanlines pointer-events-none absolute inset-0" />
                     <div className="crt-vignette pointer-events-none absolute inset-0" />
                 </div>
-                <div className="mt-3 flex items-center justify-between px-1 sm:mt-4">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.35em] text-gray-500">cheleby-80</span>
-                    <span className="flex items-center gap-3">
-                        <span className="h-3 w-3 rounded-full bg-[#1b1d23] shadow-[inset_0_1px_2px_rgba(0,0,0,0.8)]" />
-                        <span className="h-3 w-3 rounded-full bg-[#1b1d23] shadow-[inset_0_1px_2px_rgba(0,0,0,0.8)]" />
-                        <span className={`h-1.5 w-1.5 rounded-full ${off ? 'bg-[#28c840]/30' : 'crt-led bg-[#28c840]'}`} />
-                    </span>
-                </div>
             </div>
-            {/* Stand */}
-            <div className="h-6 w-24 bg-gradient-to-b from-[#1d1f25] to-[#121318] [clip-path:polygon(18%_0,82%_0,100%_100%,0_100%)]" />
-            <div className="h-2.5 w-52 rounded-full bg-gradient-to-b from-[#202228] to-[#111216] shadow-[0_10px_30px_rgba(0,0,0,0.6)]" />
 
-            <p className="absolute bottom-8 font-mono text-[11px] text-gray-700">press any key to skip</p>
+            <p className="absolute bottom-6 font-mono text-[11px] text-gray-600">press any key to skip</p>
         </div>
     );
 };

@@ -144,6 +144,15 @@ describe('summarizeActivity', () => {
         expect(summarizeActivity(logs, []).map(log => log.id)).toEqual(['m5', 'p1', 'm4', 'm1']);
     });
 
+    it('recognises a merged pull request in both event shapes GitHub sends', () => {
+        const logs = eventsToActivity([
+            { id: 'a', type: 'PullRequestEvent', repo: { name: 'chelebyy/ai-office' }, payload: { action: 'merged', number: 5 }, created_at: '2026-11-02T12:00:00Z' },
+            { id: 'b', type: 'PullRequestEvent', repo: { name: 'chelebyy/ai-office' }, payload: { action: 'closed', number: 4, pull_request: { merged: true } }, created_at: '2026-11-02T11:00:00Z' },
+            { id: 'c', type: 'PullRequestEvent', repo: { name: 'chelebyy/ai-office' }, payload: { action: 'closed', number: 3, pull_request: { merged: false } }, created_at: '2026-11-02T10:00:00Z' },
+        ]);
+        expect(logs.map(log => `${log.type}:${log.ref}`)).toEqual(['merge:#5', 'merge:#4']);
+    });
+
     it('uses the default branch GitHub reports for the repository', () => {
         const logs = eventsToActivity([
             push('1', 'chelebyy/ai-office', 'main', '2026-11-02T12:00:00Z'),

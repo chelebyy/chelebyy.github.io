@@ -26,7 +26,7 @@
   ```
 
   Adlar büyük/küçük harfe duyarsızdır. Gizlenen depolar proje listesinden *ve* aktivite günlüğünden kaybolur; ziyaretçinin tarayıcısında önbelleğe alınmış veride de.
-- **Aktivite günlüğü:** görünen depoların son sürümleri, etiketleri, push'ları ve birleştirilen PR'ları, `git log` biçiminde.
+- **Aktivite günlüğü:** her görünen depo için tek satır, `git log` biçiminde: son sürümü, etiketi, varsayılan dala push'u ya da birleştirilen PR'ları (aynı günün push ve merge'leri birleşir, `+N` gerisini sayar). Yakın zamanda herkese açık olayı olmayan depolar son push tarihiyle görünür. En yeni altı depo listelenir.
 - Proje listesinde **`grep` ve dil filtreleri.**
 - Gerçek sayılarla **neofetch paneli:** depo sayısı, en çok kullanılan diller, son push.
 - **Terminal (`Ctrl + K`):** `ls`, `open <proje>`, `neofetch`, `theme <blue|red|green|purple>`, `matrix`, `whoami`, `sudo`, `reboot`, `clear`, `exit`.

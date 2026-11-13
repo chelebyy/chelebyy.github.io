@@ -26,7 +26,7 @@
   ```
 
   Names are case-insensitive. Hidden repositories disappear from the project list *and* the activity log, including data already cached in visitors' browsers.
-- **Activity log:** recent releases, tags, pushes and merged pull requests of the visible repositories, in `git log` style.
+- **Activity log:** one line per visible repository, in `git log` style: its latest release, tag, push to the default branch or merged pull requests (same-day pushes and merges fold together, `+N` counts the rest). Repositories without recent public events show their last push. The six most recent are listed.
 - **`grep` and language filters** over the project list.
 - **neofetch panel** with real numbers: repository count, top languages, last push.
 - **Terminal (`Ctrl + K`):** `ls`, `open <project>`, `neofetch`, `theme <blue|red|green|purple>`, `matrix`, `whoami`, `sudo`, `reboot`, `clear`, `exit`.

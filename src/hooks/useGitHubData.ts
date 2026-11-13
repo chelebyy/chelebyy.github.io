@@ -108,7 +108,7 @@ export const useGitHubData = (config: SiteConfig = defaultConfig): GitHubData =>
     return useMemo(() => {
         const projects = raw.data ? filterProjects(raw.data.projects, config) : [];
         const activityHistory = raw.data ? filterActivity(raw.data.activity, raw.data.projects, config) : [];
-        const activity = summarizeActivity(activityHistory, raw.data?.projects ?? [], 12);
+        const activity = summarizeActivity(activityHistory, projects, 6, config.githubUser);
         return {
             status: raw.status,
             user: raw.data?.user ?? null,

@@ -152,6 +152,12 @@ const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, history = logs,
                                     </span>
                                     <span className="relative col-span-2 flex min-w-0 items-center empty:hidden md:col-span-1 md:empty:flex">
                                         <Detail log={log} />
+                                        {log.more ? (
+                                            <span className="ml-auto shrink-0 pl-3 text-[11px] text-gray-500" title={t.activityMore(log.more)}>
+                                                <span aria-hidden="true">+{log.more}</span>
+                                                <span className="sr-only">{t.activityMore(log.more)}</span>
+                                            </span>
+                                        ) : null}
                                     </span>
                                 </a>
                             </li>

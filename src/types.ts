@@ -32,6 +32,8 @@ export interface ActivityLog {
   count?: number;
   /** Pull request numbers of every merge folded into this line, newest first. */
   refs?: string[];
+  /** Other events of the same project that this line stands in for (one line per project). */
+  more?: number;
 }
 
 export interface GitHubUser {

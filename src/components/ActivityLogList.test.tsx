@@ -67,3 +67,19 @@ describe('ActivityLogList merge lines', () => {
         expect(line.textContent).toContain('×5');
     });
 });
+
+describe('ActivityLogList one line per project', () => {
+    it('says how many more events the project had', () => {
+        render(<ActivityLogList logs={[{ ...push('a', 1), count: 2, more: 4 }]} lang="en" />);
+
+        const line = screen.getByRole('link');
+        expect(line.textContent).toContain('+4');
+        expect(line.textContent).toContain('4 more events');
+    });
+
+    it('shows no extra count when the line is the only event', () => {
+        render(<ActivityLogList logs={[{ ...push('a', 1), more: 0 }]} lang="tr" />);
+
+        expect(screen.getByRole('link').textContent).not.toContain('+');
+    });
+});

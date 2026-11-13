@@ -61,12 +61,16 @@ const TypeBar: React.FC<{ logs: ActivityLog[]; lang: Language }> = ({ logs, lang
 
 const Detail: React.FC<{ log: ActivityLog }> = ({ log }) => {
     if (log.type === 'push') {
-        return log.ref ? (
-            <span className="truncate border border-gray-800 bg-white/[0.03] px-1.5 text-[11px] text-gray-400">
-                <span aria-hidden="true" className="text-gray-600">⎇ </span>
-                {log.ref}
+        if (!log.ref) return null;
+        return (
+            <span className="flex min-w-0 items-center gap-2">
+                <span className="truncate border border-gray-800 bg-white/[0.03] px-1.5 text-[11px] text-gray-400">
+                    <span aria-hidden="true" className="text-gray-600">⎇ </span>
+                    {log.ref}
+                </span>
+                {log.count && log.count > 1 ? <span className="shrink-0 text-[var(--c)]">×{log.count}</span> : null}
             </span>
-        ) : null;
+        );
     }
     if (log.type === 'create') return null;
 

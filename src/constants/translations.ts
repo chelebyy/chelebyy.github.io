@@ -57,6 +57,7 @@ export const translations = {
         secretBody: 'You found the hidden sector. The theme now runs in yellow and red — type "theme blue" in the terminal to go back.',
         // Activity
         recentActivity: 'git log --all --oneline',
+        activitySummary: (events: number, days: number) => `${events} ${events === 1 ? 'event' : 'events'} on ${days} ${days === 1 ? 'day' : 'days'} in the last 90 days`,
         noActivity: 'No public activity in the last 90 days.',
         activityType: {
             release: 'release',
@@ -156,6 +157,7 @@ export const translations = {
         secretBody: 'Gizli sektörü buldun. Tema artık sarı-kırmızı — geri dönmek için terminale "theme blue" yaz.',
         recentActivity: 'git log --all --oneline',
         noActivity: 'Son 90 günde herkese açık aktivite yok.',
+        activitySummary: (events: number, days: number) => `Son 90 günde ${days} günde ${events} olay`,
         activityType: {
             release: 'sürüm',
             tag: 'etiket',

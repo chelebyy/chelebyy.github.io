@@ -5,6 +5,8 @@ import { shortDate } from '../lib/format';
 
 interface ActivityLogListProps {
     logs: ActivityLog[];
+    /** Uncollapsed events for the heatmap and type bar; defaults to `logs`. */
+    history?: ActivityLog[];
     lang: Language;
 }
 
@@ -46,7 +48,7 @@ const DAY_MS = 86_400_000;
 const HEATMAP_DAYS = 90;
 
 /** GitHub-style grid of the last 90 days: each cell takes the colour of that day's most frequent event type. */
-const Heatmap: React.FC<{ logs: ActivityLog[] }> = ({ logs }) => {
+const Heatmap: React.FC<{ logs: ActivityLog[]; lang: Language }> = ({ logs, lang }) => {
     const byDay = new Map<string, Partial<Record<ActivityLog['type'], number>>>();
     for (const log of logs) {
         const day = shortDate(log.timestamp);
@@ -69,10 +71,12 @@ const Heatmap: React.FC<{ logs: ActivityLog[] }> = ({ logs }) => {
         const top = entries.sort((a, b) => b[1] - a[1])[0]?.[0];
         cells.push({ day, total, color: top ? typeColor[top] : undefined, inRange: time >= first });
     }
+    const shown = cells.filter(cell => cell.inRange && cell.total > 0);
+    const label = translations[lang].activitySummary(shown.reduce((sum, cell) => sum + cell.total, 0), shown.length);
 
     return (
-        <div aria-hidden="true" className="mb-6 overflow-x-auto">
-            <div className="grid w-max grid-flow-col grid-rows-7 gap-[3px]">
+        <div role="img" aria-label={label} className="mb-6 overflow-x-auto">
+            <div aria-hidden="true" className="grid w-max grid-flow-col grid-rows-7 gap-[3px]">
                 {cells.map(cell => (
                     <span
                         key={cell.day}
@@ -98,8 +102,8 @@ const TypeBar: React.FC<{ logs: ActivityLog[]; lang: Language }> = ({ logs, lang
         .filter(entry => entry.count > 0);
 
     return (
-        <div aria-hidden="true" className="mb-8">
-            <div className="flex h-1.5 gap-0.5 overflow-hidden rounded-full">
+        <div className="mb-8">
+            <div aria-hidden="true" className="flex h-1.5 gap-0.5 overflow-hidden rounded-full">
                 {counts.map(({ type, count }) => (
                     <span key={type} style={{ flexGrow: count, backgroundColor: typeColor[type] }} />
                 ))}
@@ -138,7 +142,7 @@ const Detail: React.FC<{ log: ActivityLog }> = ({ log }) => {
     );
 };
 
-const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, lang }) => {
+const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, history = logs, lang }) => {
     const t = translations[lang];
     const groups = groupByDay(logs);
 
@@ -153,8 +157,8 @@ const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, lang }) => {
                 <p className="font-mono text-xs text-gray-600">{t.noActivity}</p>
             ) : (
                 <>
-                <Heatmap logs={logs} />
-                <TypeBar logs={logs} lang={lang} />
+                <Heatmap logs={history} lang={lang} />
+                <TypeBar logs={history} lang={lang} />
                 <ol className="space-y-6 font-mono text-[13px]">
                     {groups.map((group, groupIndex) => (
                         <li key={`${group.day}-${groupIndex}`}>

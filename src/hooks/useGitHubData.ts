@@ -21,6 +21,8 @@ export interface GitHubData {
     user: GitHubUser | null;
     projects: Project[];
     activity: ActivityLog[];
+    /** Every visible event GitHub returned (up to 90 days), before collapsing and the display limit. */
+    activityHistory: ActivityLog[];
     syncedAt: number | null;
     retry: () => void;
 }
@@ -105,12 +107,14 @@ export const useGitHubData = (config: SiteConfig = defaultConfig): GitHubData =>
 
     return useMemo(() => {
         const projects = raw.data ? filterProjects(raw.data.projects, config) : [];
-        const activity = raw.data ? collapseActivity(filterActivity(raw.data.activity, raw.data.projects, config), 12) : [];
+        const activityHistory = raw.data ? filterActivity(raw.data.activity, raw.data.projects, config) : [];
+        const activity = collapseActivity(activityHistory, 12);
         return {
             status: raw.status,
             user: raw.data?.user ?? null,
             projects,
             activity,
+            activityHistory,
             syncedAt: raw.data?.savedAt ?? null,
             retry,
         };

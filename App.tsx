@@ -58,7 +58,7 @@ const App: React.FC = () => {
   const [isControlPanelOpen, setIsControlPanelOpen] = useState(false);
   const [matrixEnabled, setMatrixEnabled] = useState(false);
 
-  const { status, user, projects, activity, syncedAt, retry } = useGitHubData();
+  const { status, user, projects, activity, activityHistory, syncedAt, retry } = useGitHubData();
 
   const [query, setQuery] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
@@ -200,7 +200,7 @@ const App: React.FC = () => {
               onRetry={retry}
             />
             <SecretSector lang={lang} unlocked={secretUnlocked} onUnlock={handleUnlock} />
-            <ActivityLogList logs={activity} lang={lang} />
+            <ActivityLogList logs={activity} history={activityHistory} lang={lang} />
           </div>
         </div>
       </main>

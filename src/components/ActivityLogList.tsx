@@ -33,6 +33,90 @@ const groupByDay = (logs: ActivityLog[]): { day: string; items: ActivityLog[] }[
     return groups;
 };
 
+/** A fixed colour per repository, so events from the same project share a rail colour. */
+const REPO_COLORS = ['#f472b6', '#38bdf8', '#facc15', '#4ade80', '#fb923c', '#c084fc', '#2dd4bf'];
+
+const repoColor = (repo: string): string => {
+    let hash = 0;
+    for (let i = 0; i < repo.length; i++) hash = (hash * 31 + repo.charCodeAt(i)) >>> 0;
+    return REPO_COLORS[hash % REPO_COLORS.length];
+};
+
+const DAY_MS = 86_400_000;
+const HEATMAP_DAYS = 90;
+
+/** GitHub-style grid of the last 90 days: each cell takes the colour of that day's most frequent event type. */
+const Heatmap: React.FC<{ logs: ActivityLog[] }> = ({ logs }) => {
+    const byDay = new Map<string, Partial<Record<ActivityLog['type'], number>>>();
+    for (const log of logs) {
+        const day = shortDate(log.timestamp);
+        const counts = byDay.get(day) ?? {};
+        counts[log.type] = (counts[log.type] ?? 0) + 1;
+        byDay.set(day, counts);
+    }
+
+    const now = new Date();
+    const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    const first = today - (HEATMAP_DAYS - 1) * DAY_MS;
+    // Start the grid on the Monday on or before the first day so every column is one week.
+    const start = first - ((new Date(first).getUTCDay() + 6) % 7) * DAY_MS;
+    const cells: { day: string; color?: string; total: number; inRange: boolean }[] = [];
+    for (let time = start; time <= today; time += DAY_MS) {
+        const day = new Date(time).toISOString().slice(0, 10);
+        const counts = byDay.get(day) ?? {};
+        const entries = Object.entries(counts) as [ActivityLog['type'], number][];
+        const total = entries.reduce((sum, [, n]) => sum + n, 0);
+        const top = entries.sort((a, b) => b[1] - a[1])[0]?.[0];
+        cells.push({ day, total, color: top ? typeColor[top] : undefined, inRange: time >= first });
+    }
+
+    return (
+        <div aria-hidden="true" className="mb-6 overflow-x-auto">
+            <div className="grid w-max grid-flow-col grid-rows-7 gap-[3px]">
+                {cells.map(cell => (
+                    <span
+                        key={cell.day}
+                        title={cell.inRange ? `${cell.day} · ${cell.total}` : undefined}
+                        className={`h-2.5 w-2.5 rounded-[2px] ${cell.inRange ? 'bg-white/[0.05]' : 'invisible'}`}
+                        style={
+                            cell.color
+                                ? { backgroundColor: `color-mix(in oklab, ${cell.color} ${Math.min(40 + cell.total * 15, 100)}%, transparent)` }
+                                : undefined
+                        }
+                    />
+                ))}
+            </div>
+        </div>
+    );
+};
+
+/** One thin stacked bar of event types, with counts underneath; replaces a plain legend. */
+const TypeBar: React.FC<{ logs: ActivityLog[]; lang: Language }> = ({ logs, lang }) => {
+    const t = translations[lang];
+    const counts = typeOrder
+        .map(type => ({ type, count: logs.filter(log => log.type === type).length }))
+        .filter(entry => entry.count > 0);
+
+    return (
+        <div aria-hidden="true" className="mb-8">
+            <div className="flex h-1.5 gap-0.5 overflow-hidden rounded-full">
+                {counts.map(({ type, count }) => (
+                    <span key={type} style={{ flexGrow: count, backgroundColor: typeColor[type] }} />
+                ))}
+            </div>
+            <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] text-gray-500">
+                {counts.map(({ type, count }) => (
+                    <li key={type} className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: typeColor[type] }} />
+                        {t.activityType[type]}
+                        <span className="text-gray-400">{count}</span>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+};
+
 const Detail: React.FC<{ log: ActivityLog }> = ({ log }) => {
     if (log.type === 'push') {
         return log.ref ? (
@@ -57,30 +141,20 @@ const Detail: React.FC<{ log: ActivityLog }> = ({ log }) => {
 const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, lang }) => {
     const t = translations[lang];
     const groups = groupByDay(logs);
-    const present = typeOrder.filter(type => logs.some(log => log.type === type));
 
     return (
         <section id="activity-section" aria-labelledby="activity-title" className="scroll-mt-12 px-6 py-12 md:px-10">
             <p className="mb-2 font-mono text-xs text-gray-600">
                 <span className="text-primary-text">$</span> {t.recentActivity}
             </p>
-            <div className="mb-8 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-                <h2 id="activity-title" className="text-2xl font-bold tracking-tight text-white">{t.activityDir}.log</h2>
-                {present.length > 1 && (
-                    <ul aria-hidden="true" className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] text-gray-500">
-                        {present.map(type => (
-                            <li key={type} className="flex items-center gap-1.5">
-                                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: typeColor[type] }} />
-                                {t.activityType[type]}
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </div>
+            <h2 id="activity-title" className="mb-6 text-2xl font-bold tracking-tight text-white">{t.activityDir}.log</h2>
 
             {logs.length === 0 ? (
                 <p className="font-mono text-xs text-gray-600">{t.noActivity}</p>
             ) : (
+                <>
+                <Heatmap logs={logs} />
+                <TypeBar logs={logs} lang={lang} />
                 <ol className="space-y-6 font-mono text-[13px]">
                     {groups.map((group, groupIndex) => (
                         <li key={`${group.day}-${groupIndex}`}>
@@ -91,12 +165,12 @@ const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, lang }) => {
                                 <span className="text-gray-600">{group.items.length}×</span>
                             </div>
 
-                            <ol className="relative ml-[7px] border-l border-gray-800">
+                            <ol className="relative ml-[7px]">
                                 {group.items.map(log => (
-                                    <li key={log.id} className="relative" style={{ '--c': typeColor[log.type] } as React.CSSProperties}>
+                                    <li key={log.id} className="relative border-l-2" style={{ '--c': typeColor[log.type], '--r': repoColor(log.repo), borderColor: `color-mix(in oklab, ${repoColor(log.repo)} 75%, transparent)` } as React.CSSProperties}>
                                         <span
                                             aria-hidden="true"
-                                            className={`absolute left-[-5px] top-1/2 h-[9px] w-[9px] -translate-y-1/2 rounded-full ring-4 ring-background-dark ${
+                                            className={`absolute left-[-5.5px] top-1/2 h-[9px] w-[9px] -translate-y-1/2 rounded-full ring-4 ring-background-dark ${
                                                 log.type === 'merge' ? 'border-2 border-[var(--c)] bg-background-dark' : 'bg-[var(--c)]'
                                             }`}
                                         />
@@ -118,8 +192,9 @@ const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, lang }) => {
                                                 {t.activityType[log.type]}
                                             </span>
                                             <span className="relative flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
-                                                <span className="truncate font-medium text-gray-100 group-hover:text-white">
-                                                    {log.repo.split('/')[1] ?? log.repo}
+                                                <span className="flex min-w-0 items-center gap-2 font-medium text-gray-100 group-hover:text-white">
+                                                    <span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-[2px] bg-[var(--r)]" />
+                                                    <span className="truncate">{log.repo.split('/')[1] ?? log.repo}</span>
                                                 </span>
                                                 <Detail log={log} />
                                             </span>
@@ -136,6 +211,7 @@ const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, lang }) => {
                         </li>
                     ))}
                 </ol>
+                </>
             )}
         </section>
     );

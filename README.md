@@ -21,7 +21,7 @@
 
   ```ts
   hiddenRepos: ['chelebyy.github.io', 'link-manager', 'StokTakip'], // never shown
-  visibleForks: [],      // forks are hidden unless listed here
+  visibleForks: ['claude-liveroom'], // forks are hidden unless listed here
   showArchived: true,    // archived repos get an "archived" label
   ```
 

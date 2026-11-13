@@ -21,7 +21,7 @@
 
   ```ts
   hiddenRepos: ['chelebyy.github.io', 'link-manager', 'StokTakip'], // hiç gösterilmez
-  visibleForks: [],      // fork'lar burada listelenmedikçe gizlidir
+  visibleForks: ['claude-liveroom'], // fork'lar burada listelenmedikçe gizlidir
   showArchived: true,    // arşivlenmiş depolar "arşiv" etiketiyle görünür
   ```
 

@@ -16,7 +16,7 @@ export const siteConfig = {
     ],
 
     /** Forks are hidden by default. Add a fork's name here to show it. */
-    visibleForks: [] as string[],
+    visibleForks: ['claude-liveroom'] as string[],
 
     /** Show archived repositories (they get an "archived" label). */
     showArchived: true,
@@ -34,6 +34,8 @@ export const siteConfig = {
         'ai-office':
             'Codex oturumlarını ve ajanlarını sanal bir ofiste çalışırken izle. Masaüstü tarayıcı arayüzü; Windows ve Linux (Ubuntu/WSL) üzerinde denendi. macOS ve diğer LLM\'ler denenmedi. MIT.',
         arackiralama: 'Araç kiralama platformu.',
+        'claude-liveroom':
+            'Terminaline canlı bir oda kuran Claude Code modu: bağlam ve maliyet, her izin kontrolü, alt ajanlar ve Codex devirleri, görev panosuyla ajan takımın. Türkçe ve İngilizce.',
         skills:
             'Pratik yazılım geliştirme için ajan becerileri: projeye duyarlı test, güvenlik, GitHub CI ve depo yönetişimi ile başlıyor.',
     } as Record<string, string>,

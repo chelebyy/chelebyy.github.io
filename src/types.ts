@@ -14,6 +14,8 @@ export interface Project {
   archived: boolean;
   fork: boolean;
   license: string | null;
+  /** Missing in data cached before this field existed. */
+  defaultBranch?: string | null;
 }
 
 export type ActivityType = 'release' | 'tag' | 'push' | 'create' | 'merge';
@@ -26,6 +28,8 @@ export interface ActivityLog {
   ref?: string;
   message: string;
   url: string;
+  /** Number of pushes folded into this line (same repo, branch and day). */
+  count?: number;
 }
 
 export interface GitHubUser {
@@ -51,6 +55,7 @@ export interface GitHubRepo {
   archived: boolean;
   fork: boolean;
   license: { spdx_id: string | null } | null;
+  default_branch?: string;
 }
 
 export interface GitHubEvent {
@@ -65,6 +70,9 @@ export interface GitHubEvent {
     size?: number;
     action?: string;
     number?: number;
+    pull_request?: {
+      merged?: boolean;
+    };
     release?: {
       tag_name: string;
       name: string | null;

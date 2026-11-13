@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-    collapseActivity,
     eventsToActivity,
     filterActivity,
     filterProjects,
@@ -8,6 +7,7 @@ import {
     languageBreakdown,
     reposToProjects,
     safeHttpUrl,
+    summarizeActivity,
 } from './github';
 import { ActivityLog, GitHubRepo, Project } from '../types';
 
@@ -99,32 +99,81 @@ describe('reposToProjects', () => {
 });
 
 describe('eventsToActivity', () => {
-    it('maps releases, tags and pushes and collapses consecutive pushes to one repo', () => {
+    it('maps releases, tags, pushes and merges and folds same-day pushes to one repo', () => {
         const events = [
-            { id: '1', type: 'PushEvent', repo: { name: 'chelebyy/a' }, payload: { ref: 'refs/heads/main' }, created_at: '2026-11-03T00:00:00Z' },
-            { id: '2', type: 'PushEvent', repo: { name: 'chelebyy/a' }, payload: { ref: 'refs/heads/main' }, created_at: '2026-11-02T00:00:00Z' },
+            { id: '1', type: 'PushEvent', repo: { name: 'chelebyy/a' }, payload: { ref: 'refs/heads/main' }, created_at: '2026-11-03T12:00:00Z' },
+            { id: '2', type: 'PushEvent', repo: { name: 'chelebyy/a' }, payload: { ref: 'refs/heads/main' }, created_at: '2026-11-03T08:00:00Z' },
             { id: '3', type: 'ReleaseEvent', repo: { name: 'chelebyy/a' }, payload: { release: { tag_name: 'v1.0.0', name: 'First', html_url: 'https://github.com/chelebyy/a/releases/tag/v1.0.0' } }, created_at: '2026-11-01T00:00:00Z' },
             { id: '4', type: 'CreateEvent', repo: { name: 'chelebyy/b' }, payload: { ref_type: 'tag', ref: 'v2' }, created_at: '2026-10-01T00:00:00Z' },
             { id: '5', type: 'WatchEvent', repo: { name: 'chelebyy/b' }, payload: {}, created_at: '2026-10-01T00:00:00Z' },
             { id: '6', type: 'PullRequestEvent', repo: { name: 'chelebyy/b' }, payload: { action: 'opened', number: 7 }, created_at: '2026-09-02T00:00:00Z' },
             { id: '7', type: 'PullRequestEvent', repo: { name: 'chelebyy/b' }, payload: { action: 'merged', number: 7 }, created_at: '2026-09-01T00:00:00Z' },
         ];
-        const logs = collapseActivity(eventsToActivity(events));
+        const logs = summarizeActivity(eventsToActivity(events), []);
         expect(logs.map(log => `${log.type}:${log.ref}`)).toEqual(['push:main', 'release:v1.0.0', 'tag:v2', 'merge:#7']);
+        expect(logs[0].count).toBe(2);
         expect(logs[3].url).toBe('https://github.com/chelebyy/b/pull/7');
     });
 });
 
-describe('collapseActivity after filtering', () => {
-    it('merges pushes to one repo even when a hidden repo pushed in between', () => {
-        const push = (id: string, repoName: string, at: string) => ({ id, type: 'PushEvent', repo: { name: repoName }, payload: { ref: 'refs/heads/main' }, created_at: at });
+describe('summarizeActivity', () => {
+    const push = (id: string, repoName: string, ref: string, at: string) =>
+        ({ id, type: 'PushEvent', repo: { name: repoName }, payload: { ref: `refs/heads/${ref}` }, created_at: at });
+    const merge = (id: string, number: number, at: string) =>
+        ({ id, type: 'PullRequestEvent', repo: { name: 'chelebyy/ai-office' }, payload: { action: 'merged', number }, created_at: at });
+
+    it('folds pushes to one repo on one day, even when a hidden repo pushed in between', () => {
         const logs = eventsToActivity([
-            push('1', 'chelebyy/ai-office', '2026-11-03T00:00:00Z'),
-            push('2', 'chelebyy/StokTakip', '2026-11-02T00:00:00Z'),
-            push('3', 'chelebyy/ai-office', '2026-11-01T00:00:00Z'),
+            push('1', 'chelebyy/ai-office', 'main', '2026-11-03T20:00:00Z'),
+            push('2', 'chelebyy/StokTakip', 'main', '2026-11-03T15:00:00Z'),
+            push('3', 'chelebyy/ai-office', 'main', '2026-11-03T10:00:00Z'),
+            push('4', 'chelebyy/ai-office', 'main', '2026-11-02T10:00:00Z'),
         ]);
         const visible = filterActivity(logs, [project('ai-office'), project('StokTakip')], config);
-        expect(collapseActivity(visible).map(log => log.id)).toEqual(['1']);
+        expect(summarizeActivity(visible, []).map(log => `${log.id}x${log.count}`)).toEqual(['1x2', '4x1']);
+    });
+
+    it('drops pushes to feature branches but keeps every merge', () => {
+        const logs = eventsToActivity([
+            merge('m5', 5, '2026-11-02T12:00:00Z'),
+            push('p1', 'chelebyy/ai-office', 'main', '2026-11-02T11:00:00Z'),
+            merge('m4', 4, '2026-11-02T10:00:00Z'),
+            push('p2', 'chelebyy/ai-office', 'claude/linux-support', '2026-11-02T09:00:00Z'),
+            merge('m1', 1, '2026-11-02T08:00:00Z'),
+        ]);
+        expect(summarizeActivity(logs, []).map(log => log.id)).toEqual(['m5', 'p1', 'm4', 'm1']);
+    });
+
+    it('recognises a merged pull request in both event shapes GitHub sends', () => {
+        const logs = eventsToActivity([
+            { id: 'a', type: 'PullRequestEvent', repo: { name: 'chelebyy/ai-office' }, payload: { action: 'merged', number: 5 }, created_at: '2026-11-02T12:00:00Z' },
+            { id: 'b', type: 'PullRequestEvent', repo: { name: 'chelebyy/ai-office' }, payload: { action: 'closed', number: 4, pull_request: { merged: true } }, created_at: '2026-11-02T11:00:00Z' },
+            { id: 'c', type: 'PullRequestEvent', repo: { name: 'chelebyy/ai-office' }, payload: { action: 'closed', number: 3, pull_request: { merged: false } }, created_at: '2026-11-02T10:00:00Z' },
+        ]);
+        expect(logs.map(log => `${log.type}:${log.ref}`)).toEqual(['merge:#5', 'merge:#4']);
+    });
+
+    it('uses the default branch GitHub reports for the repository', () => {
+        const logs = eventsToActivity([
+            push('1', 'chelebyy/ai-office', 'main', '2026-11-02T12:00:00Z'),
+            push('2', 'chelebyy/ai-office', 'develop', '2026-11-02T11:00:00Z'),
+        ]);
+        const [projectWithDevelop] = reposToProjects([repo({ name: 'ai-office', default_branch: 'develop' })]);
+        expect(summarizeActivity(logs, [projectWithDevelop]).map(log => log.id)).toEqual(['2']);
+    });
+
+    it('fills the limit with lines, while later pushes still add to an existing line', () => {
+        const tags = Array.from({ length: 3 }, (_, i) => ({
+            id: `t${i}`, type: 'CreateEvent', repo: { name: 'chelebyy/ai-office' }, payload: { ref_type: 'tag', ref: `v${i}` }, created_at: '2026-11-03T09:00:00Z',
+        }));
+        const logs = eventsToActivity([
+            push('1', 'chelebyy/ai-office', 'main', '2026-11-03T12:00:00Z'),
+            ...tags,
+            push('2', 'chelebyy/ai-office', 'main', '2026-11-03T08:00:00Z'),
+        ]);
+        const lines = summarizeActivity(logs, [], 3);
+        expect(lines.map(log => log.id)).toEqual(['1', 't0', 't1']);
+        expect(lines[0].count).toBe(2);
     });
 });
 

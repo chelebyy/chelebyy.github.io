@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityLog, GitHubUser, Project } from '../types';
 import { siteConfig as defaultConfig, SiteConfig } from '../config/site';
-import { collapseActivity, eventsToActivity, filterActivity, filterProjects, pickUser, reposToProjects } from '../lib/github';
+import { eventsToActivity, filterActivity, filterProjects, pickUser, reposToProjects, summarizeActivity } from '../lib/github';
 
 export const CACHE_KEY = 'cheleby:github:v2';
 const LEGACY_CACHE_KEYS = ['github_cache', 'github_cache_time'];
@@ -21,6 +21,8 @@ export interface GitHubData {
     user: GitHubUser | null;
     projects: Project[];
     activity: ActivityLog[];
+    /** Every visible event GitHub returned (up to 90 days), before collapsing and the display limit. */
+    activityHistory: ActivityLog[];
     syncedAt: number | null;
     retry: () => void;
 }
@@ -105,12 +107,14 @@ export const useGitHubData = (config: SiteConfig = defaultConfig): GitHubData =>
 
     return useMemo(() => {
         const projects = raw.data ? filterProjects(raw.data.projects, config) : [];
-        const activity = raw.data ? collapseActivity(filterActivity(raw.data.activity, raw.data.projects, config), 12) : [];
+        const activityHistory = raw.data ? filterActivity(raw.data.activity, raw.data.projects, config) : [];
+        const activity = summarizeActivity(activityHistory, raw.data?.projects ?? [], 12);
         return {
             status: raw.status,
             user: raw.data?.user ?? null,
             projects,
             activity,
+            activityHistory,
             syncedAt: raw.data?.savedAt ?? null,
             retry,
         };

@@ -116,4 +116,27 @@ describe('useGitHubData request budget and activity', () => {
         await waitFor(() => expect(result.current.status).toBe('ready'));
         expect(result.current.activity.map(log => log.repo)).toEqual(['chelebyy/ai-office']);
     });
+
+    it('keeps the full visible history next to the collapsed, limited list', async () => {
+        // 20 visible tags (more than the 12-line display limit), 3 consecutive pushes that collapse, 1 hidden push.
+        const tags = Array.from({ length: 20 }, (_, i) => ({
+            id: `t${i}`, type: 'CreateEvent', repo: { name: 'chelebyy/ai-office' },
+            payload: { ref_type: 'tag', ref: `v${i}` }, created_at: '2026-11-09T00:00:00Z',
+        }));
+        const pushes = Array.from({ length: 3 }, (_, i) => ({
+            id: `p${i}`, type: 'PushEvent', repo: { name: 'chelebyy/ai-office' }, payload: { ref: 'refs/heads/main' }, created_at: '2026-11-10T00:00:00Z',
+        }));
+        const hidden = { id: 'h1', type: 'PushEvent', repo: { name: 'chelebyy/StokTakip' }, payload: { ref: 'refs/heads/main' }, created_at: '2026-11-10T00:00:00Z' };
+        vi.stubGlobal('fetch', vi.fn((url: string) => {
+            if (url.includes('/repos')) return respond([repo(1, 'StokTakip'), repo(2, 'ai-office')]);
+            if (url.includes('/events')) return respond([...pushes, hidden, ...tags]);
+            return respond({ login: 'chelebyy' });
+        }));
+
+        const { result } = renderHook(() => useGitHubData(config));
+        await waitFor(() => expect(result.current.status).toBe('ready'));
+        expect(result.current.activity).toHaveLength(12);
+        expect(result.current.activityHistory).toHaveLength(23);
+        expect(result.current.activityHistory.some(log => log.repo === 'chelebyy/StokTakip')).toBe(false);
+    });
 });

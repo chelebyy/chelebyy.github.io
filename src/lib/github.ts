@@ -52,6 +52,7 @@ export const repoToProject = (repo: GitHubRepo): Project => ({
     archived: Boolean(repo.archived),
     fork: Boolean(repo.fork),
     license: repo.license?.spdx_id && repo.license.spdx_id !== 'NOASSERTION' ? repo.license.spdx_id : null,
+    defaultBranch: typeof repo.default_branch === 'string' && repo.default_branch ? repo.default_branch : null,
 });
 
 const sortByPushed = (a: Project, b: Project) => Date.parse(b.pushedAt) - Date.parse(a.pushedAt);
@@ -109,7 +110,9 @@ export const eventToActivity = (event: GitHubEvent): ActivityLog | null => {
         }
         case 'PullRequestEvent': {
             const number = event.payload.number;
-            if (event.payload.action !== 'merged' || typeof number !== 'number') return null;
+            // GitHub reports a merge either as action "merged" or as "closed" with pull_request.merged.
+            const merged = event.payload.action === 'merged' || (event.payload.action === 'closed' && event.payload.pull_request?.merged === true);
+            if (!merged || typeof number !== 'number') return null;
             return { ...base, type: 'merge', ref: `#${number}`, message: `#${number}`, url: `${repoUrl}/pull/${number}` };
         }
         default:
@@ -126,14 +129,38 @@ export const eventsToActivity = (events: unknown): ActivityLog[] => {
         .sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp));
 };
 
-/** Consecutive pushes (or merges) to the same repository collapse into one line; run after filtering. */
-export const collapseActivity = (logs: ActivityLog[], limit = 12): ActivityLog[] => {
+/**
+ * Turns the visible event history into the lines the activity list shows; run after filtering.
+ * Releases, tags, merges and new repositories always stay. Pushes count only on the repository's
+ * default branch (feature-branch work shows up as its merge), and all pushes to one repository
+ * on one day fold into a single line that carries the count.
+ */
+export const summarizeActivity = (logs: ActivityLog[], projects: Project[], limit = 12): ActivityLog[] => {
+    const defaults = new Map(projects.map(project => [normalize(project.name), project.defaultBranch ?? null]));
+    const isDefaultBranch = (log: ActivityLog): boolean => {
+        if (!log.ref) return false;
+        const known = defaults.get(normalize(log.repo.split('/')[1] ?? ''));
+        // Data cached before default branches were stored: fall back to the usual names.
+        return known ? log.ref === known : log.ref === 'main' || log.ref === 'master';
+    };
+
     const result: ActivityLog[] = [];
+    const pushLines = new Map<string, number>();
     for (const log of logs) {
-        const previous = result[result.length - 1];
-        if ((log.type === 'push' || log.type === 'merge') && previous?.type === log.type && previous.repo === log.repo) continue;
-        result.push(log);
-        if (result.length >= limit) break;
+        if (log.type === 'push') {
+            if (!isDefaultBranch(log)) continue;
+            const key = `${normalize(log.repo)}|${log.ref}|${log.timestamp.slice(0, 10)}`;
+            const index = pushLines.get(key);
+            if (index !== undefined) {
+                result[index] = { ...result[index], count: (result[index].count ?? 1) + 1 };
+                continue;
+            }
+            if (result.length >= limit) continue;
+            pushLines.set(key, result.length);
+            result.push({ ...log, count: 1 });
+            continue;
+        }
+        if (result.length < limit) result.push(log);
     }
     return result;
 };

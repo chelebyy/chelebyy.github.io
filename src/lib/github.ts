@@ -110,7 +110,9 @@ export const eventToActivity = (event: GitHubEvent): ActivityLog | null => {
         }
         case 'PullRequestEvent': {
             const number = event.payload.number;
-            if (event.payload.action !== 'merged' || typeof number !== 'number') return null;
+            // GitHub reports a merge either as action "merged" or as "closed" with pull_request.merged.
+            const merged = event.payload.action === 'merged' || (event.payload.action === 'closed' && event.payload.pull_request?.merged === true);
+            if (!merged || typeof number !== 'number') return null;
             return { ...base, type: 'merge', ref: `#${number}`, message: `#${number}`, url: `${repoUrl}/pull/${number}` };
         }
         default:

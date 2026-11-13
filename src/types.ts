@@ -70,6 +70,9 @@ export interface GitHubEvent {
     size?: number;
     action?: string;
     number?: number;
+    pull_request?: {
+      merged?: boolean;
+    };
     release?: {
       tag_name: string;
       name: string | null;

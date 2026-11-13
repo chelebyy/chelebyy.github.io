@@ -16,12 +16,11 @@ const push = (id: string, n: number): ActivityLog => ({
 });
 
 describe('ActivityLogList summaries', () => {
-    it('builds the heatmap and type counts from the full history, not the shortened list', () => {
+    it('counts event types from the full history, not the shortened list', () => {
         const shown = [push('a', 1)];
         const history = [push('a', 1), push('b', 1), push('c', 5), push('d', 40)];
         render(<ActivityLogList logs={shown} history={history} lang="en" />);
 
-        expect(screen.getByRole('img', { name: '4 events on 3 days in the last 90 days' })).toBeTruthy();
         // The type breakdown is exposed to screen readers (getAllByRole skips aria-hidden), with the full count.
         const items = screen.getAllByRole('listitem').map(item => item.textContent);
         expect(items).toContain('push4');

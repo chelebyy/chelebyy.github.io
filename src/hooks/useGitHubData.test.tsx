@@ -117,8 +117,8 @@ describe('useGitHubData request budget and activity', () => {
         expect(result.current.activity.map(log => log.repo)).toEqual(['chelebyy/ai-office']);
     });
 
-    it('keeps the full visible history next to the collapsed, limited list', async () => {
-        // 20 visible tags (more than the 12-line display limit), 3 consecutive pushes that collapse, 1 hidden push.
+    it('keeps the full visible history next to the one-line-per-project list', async () => {
+        // 20 visible tags and 3 same-day pushes to one project, plus a push to a hidden one.
         const tags = Array.from({ length: 20 }, (_, i) => ({
             id: `t${i}`, type: 'CreateEvent', repo: { name: 'chelebyy/ai-office' },
             payload: { ref_type: 'tag', ref: `v${i}` }, created_at: '2026-11-09T00:00:00Z',
@@ -135,7 +135,9 @@ describe('useGitHubData request budget and activity', () => {
 
         const { result } = renderHook(() => useGitHubData(config));
         await waitFor(() => expect(result.current.status).toBe('ready'));
-        expect(result.current.activity).toHaveLength(12);
+        // One line for ai-office (its newest event: the folded pushes); the hidden repo gets no fallback line.
+        expect(result.current.activity.map(log => `${log.repo} ${log.type} x${log.count} +${log.more}`))
+            .toEqual(['chelebyy/ai-office push x3 +20']);
         expect(result.current.activityHistory).toHaveLength(23);
         expect(result.current.activityHistory.some(log => log.repo === 'chelebyy/StokTakip')).toBe(false);
     });

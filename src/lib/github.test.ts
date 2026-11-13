@@ -99,7 +99,7 @@ describe('reposToProjects', () => {
 });
 
 describe('eventsToActivity', () => {
-    it('maps releases, tags, pushes and merges and folds same-day pushes to one repo', () => {
+    it('maps releases, tags, pushes and merged pull requests and drops other events', () => {
         const events = [
             { id: '1', type: 'PushEvent', repo: { name: 'chelebyy/a' }, payload: { ref: 'refs/heads/main' }, created_at: '2026-11-03T12:00:00Z' },
             { id: '2', type: 'PushEvent', repo: { name: 'chelebyy/a' }, payload: { ref: 'refs/heads/main' }, created_at: '2026-11-03T08:00:00Z' },
@@ -109,18 +109,31 @@ describe('eventsToActivity', () => {
             { id: '6', type: 'PullRequestEvent', repo: { name: 'chelebyy/b' }, payload: { action: 'opened', number: 7 }, created_at: '2026-09-02T00:00:00Z' },
             { id: '7', type: 'PullRequestEvent', repo: { name: 'chelebyy/b' }, payload: { action: 'merged', number: 7 }, created_at: '2026-09-01T00:00:00Z' },
         ];
-        const logs = summarizeActivity(eventsToActivity(events), []);
-        expect(logs.map(log => `${log.type}:${log.ref}`)).toEqual(['push:main', 'release:v1.0.0', 'tag:v2', 'merge:#7']);
-        expect(logs[0].count).toBe(2);
-        expect(logs[3].url).toBe('https://github.com/chelebyy/b/pull/7');
+        const logs = eventsToActivity(events);
+        expect(logs.map(log => `${log.type}:${log.ref}`)).toEqual(['push:main', 'push:main', 'release:v1.0.0', 'tag:v2', 'merge:#7']);
+        expect(logs[4].url).toBe('https://github.com/chelebyy/b/pull/7');
     });
 });
 
 describe('summarizeActivity', () => {
     const push = (id: string, repoName: string, ref: string, at: string) =>
         ({ id, type: 'PushEvent', repo: { name: repoName }, payload: { ref: `refs/heads/${ref}` }, created_at: at });
-    const merge = (id: string, number: number, at: string) =>
-        ({ id, type: 'PullRequestEvent', repo: { name: 'chelebyy/ai-office' }, payload: { action: 'merged', number }, created_at: at });
+    const merge = (id: string, number: number, at: string, repoName = 'chelebyy/ai-office') =>
+        ({ id, type: 'PullRequestEvent', repo: { name: repoName }, payload: { action: 'merged', number }, created_at: at });
+    const tag = (id: string, repoName: string, at: string) =>
+        ({ id, type: 'CreateEvent', repo: { name: repoName }, payload: { ref_type: 'tag', ref: id }, created_at: at });
+
+    it('shows one line per project: its newest event, and how many more it had', () => {
+        const logs = eventsToActivity([
+            push('1', 'chelebyy/ai-office', 'main', '2026-11-03T20:00:00Z'),
+            tag('t1', 'chelebyy/skills', '2026-11-03T18:00:00Z'),
+            push('2', 'chelebyy/ai-office', 'main', '2026-11-03T10:00:00Z'),
+            merge('m1', 4, '2026-11-02T10:00:00Z'),
+            tag('t0', 'chelebyy/skills', '2026-11-01T18:00:00Z'),
+        ]);
+        const lines = summarizeActivity(logs, []);
+        expect(lines.map(log => `${log.id}x${log.count ?? 1}+${log.more ?? 0}`)).toEqual(['1x2+1', 't1x1+1']);
+    });
 
     it('folds pushes to one repo on one day, even when a hidden repo pushed in between', () => {
         const logs = eventsToActivity([
@@ -130,18 +143,32 @@ describe('summarizeActivity', () => {
             push('4', 'chelebyy/ai-office', 'main', '2026-11-02T10:00:00Z'),
         ]);
         const visible = filterActivity(logs, [project('ai-office'), project('StokTakip')], config);
-        expect(summarizeActivity(visible, []).map(log => `${log.id}x${log.count}`)).toEqual(['1x2', '4x1']);
+        expect(summarizeActivity(visible, []).map(log => `${log.id}x${log.count}+${log.more}`)).toEqual(['1x2+1']);
     });
 
-    it('drops pushes to feature branches but keeps every merge', () => {
+    it('folds one day of merges into one line that lists every pull request and opens the merged list', () => {
         const logs = eventsToActivity([
             merge('m5', 5, '2026-11-02T12:00:00Z'),
             push('p1', 'chelebyy/ai-office', 'main', '2026-11-02T11:00:00Z'),
             merge('m4', 4, '2026-11-02T10:00:00Z'),
             push('p2', 'chelebyy/ai-office', 'claude/linux-support', '2026-11-02T09:00:00Z'),
             merge('m1', 1, '2026-11-02T08:00:00Z'),
+            merge('m0', 9, '2026-11-01T08:00:00Z'),
         ]);
-        expect(summarizeActivity(logs, []).map(log => log.id)).toEqual(['m5', 'p1', 'm4', 'm1']);
+        const [line, ...rest] = summarizeActivity(logs, []);
+        expect(rest).toEqual([]);
+        expect(`${line.id}x${line.count}`).toBe('m5x3');
+        // Every merged pull request stays listed on its line, newest first.
+        expect(line.refs).toEqual(['#5', '#4', '#1']);
+        expect(line.url).toBe('https://github.com/chelebyy/ai-office/pulls?q=is%3Apr+is%3Amerged');
+        // The main-branch push and the older merge are counted; the feature-branch push is not.
+        expect(line.more).toBe(2);
+    });
+
+    it('keeps a single merge on its own pull request link', () => {
+        const [line] = summarizeActivity(eventsToActivity([merge('m', 9, '2026-11-01T08:00:00Z')]), []);
+        expect(line.refs).toEqual(['#9']);
+        expect(line.url).toBe('https://github.com/chelebyy/ai-office/pull/9');
     });
 
     it('recognises a merged pull request in both event shapes GitHub sends', () => {
@@ -162,18 +189,23 @@ describe('summarizeActivity', () => {
         expect(summarizeActivity(logs, [projectWithDevelop]).map(log => log.id)).toEqual(['2']);
     });
 
-    it('fills the limit with lines, while later pushes still add to an existing line', () => {
-        const tags = Array.from({ length: 3 }, (_, i) => ({
-            id: `t${i}`, type: 'CreateEvent', repo: { name: 'chelebyy/ai-office' }, payload: { ref_type: 'tag', ref: `v${i}` }, created_at: '2026-11-03T09:00:00Z',
-        }));
-        const logs = eventsToActivity([
-            push('1', 'chelebyy/ai-office', 'main', '2026-11-03T12:00:00Z'),
-            ...tags,
-            push('2', 'chelebyy/ai-office', 'main', '2026-11-03T08:00:00Z'),
+    it('fills in projects without recent events from their last push, newest first, up to the limit', () => {
+        const logs = eventsToActivity([merge('m', 3, '2026-11-02T08:00:00Z', 'chelebyy/AI-Office')]);
+        const projects = [
+            project('ai-office', { pushedAt: '2026-11-05T00:00:00Z' }),
+            project('skills', { pushedAt: '2026-11-04T00:00:00Z', url: 'https://github.com/chelebyy/skills' }),
+            project('Depo', { pushedAt: '2024-01-01T00:00:00Z' }),
+            project('Intranet', { pushedAt: '2026-06-01T00:00:00Z' }),
+        ];
+        const lines = summarizeActivity(logs, projects, 3, 'chelebyy');
+        // ai-office keeps its real event (matched case-insensitively) instead of a fallback line.
+        expect(lines.map(log => `${log.type}:${log.repo}`)).toEqual([
+            'push:chelebyy/skills',
+            'merge:chelebyy/AI-Office',
+            'push:chelebyy/Intranet',
         ]);
-        const lines = summarizeActivity(logs, [], 3);
-        expect(lines.map(log => log.id)).toEqual(['1', 't0', 't1']);
-        expect(lines[0].count).toBe(2);
+        expect(lines[0]).toMatchObject({ timestamp: '2026-11-04T00:00:00Z', url: 'https://github.com/chelebyy/skills' });
+        expect(lines[0].ref).toBeUndefined();
     });
 });
 

@@ -59,6 +59,9 @@ const TypeBar: React.FC<{ logs: ActivityLog[]; lang: Language }> = ({ logs, lang
     );
 };
 
+/** Pull request numbers shown on a folded merge line; the ×count gives the total. */
+const MAX_REFS = 3;
+
 const Detail: React.FC<{ log: ActivityLog }> = ({ log }) => {
     if (log.type === 'push') {
         if (!log.ref) return null;
@@ -73,6 +76,17 @@ const Detail: React.FC<{ log: ActivityLog }> = ({ log }) => {
         );
     }
     if (log.type === 'create') return null;
+    if (log.type === 'merge' && log.refs && log.refs.length > 1) {
+        return (
+            <span className="flex min-w-0 items-center gap-2">
+                <span className="truncate text-[var(--c)]">
+                    {log.refs.slice(0, MAX_REFS).join(' ')}
+                    {log.refs.length > MAX_REFS ? ' …' : ''}
+                </span>
+                <span className="shrink-0 text-gray-500">×{log.refs.length}</span>
+            </span>
+        );
+    }
 
     const message = log.type === 'release' && log.message !== log.ref ? log.message : '';
     if (!log.ref && !message) return null;
@@ -138,6 +152,12 @@ const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, history = logs,
                                     </span>
                                     <span className="relative col-span-2 flex min-w-0 items-center empty:hidden md:col-span-1 md:empty:flex">
                                         <Detail log={log} />
+                                        {log.more ? (
+                                            <span className="ml-auto shrink-0 pl-3 text-[11px] text-gray-500" title={t.activityMore(log.more)}>
+                                                <span aria-hidden="true">+{log.more}</span>
+                                                <span className="sr-only">{t.activityMore(log.more)}</span>
+                                            </span>
+                                        ) : null}
                                     </span>
                                 </a>
                             </li>

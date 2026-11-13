@@ -115,9 +115,12 @@ const Hero: React.FC<HeroProps> = (props) => {
             />
             <div className="relative mx-auto grid max-w-[1440px] items-center gap-12 px-6 py-16 md:px-12 md:py-24 lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)] lg:gap-16">
                 <div className="flex flex-col gap-7">
-                    <p className="font-mono text-sm text-gray-500">
-                        <span className="text-primary-text">$</span> {t.systemReady}
-                    </p>
+                    <div className="font-mono text-sm">
+                        <p className="text-gray-500">
+                            <span className="text-primary-text">$</span> {t.systemReady}
+                        </p>
+                        <p className="mt-1.5 text-gray-300">{t.heroIntro}</p>
+                    </div>
 
                     <h1 className="max-w-2xl border-l-2 border-primary pl-5 text-2xl font-semibold leading-snug tracking-tight text-white md:pl-7 md:text-4xl md:leading-tight">
                         {t.heroSub.split('\n').map((line, index, lines) => (

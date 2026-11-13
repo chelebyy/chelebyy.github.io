@@ -26,3 +26,60 @@ describe('ActivityLogList summaries', () => {
         expect(items).toContain('push4');
     });
 });
+
+describe('ActivityLogList merge lines', () => {
+    it('lists every pull request folded into a merge line', () => {
+        const merged: ActivityLog = {
+            id: 'm',
+            timestamp: daysAgo(1),
+            type: 'merge',
+            repo: 'chelebyy/ai-office',
+            ref: '#5',
+            message: '#5',
+            url: 'https://github.com/chelebyy/ai-office/pull/5',
+            count: 3,
+            refs: ['#5', '#4', '#1'],
+        };
+        render(<ActivityLogList logs={[merged]} lang="en" />);
+
+        const line = screen.getByRole('link');
+        expect(line.textContent).toContain('#5 #4 #1');
+        expect(line.textContent).toContain('×3');
+    });
+
+    it('shows at most three pull request numbers and the total count', () => {
+        const merged: ActivityLog = {
+            id: 'm',
+            timestamp: daysAgo(1),
+            type: 'merge',
+            repo: 'chelebyy/ai-office',
+            ref: '#5',
+            message: '#5',
+            url: 'https://github.com/chelebyy/ai-office/pulls?q=is%3Apr+is%3Amerged',
+            count: 5,
+            refs: ['#5', '#4', '#3', '#2', '#1'],
+        };
+        render(<ActivityLogList logs={[merged]} lang="en" />);
+
+        const line = screen.getByRole('link');
+        expect(line.textContent).toContain('#5 #4 #3 …');
+        expect(line.textContent).not.toContain('#2');
+        expect(line.textContent).toContain('×5');
+    });
+});
+
+describe('ActivityLogList one line per project', () => {
+    it('says how many more events the project had', () => {
+        render(<ActivityLogList logs={[{ ...push('a', 1), count: 2, more: 4 }]} lang="en" />);
+
+        const line = screen.getByRole('link');
+        expect(line.textContent).toContain('+4');
+        expect(line.textContent).toContain('4 more events');
+    });
+
+    it('shows no extra count when the line is the only event', () => {
+        render(<ActivityLogList logs={[{ ...push('a', 1), more: 0 }]} lang="tr" />);
+
+        expect(screen.getByRole('link').textContent).not.toContain('+');
+    });
+});

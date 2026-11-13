@@ -28,8 +28,12 @@ export interface ActivityLog {
   ref?: string;
   message: string;
   url: string;
-  /** Number of pushes folded into this line (same repo, branch and day). */
+  /** Number of events folded into this line: pushes (same repo, branch and day) or merges (same repo and day). */
   count?: number;
+  /** Pull request numbers of every merge folded into this line, newest first. */
+  refs?: string[];
+  /** Other events of the same project that this line stands in for (one line per project). */
+  more?: number;
 }
 
 export interface GitHubUser {

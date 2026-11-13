@@ -131,38 +131,80 @@ export const eventsToActivity = (events: unknown): ActivityLog[] => {
 
 /**
  * Turns the visible event history into the lines the activity list shows; run after filtering.
- * Releases, tags, merges and new repositories always stay. Pushes count only on the repository's
- * default branch (feature-branch work shows up as its merge), and all pushes to one repository
- * on one day fold into a single line that carries the count.
+ * Pushes count only on the repository's default branch (feature-branch work shows up as its
+ * merge). Pushes to one repository and branch on one day fold into one line with a count; merges
+ * to one repository on one day fold the same way and keep every pull request number in `refs`.
+ *
+ * Each project then gets one line, its newest, with `more` counting its other events, so one busy
+ * repository cannot fill the list. Projects with no recent event get a line from their last push
+ * (`pushedAt`, no branch). Lines are sorted newest first and cut to `limit`.
  */
-export const summarizeActivity = (logs: ActivityLog[], projects: Project[], limit = 12): ActivityLog[] => {
+export const summarizeActivity = (logs: ActivityLog[], projects: Project[], limit = 6, owner = ''): ActivityLog[] => {
+    const repoName = (repo: string) => normalize(repo.split('/')[1] ?? repo);
     const defaults = new Map(projects.map(project => [normalize(project.name), project.defaultBranch ?? null]));
     const isDefaultBranch = (log: ActivityLog): boolean => {
         if (!log.ref) return false;
-        const known = defaults.get(normalize(log.repo.split('/')[1] ?? ''));
+        const known = defaults.get(repoName(log.repo));
         // Data cached before default branches were stored: fall back to the usual names.
         return known ? log.ref === known : log.ref === 'main' || log.ref === 'master';
     };
 
-    const result: ActivityLog[] = [];
-    const pushLines = new Map<string, number>();
+    const lines: ActivityLog[] = [];
+    const foldedLines = new Map<string, number>();
+    const eventsPerRepo = new Map<string, number>();
     for (const log of logs) {
-        if (log.type === 'push') {
-            if (!isDefaultBranch(log)) continue;
-            const key = `${normalize(log.repo)}|${log.ref}|${log.timestamp.slice(0, 10)}`;
-            const index = pushLines.get(key);
-            if (index !== undefined) {
-                result[index] = { ...result[index], count: (result[index].count ?? 1) + 1 };
-                continue;
-            }
-            if (result.length >= limit) continue;
-            pushLines.set(key, result.length);
-            result.push({ ...log, count: 1 });
+        if (log.type === 'push' && !isDefaultBranch(log)) continue;
+        eventsPerRepo.set(repoName(log.repo), (eventsPerRepo.get(repoName(log.repo)) ?? 0) + 1);
+        if (log.type !== 'push' && log.type !== 'merge') {
+            lines.push(log);
             continue;
         }
-        if (result.length < limit) result.push(log);
+
+        const day = log.timestamp.slice(0, 10);
+        const key = log.type === 'push' ? `push|${normalize(log.repo)}|${log.ref}|${day}` : `merge|${normalize(log.repo)}|${day}`;
+        const index = foldedLines.get(key);
+        if (index !== undefined) {
+            const line = lines[index];
+            lines[index] = {
+                ...line,
+                count: (line.count ?? 1) + 1,
+                // One link cannot open every folded pull request; point at the repository's merged list.
+                ...(log.type === 'merge' && log.ref
+                    ? { refs: [...(line.refs ?? []), log.ref], url: `https://github.com/${log.repo}/pulls?q=is%3Apr+is%3Amerged` }
+                    : {}),
+            };
+            continue;
+        }
+        foldedLines.set(key, lines.length);
+        lines.push({ ...log, count: 1, ...(log.type === 'merge' && log.ref ? { refs: [log.ref] } : {}) });
     }
-    return result;
+
+    // History is newest first, so the first line seen for a repository is its newest.
+    const result: ActivityLog[] = [];
+    const shown = new Set<string>();
+    for (const line of lines) {
+        const name = repoName(line.repo);
+        if (shown.has(name)) continue;
+        shown.add(name);
+        result.push({ ...line, more: (eventsPerRepo.get(name) ?? 1) - (line.count ?? 1) });
+    }
+    for (const project of projects) {
+        if (shown.has(normalize(project.name))) continue;
+        shown.add(normalize(project.name));
+        result.push({
+            id: `pushed-${project.id}`,
+            timestamp: project.pushedAt,
+            type: 'push',
+            repo: owner ? `${owner}/${project.name}` : project.name,
+            message: '',
+            url: project.url,
+            count: 1,
+            more: 0,
+        });
+    }
+    return result
+        .sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp))
+        .slice(0, limit);
 };
 
 export const pickUser = (user: unknown): GitHubUser | null => {

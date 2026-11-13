@@ -59,6 +59,9 @@ const TypeBar: React.FC<{ logs: ActivityLog[]; lang: Language }> = ({ logs, lang
     );
 };
 
+/** Pull request numbers shown on a folded merge line; the ×count gives the total. */
+const MAX_REFS = 3;
+
 const Detail: React.FC<{ log: ActivityLog }> = ({ log }) => {
     if (log.type === 'push') {
         if (!log.ref) return null;
@@ -76,7 +79,10 @@ const Detail: React.FC<{ log: ActivityLog }> = ({ log }) => {
     if (log.type === 'merge' && log.refs && log.refs.length > 1) {
         return (
             <span className="flex min-w-0 items-center gap-2">
-                <span className="truncate text-[var(--c)]">{log.refs.join(' ')}</span>
+                <span className="truncate text-[var(--c)]">
+                    {log.refs.slice(0, MAX_REFS).join(' ')}
+                    {log.refs.length > MAX_REFS ? ' …' : ''}
+                </span>
                 <span className="shrink-0 text-gray-500">×{log.refs.length}</span>
             </span>
         );

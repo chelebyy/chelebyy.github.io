@@ -147,6 +147,9 @@ describe('summarizeActivity', () => {
         // Every merged pull request stays listed on its line, newest first.
         expect(lines[0].refs).toEqual(['#5', '#4', '#1']);
         expect(lines[2].refs).toEqual(['#9']);
+        // A folded line opens the repository's merged pull requests; a single merge keeps its own link.
+        expect(lines[0].url).toBe('https://github.com/chelebyy/ai-office/pulls?q=is%3Apr+is%3Amerged');
+        expect(lines[2].url).toBe('https://github.com/chelebyy/ai-office/pull/9');
     });
 
     it('keeps merges to different repositories on separate lines', () => {

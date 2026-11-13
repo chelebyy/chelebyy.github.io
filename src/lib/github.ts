@@ -162,7 +162,10 @@ export const summarizeActivity = (logs: ActivityLog[], projects: Project[], limi
             result[index] = {
                 ...line,
                 count: (line.count ?? 1) + 1,
-                ...(log.type === 'merge' && log.ref ? { refs: [...(line.refs ?? []), log.ref] } : {}),
+                // One link cannot open every folded pull request; point at the repository's merged list.
+                ...(log.type === 'merge' && log.ref
+                    ? { refs: [...(line.refs ?? []), log.ref], url: `https://github.com/${log.repo}/pulls?q=is%3Apr+is%3Amerged` }
+                    : {}),
             };
             continue;
         }

@@ -46,4 +46,24 @@ describe('ActivityLogList merge lines', () => {
         expect(line.textContent).toContain('#5 #4 #1');
         expect(line.textContent).toContain('×3');
     });
+
+    it('shows at most three pull request numbers and the total count', () => {
+        const merged: ActivityLog = {
+            id: 'm',
+            timestamp: daysAgo(1),
+            type: 'merge',
+            repo: 'chelebyy/ai-office',
+            ref: '#5',
+            message: '#5',
+            url: 'https://github.com/chelebyy/ai-office/pulls?q=is%3Apr+is%3Amerged',
+            count: 5,
+            refs: ['#5', '#4', '#3', '#2', '#1'],
+        };
+        render(<ActivityLogList logs={[merged]} lang="en" />);
+
+        const line = screen.getByRole('link');
+        expect(line.textContent).toContain('#5 #4 #3 …');
+        expect(line.textContent).not.toContain('#2');
+        expect(line.textContent).toContain('×5');
+    });
 });

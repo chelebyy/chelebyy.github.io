@@ -133,7 +133,8 @@ export const eventsToActivity = (events: unknown): ActivityLog[] => {
  * Turns the visible event history into the lines the activity list shows; run after filtering.
  * Releases, tags, merges and new repositories always stay. Pushes count only on the repository's
  * default branch (feature-branch work shows up as its merge), and all pushes to one repository
- * on one day fold into a single line that carries the count.
+ * on one day fold into a single line that carries the count. Merges to one repository on one day
+ * fold the same way and keep every pull request number in `refs`.
  */
 export const summarizeActivity = (logs: ActivityLog[], projects: Project[], limit = 12): ActivityLog[] => {
     const defaults = new Map(projects.map(project => [normalize(project.name), project.defaultBranch ?? null]));
@@ -145,22 +146,29 @@ export const summarizeActivity = (logs: ActivityLog[], projects: Project[], limi
     };
 
     const result: ActivityLog[] = [];
-    const pushLines = new Map<string, number>();
+    const foldedLines = new Map<string, number>();
     for (const log of logs) {
-        if (log.type === 'push') {
-            if (!isDefaultBranch(log)) continue;
-            const key = `${normalize(log.repo)}|${log.ref}|${log.timestamp.slice(0, 10)}`;
-            const index = pushLines.get(key);
-            if (index !== undefined) {
-                result[index] = { ...result[index], count: (result[index].count ?? 1) + 1 };
-                continue;
-            }
-            if (result.length >= limit) continue;
-            pushLines.set(key, result.length);
-            result.push({ ...log, count: 1 });
+        if (log.type === 'push' && !isDefaultBranch(log)) continue;
+        if (log.type !== 'push' && log.type !== 'merge') {
+            if (result.length < limit) result.push(log);
             continue;
         }
-        if (result.length < limit) result.push(log);
+
+        const day = log.timestamp.slice(0, 10);
+        const key = log.type === 'push' ? `push|${normalize(log.repo)}|${log.ref}|${day}` : `merge|${normalize(log.repo)}|${day}`;
+        const index = foldedLines.get(key);
+        if (index !== undefined) {
+            const line = result[index];
+            result[index] = {
+                ...line,
+                count: (line.count ?? 1) + 1,
+                ...(log.type === 'merge' && log.ref ? { refs: [...(line.refs ?? []), log.ref] } : {}),
+            };
+            continue;
+        }
+        if (result.length >= limit) continue;
+        foldedLines.set(key, result.length);
+        result.push({ ...log, count: 1, ...(log.type === 'merge' && log.ref ? { refs: [log.ref] } : {}) });
     }
     return result;
 };

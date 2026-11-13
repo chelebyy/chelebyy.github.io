@@ -73,6 +73,14 @@ const Detail: React.FC<{ log: ActivityLog }> = ({ log }) => {
         );
     }
     if (log.type === 'create') return null;
+    if (log.type === 'merge' && log.refs && log.refs.length > 1) {
+        return (
+            <span className="flex min-w-0 items-center gap-2">
+                <span className="truncate text-[var(--c)]">{log.refs.join(' ')}</span>
+                <span className="shrink-0 text-gray-500">×{log.refs.length}</span>
+            </span>
+        );
+    }
 
     const message = log.type === 'release' && log.message !== log.ref ? log.message : '';
     if (!log.ref && !message) return null;

@@ -133,15 +133,29 @@ describe('summarizeActivity', () => {
         expect(summarizeActivity(visible, []).map(log => `${log.id}x${log.count}`)).toEqual(['1x2', '4x1']);
     });
 
-    it('drops pushes to feature branches but keeps every merge', () => {
+    it('drops pushes to feature branches and folds one day of merges to a repo into one line', () => {
         const logs = eventsToActivity([
             merge('m5', 5, '2026-11-02T12:00:00Z'),
             push('p1', 'chelebyy/ai-office', 'main', '2026-11-02T11:00:00Z'),
             merge('m4', 4, '2026-11-02T10:00:00Z'),
             push('p2', 'chelebyy/ai-office', 'claude/linux-support', '2026-11-02T09:00:00Z'),
             merge('m1', 1, '2026-11-02T08:00:00Z'),
+            merge('m0', 9, '2026-11-01T08:00:00Z'),
         ]);
-        expect(summarizeActivity(logs, []).map(log => log.id)).toEqual(['m5', 'p1', 'm4', 'm1']);
+        const lines = summarizeActivity(logs, []);
+        expect(lines.map(log => `${log.id}x${log.count}`)).toEqual(['m5x3', 'p1x1', 'm0x1']);
+        // Every merged pull request stays listed on its line, newest first.
+        expect(lines[0].refs).toEqual(['#5', '#4', '#1']);
+        expect(lines[2].refs).toEqual(['#9']);
+    });
+
+    it('keeps merges to different repositories on separate lines', () => {
+        const logs = eventsToActivity([
+            merge('a', 2, '2026-11-02T12:00:00Z'),
+            { id: 'b', type: 'PullRequestEvent', repo: { name: 'chelebyy/skills' }, payload: { action: 'merged', number: 3 }, created_at: '2026-11-02T11:00:00Z' },
+            merge('c', 1, '2026-11-02T10:00:00Z'),
+        ]);
+        expect(summarizeActivity(logs, []).map(log => `${log.id}x${log.count}`)).toEqual(['ax2', 'bx1']);
     });
 
     it('recognises a merged pull request in both event shapes GitHub sends', () => {

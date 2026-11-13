@@ -26,3 +26,24 @@ describe('ActivityLogList summaries', () => {
         expect(items).toContain('push4');
     });
 });
+
+describe('ActivityLogList merge lines', () => {
+    it('lists every pull request folded into a merge line', () => {
+        const merged: ActivityLog = {
+            id: 'm',
+            timestamp: daysAgo(1),
+            type: 'merge',
+            repo: 'chelebyy/ai-office',
+            ref: '#5',
+            message: '#5',
+            url: 'https://github.com/chelebyy/ai-office/pull/5',
+            count: 3,
+            refs: ['#5', '#4', '#1'],
+        };
+        render(<ActivityLogList logs={[merged]} lang="en" />);
+
+        const line = screen.getByRole('link');
+        expect(line.textContent).toContain('#5 #4 #1');
+        expect(line.textContent).toContain('×3');
+    });
+});

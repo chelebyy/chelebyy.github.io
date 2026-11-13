@@ -33,6 +33,7 @@ export const siteConfig = {
             'Birden fazla kodlama ajanını yan yana çalıştırmak için Herdr düzeni: göstergeler, kota, önceliğe göre ajanlar, takım nabzı, görev ön ayarları ve takım modu, Android ve kaynak panelleri. Türkçe/İngilizce arayüz.',
         'ai-office':
             'Codex oturumlarını ve ajanlarını sanal bir ofiste çalışırken izle. Masaüstü tarayıcı arayüzü; Windows ve Linux (Ubuntu/WSL) üzerinde denendi. macOS ve diğer LLM\'ler denenmedi. MIT.',
+        arackiralama: 'Araç kiralama platformu.',
         skills:
             'Pratik yazılım geliştirme için ajan becerileri: projeye duyarlı test, güvenlik, GitHub CI ve depo yönetişimi ile başlıyor.',
     } as Record<string, string>,
